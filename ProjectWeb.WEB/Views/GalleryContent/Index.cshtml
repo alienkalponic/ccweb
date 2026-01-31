@@ -1,0 +1,104 @@
+@{
+    ViewData["Title"] = "Gallery";
+}
+
+<link rel="stylesheet" href="~/Assets/Css/gallery.css" />
+
+<!-- Gallery Header -->
+<div class="gallery-header">
+    <div class="container">
+        <h1 class="gallery-title">Our Gallery</h1>
+        <p class="gallery-subtitle">Explore our collection of memorable moments and achievements</p>
+    </div>
+</div>
+
+<!-- Gallery Grid -->
+<div class="container gallery-container">
+    <div class="gallery-grid">
+        
+        <!-- Gallery Album 1 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1036/600/400" alt="Adventure Gallery">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Adventure Gallery</h3>
+                        <p>12 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Album 2 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1015/600/400" alt="Team Events">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Team Events</h3>
+                        <p>18 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 2 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Album 3 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1016/600/400" alt="Training Sessions">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Training Sessions</h3>
+                        <p>24 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 3 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Album 4 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1026/600/400" alt="Competitions">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Competitions</h3>
+                        <p>30 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Album 5 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1018/600/400" alt="Outdoor Activities">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Outdoor Activities</h3>
+                        <p>15 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 5 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Album 6 -->
+        <div class="gallery-card">
+            <div class="gallery-card-image">
+                <img src="https://picsum.photos/id/1019/600/400" alt="Workshops">
+                <div class="gallery-overlay">
+                    <div class="gallery-overlay-content">
+                        <h3>Workshops</h3>
+                        <p>20 Photos</p>
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 6 })" class="gallery-btn">View Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

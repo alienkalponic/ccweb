@@ -1,0 +1,140 @@
+﻿
+@media screen and (max-width:320px) {
+    a.navbar-brand.brand-logo {
+        padding: 5px 66px !important;
+    }
+
+    li.text-CSR-application {
+        padding: 0px 60px !important;
+    }
+    .nav .nav-item {
+    padding-left: 0px !important;
+}
+    .sidebar{width: 320px !important;
+    top: 40px !important;}
+}
+@media screen and (min-width:321px) and (max-width:375px){
+     .profile_img_Box {left: 32% !important;}
+     .profile_buttonBC {padding: 55px 85px !important;}
+     .content-wrapper .row {
+    margin-left: 0px !important;}
+      .sidebar{width: 320px !important;
+    top: 50px !important;}
+    
+}
+ @media screen and (max-width:576px){
+      .pending_approval_main_panleBox {width: 100% !important;
+    margin: auto;
+    padding: 1em;}
+     .pending_approval_main_panleBox>.approval_contentBox, .panding_approval_left_panle>.panding_countBox {
+    width: 100% !important;
+    min-height: 90px;
+    margin: 10px 0px !important;
+    background: #eaecef;}
+     .pending_approvalBox_2 {width: 100% !important;
+    min-height: 308px;
+    margin: 0px auto !important;
+    padding: 10px 0px !important;}
+     .panding_approval_left_panle {
+    width: 100% !important;
+    min-height: 100px;
+    padding: 1em !important;}
+    #padding_count2 {width: 100% !important;
+    margin: 10px 0px !important;}
+    .panding_approval_right_panle {
+    width: 100% !important;
+    padding: 1em !important;
+    min-height: 375px;}
+       .form_profile_div{height: 850px !important;} 
+       .profile_coverBC h3{text-align:center;}
+       .main-panel{top:80px !important}
+
+ }
+ @media screen and (max-width:425px){
+     .responsive_logo{display:block !important;}
+     .side_profile_backgroundMain {
+        position: static !important;
+        left: 0px;
+        top: 0px;} 
+     .header_top img {
+    width: 18%;
+    display: block;}
+     .responsive_logo{width: 7%;
+    margin: 3px;}
+     /*.navigation_toggle_button{
+    box-shadow: 2px 3px 3px #444;
+    min-height: 30px;
+    width: 100%;
+    background: #fff;}*/
+  
+     .navigation_toggle_button>button{cursor:pointer !important;}
+   
+ }
+ /*responsive Css*/
+ @media screen and (min-width:320px) and (max-width:575px){
+      .mar_bot_10{margin-top:10px;}
+    /*.sidebar-offcanvas {
+            top: 33px !important;
+    }*/
+   .pd_details_box {
+    float: initial !important;
+    margin: 5px 2px !important;
+    padding: 10px 8px !important;
+}
+   .navigation_toggle_button{ top: 0px;
+    box-shadow: 2px 3px 3px #444;
+    min-height: 30px;
+    background: #fff;
+    position: fixed;
+    right: 10px;
+    z-index: 999;}
+ }
+@media screen and (min-width:768px) and (max-width:1024px) {
+    .pending_approval_main_panleBox > .approval_contentBox, .panding_approval_left_panle > div > .panding_countBox {
+        width: 14% !important;
+        min-height: 45px;
+    }
+    .pending_approval_main_panleBox > .approval_contentBox{
+        width: 14% !important;
+        min-height: 45px;
+    }
+    .approval_leftBox p {
+    font-size: 10px !important;
+    white-space: inherit !important;}
+    .approval_rightBox{padding:10px 0px !important;}
+   #pendingTaskList > .panding_countBox{width: 11% !important;}
+    .right_quick_navigation {padding: 10px 2px !important;}
+    .pd_details_box {
+    float: left; 
+    margin: 5px 6px !important;
+    line-height: 20px;
+    padding: 10px 8px;}
+    label {font-size: 10px !important;}
+    h3.registered_heading{font-size: 14px;}
+    .form-control {font-size: 10px;}
+    div#View_Compliance_Doc {
+    overflow-x: auto;
+}
+    tr th,tr td {
+    font-size: 11px !important;
+}
+    .form-control {
+        font-size: 10px !important;
+    }
+    .breadcrumb_ul li a {
+    font-size: 11px;}
+    .nav .nav-link-item {font-size: 12px;}
+    .right_quick_navigation h3 {font-size: 15px;}
+
+
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      }

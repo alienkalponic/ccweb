@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html>
+@{Html.RenderPartial("Admin_Header"); }
+
+
+<body class="">
+    @*<div class="nav_overlay"> </div>
+        <div class="load_overlay"> </div>*@
+    <div class="msg_panel error_msg Header_TopMsg"></div>
+    <section id="container">
+        @{Html.RenderPartial("Admin_TopHeader");}
+        @{Html.RenderPartial("Admin_partialLeftSidebar");}
+
+        @RenderBody()
+
+        @{Html.RenderPartial("Admin_partialRightSidebar");}
+        @*@{Html.RenderPartial("~/Views/LayoutPages/_partialFooter.cshtml");}*@
+    </section>
+
+</body>
+
+
+@{ Html.RenderPartial("_Script");}
+</html>

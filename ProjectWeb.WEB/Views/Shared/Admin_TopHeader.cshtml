@@ -1,0 +1,53 @@
+﻿@using System.Security.Claims
+<!--header start-->
+<header class="header fixed-top clearfix">
+
+    <!--logo start-->
+    <div class="brand">
+        <a href="@Url.Content("~/Dashboard")" class="logo">
+            @*<img src="@Url.Content("~/images/logo.png")" alt="">*@
+            Climbers' Circle
+        </a>
+        <div class="sidebar-toggle-box">
+            <div class="fa fa-bars"></div>
+        </div>
+    </div>
+    <!--logo end-->
+    <div class="nav notify-row" id="top_menu">
+        <!--  notification start -->
+        <!--  notification end -->
+    </div>
+    <div class="top-nav clearfix">
+        <!--search & user info start-->
+        <ul class="nav pull-right top-menu">
+
+            <li class="">
+
+                <a data-toggle="dropdown" class="dropdown-toggle" href="javascript:void(0);">
+
+
+
+                    <img alt="" src="@Url.Content("~/Assets/WithLogin/images/dashboard_logo.png")">
+                    <span class="username">
+                        @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
+                    </span>
+
+
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu extended logout">
+                    <li id="idProfile"><a href="@Url.Content("~/Admin/AdminProfile")"><i class=" fa fa-suitcase"></i>Profile</a></li>
+                    @*<li><a href="javascript:void(0);"><i class="fa fa-cog"></i> Settings</a></li>*@
+                    <li><a href="@Url.Content("~/Userauthentication/logout")"><i class="fa fa-key"></i> Log Out</a></li>
+                </ul>
+            </li>
+            <!-- user login dropdown end -->
+            @*<li>
+                <div class="toggle-right-box">
+                    <div class="fa fa-bars"></div>
+                </div>
+            </li>*@
+        </ul>
+        <!--search & user info end-->
+    </div>
+</header>

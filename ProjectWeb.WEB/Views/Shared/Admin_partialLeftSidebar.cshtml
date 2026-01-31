@@ -1,0 +1,423 @@
+﻿@using System.Security.Claims
+@{
+    /**/
+
+    
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+}
+<style>
+    .sub1 {
+        padding-left: 3px;
+    }
+
+    .sub {
+        display: none;
+    }
+
+        .sub.open {
+            display: block;
+        }
+</style>
+<!--Leftsidebar start-->
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME=="2")
+{
+    <aside>
+        <div id="sidebar" class="nav-collapse">
+            <!-- sidebar menu start-->
+            <div class="leftside-navigation">
+                <ul class="sidebar-menu" id="nav-accordion">
+                    <li>
+                        <a class="pos active" id="dashBar" href="@Url.Content("~/Admin/Dashboard")">
+                            <i class="fa fa-dashboard"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="sub-menu">
+                        <a class="pos" id="Con_cms" href="javascript:void(0);">
+                            <i class="fa fa-file"></i>
+                            <span>Content Management</span>
+                        </a>
+                        <ul class="sub" id="conmgmt">
+
+                            <li>
+                                <a class="pos" id="idSubHome" href="javascript:void(0);">
+                                    <i class="fa fa-home"></i>
+                                    <span>Home</span>
+                                </a>
+                                <ul class="sub" id="HomeSubid">
+                                    <li class="sub-menu sub1" id="idHomeBanner">
+                                        <a href="@Url.Content("~/Admin/home_banner")">
+                                            <i class="fa fa-picture-o"></i>
+                                            <span class="sub1">Banner</span>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+
+                            <li>
+                                <a class="pos" id="idSubEmployer" href="javascript:void(0);">
+                                    <i class="fa fa-medkit"></i>
+                                    <span>Diagnostic Service</span>
+                                </a>
+                                <ul class="sub" id="diagnosticservice">
+                                    <li class="sub-menu sub1">
+                                        <a class="pos" id="diagnostic_banner" href="">
+                                            <i class="fa fa-picture-o"></i>
+                                            <span>Main</span>
+                                        </a>
+                                        <ul class="sub" id="diagnosticservice">
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticServiceBanner")">
+                                                    <i class=""></i>
+                                                    <span>Banner</span>
+                                                </a>
+                                            </li>
+
+
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticServiceType")">
+                                                    <i class=""></i>
+                                                    <span>Service Type</span>
+                                                </a>
+                                            </li>
+
+
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_banner" href="">
+                                                    <i class=""></i>
+                                                    <span>Sub-Type</span>
+                                                </a>
+                                                <ul class="sub" id="diagnosticservicesubtype">
+                                                    <li class="sub-menu sub1">
+                                                        <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticSubContent")">
+                                                            <i class=""></i>
+                                                            <span>SubContent Section</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="sub-menu sub1">
+                                                        <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticServiceOtherContent")">
+                                                            <i class=""></i>
+                                                            <span>Other Section</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="sub-menu sub1">
+                                        <a class="pos" id="diagnostic_section" href="">
+                                            <i class="fa fa-list"></i>
+                                            <span>DiagnosticServicse Details</span>
+                                        </a>
+                                        <ul class="sub" id="diagnosticdetails">
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_banner" href="@Url.Content("~/Admin/DiagnosticServicesDetails")">
+                                                    <i class=""></i>
+                                                    <span>Banner</span>
+                                                </a>
+                                            </li>
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticSecOneDetails")">
+                                                    <i class=""></i>
+                                                    <span>Section One</span>
+                                                </a>
+                                            </li>
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_section" href="">
+                                                    <i class=""></i>
+                                                    <span>Section Two</span>
+                                                </a>
+                                                <ul class="sub" id="diagnosticdetails">
+                                                    <li class="sub-menu sub1">
+                                                        <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticPatchTestDetails")">
+                                                            <i class=""></i>
+                                                            <span>Patch Test</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="sub-menu sub1">
+                                                        <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticOtherMenuDetails")">
+                                                            <i class=""></i>
+                                                            <span>Other Menu</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li class="sub-menu sub1">
+                                                <a class="pos" id="diagnostic_section" href="@Url.Content("~/Admin/DiagnosticSecThreeDetails")">
+                                                    <i class=""></i>
+                                                    <span>Section Three</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+
+
+                                </ul>
+
+                            </li>
+
+                            
+
+
+
+                            <li class="sub-menu">
+                                <a class="pos" id="idSkinConcerns" href="@Url.Content("~/Admin/SkinConcernsBlog")">
+                                    <i class="fa fa-heart"></i>
+                                    <span>Skin Concerns</span>
+                                </a>
+
+                            </li>
+
+                            <li class="sub-menu">
+                                <a class="pos" id="idPrivacy" href="@Url.Content("~/Admin/Blog")">
+                                    <i class="fa fa-file-pdf-o"></i>
+                                    <span>Blog</span>
+                                </a>
+                                
+                            </li>
+
+
+                            
+                        </ul>
+                    </li>
+
+                    <li class="sub-menu">
+                        <a class="pos" id="Emp_Mng" href="javascript:void(0);">
+                            <i class="fa fa-user"></i>
+                            <span>User Management</span>
+                        </a>
+                        <ul class="sub" id="emsubid">
+                            <li id="idNewAdministrator">
+                                <a href="@Url.Content("~/Admin/user_management")">
+                                    <i class="fa fa-male"></i>
+                                    User
+                                </a>
+                            </li>
+                            <li id="NewSubuser">
+                                <a href="#">
+                                    <i class="fa fa-address-book"></i>
+                                    User Role
+                                </a>
+                            </li>
+                            <li id="NewSubuser">
+                                <a href="@Url.Content("~/Admin/ExcelExport")">
+                                    <i class="fa fa-address-book"></i>
+                                    Excel Export
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li id="EmailManagement">
+                        <a class="pos" href="@Url.Content("~/Admin/email-management")">
+                            <i class="fa fa-mail-reply-all"></i>
+                            Email Management
+                        </a>
+                    </li>
+
+                    <li class="sub-menu">
+                        <a class="pos" id="JobSeek_Mng" href="@Url.Content("~/Jobseeker")">
+                            <i class="fa fa-first-order"></i>
+                            <span>Order Management</span>
+                        </a>
+                        <ul class="sub" id="emsubid">
+                            <li class="sub-menu sub1">
+                                <a class="pos" id="promotional_code" href="@Url.Content("~/Admin/PromotionalCodeDetails")">
+                                    <i class="fa fa-gift"></i>
+                                    <span>Promotional Code</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+
+
+                    <li>
+                        <a class="pos" id="JobMng" href="#">
+                            <i class="fa fa-briefcase"></i>
+                            <span>Product Management</span>
+                        </a>
+                        <ul class="sub" id="jbmsubid">
+                            <li class="sub-menu sub1" id="idNewJobActive">
+                                <a class="pos" href="@Url.Content("~/Admin/ProductBrand")">
+                                    <i class="fa fa-500px"></i>
+                                    Brand
+                                </a>
+                            </li>
+
+                            <li class="sub-menu sub1" id="idIndustry">
+                                <a href="@Url.Content("~/Admin/Products")">
+                                    <i class="fa fa-product-hunt"></i>
+                                    Product
+                                </a>
+                            </li>
+
+                            <li class="sub-menu sub1" id="JobCategory">
+                                <a href="@Url.Content("~/Admin/ProductCategory")">
+                                    <i class="fa fa-list-alt"></i>
+                                    Product Category
+                                </a>
+                            </li>
+
+                            <li class="sub-menu sub1" id="JobCategory">
+                                <a href="@Url.Content("~/Admin/RecommendedProducts")">
+                                    <i class="fa fa-thumbs-up"></i>
+                                    Recommended Products
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+
+                    <!--------------------02.02.2023 Dev 4 start------------------------>
+                    <li class="sub-menu">
+                        <a class="pos" id="Locbar" href="@Url.Content("~/Admin/faq-management")">
+                            <i class="fa fa-question-circle"></i>
+                            <span>FAQ Management</span>
+                        </a>
+                    </li>
+                    <!--------------------02.02.2023 Dev 4 End------------------------>
+
+                    <li class="sub-menu">
+
+                        <a class="pos" id="Pkg_Mng" href="javascript:void(0);">
+                            <i class="fa fa-smile-o"></i>
+                            <span>Patch Test Management</span>
+                        </a>
+                        @*<ul class="sub" id="packagemanagementsubid">
+                                <li id="idPayment"><a href="@Url.Content("~/Employers/PaymentManagement")">Payment Management</a></li>
+                                <li id="idPercentage"><a href="@Url.Content("~/Employers/PercentageManagement")">Percentage Management</a></li>
+                            </ul>*@
+                    </li>
+
+                    <!--------------------06.02.2023 Dev 4 start------------------------>
+                    <li class="sub-menu">
+                        <a class="pos" id="btn_others" href="@Url.Content("~/Admin/PrivacypolicyManagement")">
+                            <i class="fa fa-cog"></i>
+                            <span>Policies Management</span>
+                        </a>
+
+                    </li>
+                    <!--------------------06.02.2023 Dev 4 End------------------------>
+                    <li class="sub-menu">
+                        <a class="pos" id="JobSeek_Mng" href="@Url.Content("~/Jobseeker")">
+                            <i class="fa fa-first-order"></i>
+                            <span>Delivary Management</span>
+                        </a>
+                        <ul class="sub" id="tmporders">
+                            <li class="sub-menu sub1">
+                                <a class="pos" id="orders" href="@Url.Content("~/admin/order_management")">
+                                    <i class="fa fa-gift"></i>
+                                    <span>Orders</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="sub" id="tmporders">
+                            <li class="sub-menu sub1">
+                                <a class="pos" id="orders" href="@Url.Content("~/admin/apology_mail")">
+                                    <i class="fa fa-gift"></i>
+                                    <span>Apology</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="sub-menu">
+                        <a class="pos" id="JobSeek_Mng" href="#">
+                            <i class="fa fa-first-order"></i>
+                            <span>Resources Management</span>
+                        </a>
+                        <ul class="sub" id="tmporders">
+                            <li class="sub-menu">
+                                <a class="pos" id="idResources" href="@Url.Content("~/Admin/Resources")">
+                                    <i class="fa fa-heart"></i>
+                                    <span>Resources</span>
+                                </a>
+
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="sub-menu">
+                        <a class="pos" id="Locbar" href="@Url.Content("~/Admin/GetOnTouch")">
+                            <i class="fa fa-question-circle"></i>
+                            <span>GetOnTouch Management</span>
+                        </a>
+                    </li>
+
+                    <li class="sub-menu">
+                        <a class="pos" id="JobSeek_Mng" href="#">
+                            <i class="fa fa-first-order"></i>
+                            <span>Appointment</span>
+                        </a>
+                        <ul class="sub" id="tmporders">
+                            <li class="sub-menu">
+                                <a class="pos" id="idUpAppointment" href="@Url.Content("~/admin/get-all-appointment-details")">
+                                    <i class="fa fa-medkit"></i>
+                                    <span> Upcoming Appointment</span>
+                                </a>
+
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- sidebar menu end-->
+        </div>
+    </aside>
+
+}
+else if (ROLE_NAME == "DeliveryManager")
+{
+    <aside>
+        <div id="sidebar" class="nav-collapse">
+            <!-- sidebar menu start-->
+            <div class="leftside-navigation">
+                <ul class="sidebar-menu" id="nav-accordion">
+                    <li>
+                        <a class="pos active" id="dashBar" href="@Url.Content("~/Dashboard")">
+                            <i class="fa fa-dashboard"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+
+                    <li class="sub-menu">
+                        <a class="pos" id="JobSeek_Mng">
+                            <i class="fa fa-first-order"></i>
+                            <span>Delivary Management</span>
+                        </a>
+                        <ul class="sub" id="tmporders">
+                            <li class="sub-menu sub1">
+                                <a class="pos" id="orders" href="@Url.Content("~/admin/order_management")">
+                                    <i class="fa fa-gift"></i>
+                                    <span>Orders</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
+            <!-- sidebar menu end-->
+        </div>
+    </aside>
+}
+
+<!--Leftsidebar end-->
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const subMenus = document.querySelectorAll(".sub-menu > a.pos");
+        subMenus.forEach(menu => {
+            menu.addEventListener("click", () => {
+                const subMenuList = menu.nextElementSibling;
+                if (subMenuList) {
+                    subMenuList.classList.toggle("open"); // Add or remove the 'open' class
+                }
+            });
+        });
+    });
+
+</script>

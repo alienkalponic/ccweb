@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Gallery Details";
+}
+
+<link rel="stylesheet" href="~/Assets/Css/gallery.css" />
+
+<!-- Gallery Details Header -->
+<div class="gallery-details-header">
+    <div class="container">
+        <a href="@Url.Action("Index", "GalleryContent")" class="back-btn">
+            <i class="fa fa-arrow-left"></i> Back to Gallery
+        </a>
+        <h1 class="gallery-details-title">Adventure Gallery</h1>
+        <p class="gallery-details-subtitle">Captured moments from our thrilling adventures</p>
+    </div>
+</div>
+
+<!-- Gallery Details Grid -->
+<div class="container gallery-details-container">
+    <div class="gallery-details-grid">
+        
+        <!-- Photo 1 -->
+        <div class="gallery-item" data-index="0">
+            <img src="https://picsum.photos/id/1036/800/600" alt="Photo 1" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 2 -->
+        <div class="gallery-item" data-index="1">
+            <img src="https://picsum.photos/id/1015/800/600" alt="Photo 2" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 3 -->
+        <div class="gallery-item" data-index="2">
+            <img src="https://picsum.photos/id/1016/800/600" alt="Photo 3" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 4 -->
+        <div class="gallery-item" data-index="3">
+            <img src="https://picsum.photos/id/1026/800/600" alt="Photo 4" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 5 -->
+        <div class="gallery-item" data-index="4">
+            <img src="https://picsum.photos/id/1018/800/600" alt="Photo 5" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 6 -->
+        <div class="gallery-item" data-index="5">
+            <img src="https://picsum.photos/id/1019/800/600" alt="Photo 6" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 7 -->
+        <div class="gallery-item" data-index="6">
+            <img src="https://picsum.photos/id/1021/800/600" alt="Photo 7" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 8 -->
+        <div class="gallery-item" data-index="7">
+            <img src="https://picsum.photos/id/1024/800/600" alt="Photo 8" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 9 -->
+        <div class="gallery-item" data-index="8">
+            <img src="https://picsum.photos/id/1025/800/600" alt="Photo 9" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 10 -->
+        <div class="gallery-item" data-index="9">
+            <img src="https://picsum.photos/id/1006/800/600" alt="Photo 10" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 11 -->
+        <div class="gallery-item" data-index="10">
+            <img src="https://picsum.photos/id/1038/800/600" alt="Photo 11" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+        <!-- Photo 12 -->
+        <div class="gallery-item" data-index="11">
+            <img src="https://picsum.photos/id/990/800/600" alt="Photo 12" class="gallery-item-img">
+            <div class="gallery-item-overlay">
+                <i class="fa fa-search-plus"></i>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <div class="lightbox-content">
+        <span class="lightbox-prev">&#10094;</span>
+        <img class="lightbox-image" id="lightbox-img" src="" alt="Gallery Image">
+        <span class="lightbox-next">&#10095;</span>
+    </div>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+
+<script src="~/Assets/Js/gallery.js"></script>

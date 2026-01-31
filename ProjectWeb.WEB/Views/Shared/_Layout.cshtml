@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+@{
+    Html.RenderPartial("_Header");
+}
+
+<body>
+    
+    @{
+        Html.RenderPartial("_Navbar");
+    }
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    @{
+        Html.RenderPartial("_Footer");
+    }
+    @{
+        Html.RenderPartial("_Script");
+    }
+    @* <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false) *@
+</body>
+</html>
