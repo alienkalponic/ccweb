@@ -1,39 +1,39 @@
 ﻿$(document).ready(function () {
 
-    const toggleBtn = document.querySelector('.toggle_btn')
-    const toggleBtnIcon = document.querySelector('.toggle_btn i')
-    const dropDownMenu = document.querySelector('.dropdown_menu')
+    //const toggleBtn = document.querySelector('.toggle_btn')
+    //const toggleBtnIcon = document.querySelector('.toggle_btn i')
+    //const dropDownMenu = document.querySelector('.dropdown_menu')
 
-    toggleBtn.onclick = function () {
-        dropDownMenu.classList.toggle('open')
-        const isOpen = dropDownMenu.classList.contains('open')
+    //toggleBtn.onclick = function () {
+    //    dropDownMenu.classList.toggle('open')
+    //    const isOpen = dropDownMenu.classList.contains('open')
 
-        toggleBtnIcon.classList = isOpen
-            ? 'fa-solid fa-xmark'
-            : 'fa-solid fa-bars'
-    }
+    //    toggleBtnIcon.classList = isOpen
+    //        ? 'fa-solid fa-xmark'
+    //        : 'fa-solid fa-bars'
+    //}
 
-    // =========nav-ber==========
+    //// =========nav-ber==========
 
-    const nav = document.querySelector('.nav');
-    window.addEventListener('scroll', fixNav);
+    //const nav = document.querySelector('.nav');
+    //window.addEventListener('scroll', fixNav);
 
-    function fixNav() {
-        if (window.scrollY > nav.offsetHeight + 150) {
-            nav.classList.add('active');
-        } else {
-            nav.classList.remove('active');
-        }
-    }
+    //function fixNav() {
+    //    if (window.scrollY > nav.offsetHeight + 150) {
+    //        nav.classList.add('active');
+    //    } else {
+    //        nav.classList.remove('active');
+    //    }
+    //}
 
 
-    const links = document.querySelectorAll('nav a');
-    links.forEach(link => {
-        link.addEventListener('click', function () {
-            links.forEach(otherLink => otherLink.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
+    //const links = document.querySelectorAll('nav a');
+    //links.forEach(link => {
+    //    link.addEventListener('click', function () {
+    //        links.forEach(otherLink => otherLink.classList.remove('active'));
+    //        this.classList.add('active');
+    //    });
+    //});
 
     // =========nav-ber-end==========
 
