@@ -41,7 +41,25 @@ a {
 .brand-wrap {
     display: flex;
     align-items: center;
+    gap: 10px;
 }
+
+.brand-text-wrap {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.brand-tagline {
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0px;
+    margin-top: 2px;
+    max-width: 260px;
+    line-height: 15px;
+}
+
 
 .logo {
     height: 50px;
@@ -189,10 +207,6 @@ a {
 .image_2 {
     padding: 10px;
     width: 30%;
-}
-
-#more {
-    display: none;
 }
 
 /*---------------- service -------------------*/
