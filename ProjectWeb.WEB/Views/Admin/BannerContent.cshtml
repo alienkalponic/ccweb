@@ -1,0 +1,175 @@
+﻿@{
+    ViewData["Title"] = "Banner";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+}
+<style>
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        border-top: none;
+    }
+</style>
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+
+    <!--main content start-->
+    <section id="main-content">
+        <section class="wrapper">
+            <section class="panel">
+                <header class="panel-heading">
+                    Upload Banner
+                    <button type="button" class="btn btn-primary pull-right" id="btnAddNew">
+                        Add Banner
+                    </button>
+
+                </header>
+            </section>
+
+            <div id="bannertableimg">
+
+                <table id="tab_banner_img" class="table table-striped table-borderd" cellspacing="0" width="100%">
+                    <thead>
+                        <tr class="dataHead">
+                            <th>SL.No</th>
+                            <th>Background Image Name</th>
+                            <th>Split Image Name</th>
+                            <th>Display Priority</th>
+                            <th>Redirect Link</th>
+                            <th>Banner Heading</th>
+                            <th>Active</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+            </div>
+
+            <div class="pagination_oputer" style="text-align: right!important;">
+                <ul class="pagination"></ul>
+            </div>
+            <div id="prtProfile">
+            </div>
+        </section>
+    </section>
+    <!--main content end-->
+    <!---------Popup modal-------->
+    <button class="link_add hide" style="display:none;" data-toggle="modal" data-target="#addBannerModal" role="button" id="hdnOpenModel">Open Model</button>
+
+    <!---------Banner Insert modal start-------->
+
+    <div class="modal fade" id="addBannerModal" tabindex="-1" role="dialog" aria-labelledby="addBannerTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content shadow-lg">
+
+                <!-- Modal Header -->
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="addBannerTitle">
+                        <i class="fa fa-image"></i> Add Banner
+                    </h5>
+                    <button type="button" class="close text-white btnModalClose">
+                        <span>&times;</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <form id="bannar_form" method="post" enctype="multipart/form-data">
+
+                        <!-- Images -->
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Background Image</label>
+                                    <div class="border rounded p-2 text-center">
+                                        <img id="targetImgback" class="img-fluid mb-2" style="max-height:200px;" />
+                                        <input type="file" class="form-control-file" id="back_img" name="img1">
+                                    </div>
+                                    <small class="text-danger">
+                                        Size: 600×490px – 650×550px
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 text-center">
+                                <label class="d-block">Split?</label>
+                                <input type="checkbox" id="txt_splitimg" value="1">
+                            </div>
+
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <label>Split Image</label>
+                                    <div class="border rounded p-2 text-center">
+                                        <img id="targetImgsplit" class="img-fluid mb-2" style="max-height:200px;" />
+                                        <input type="file" class="form-control-file" id="split_img" name="img2">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <!-- Inputs -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Redirect Link</label>
+                                    <input type="text" class="form-control" id="txt_RedirectLink">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Display Priority</label>
+                                    <input type="number" class="form-control" id="txt_DisplayPriority">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Title</label>
+                            <textarea class="form-control" id="txt_BannerTitle" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Heading</label>
+                            <textarea class="form-control" id="txt_BannerHeading" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Banner Content</label>
+                            <textarea class="form-control" id="txt_BannerContent" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Button Text</label>
+                            <input type="text" class="form-control" id="txt_ButtonText">
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-default btnCancel">
+                        <i class="fa fa-times"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-success" id="btnSave">
+                        <i class="fa fa-save"></i> Save Banner
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!---------Banner Insert modal End-------->
+}

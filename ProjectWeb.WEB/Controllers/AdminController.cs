@@ -102,6 +102,14 @@ namespace ProjectWeb.WEB.Controllers
             }
             return data;
         }
-        
+
+        public async Task<IActionResult>BannerContent()
+        {
+            return View();
+        }
+
+        #region::Banner
+        #endregion
+
     }
 }
