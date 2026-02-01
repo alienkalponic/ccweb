@@ -347,10 +347,17 @@ h2 {
     position: relative;
 }
 
-.StoryVideo video {
+/*.StoryVideo video {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}*/
+.HomeVideoTitleSection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 2;
 }
 
 .HomeVideoTitleSection .SectionTitle {
@@ -388,7 +395,7 @@ h2 {
         clip-path: circle(100% at 50% 50%);
     }
 
-.StoryVideo {
+/*.StoryVideo {
     max-height: 500px;
 }
 
@@ -397,6 +404,22 @@ h2 {
         height: 100%;
         object-fit: fill;
         position: absolute;
+    }*/
+
+.StoryVideo {
+    width: 100%;
+    height: 500px; /* EXACT same height as before */
+    position: relative;
+}
+
+    .StoryVideo iframe.yt-video {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: 0;
+        object-fit: contain;
     }
 
 .Video-playbtn {
