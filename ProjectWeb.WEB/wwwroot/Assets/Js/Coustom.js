@@ -36,7 +36,23 @@
     //});
 
     // =========nav-ber-end==========
+    ////===========about-us-readmore============//
+   
+    //    var dots = document.getElementById("dots");
+    //    var moreText = document.getElementById("more");
+    //    var btnText = document.getElementById("myBtnreadmore");
 
+    //    if (dots.style.display === "none") {
+    //        dots.style.display = "inline";
+    //        btnText.innerHTML = "Read more";
+    //        moreText.style.display = "none";
+    //    } else {
+    //        dots.style.display = "none";
+    //        btnText.innerHTML = "Read less";
+    //        moreText.style.display = "inline";
+    //    }
+    //}
+    ////==========end==========//
     // ========swip-card-design========
     var swiper = new Swiper('.swiper-container', {
         grabCursor: true,

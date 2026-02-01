@@ -191,14 +191,8 @@ a {
     width: 30%;
 }
 
-.know-more {
-    padding: 10px 25px;
-    background-color: #fff;
-    color: #000;
-    border-radius: 20px;
-    font-size: 17px;
-    font-weight: 600;
-    font-family: 'Roboto', sans-serif;
+#more {
+    display: none;
 }
 
 /*---------------- service -------------------*/
