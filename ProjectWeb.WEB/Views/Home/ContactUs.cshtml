@@ -1,0 +1,80 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section class="hero">
+    <div class="fog"></div>
+    <div>
+        <h1>CONTACT US</h1>
+        <p>Adventure Begins With A Message</p>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section reveal active">
+    <div class="contact-wrapper">
+
+        <!-- LEFT -->
+        <div class="contact-info">
+            <h2>Climbers Circle</h2>
+            <p>
+                Reach out to us for expeditions,trek,training programs,
+                collaborations or any adventure-related queries.
+            </p>
+
+            <div class="info-item">
+                <i class="fa fa-location-dot"></i>
+                <span>India</span>
+            </div>
+
+            <div class="info-item">
+                <i class="fa fa-envelope"></i>
+                <span>climberscircle@gmail.com</span>
+            </div>
+
+            <div class="info-item">
+                <i class="fa fa-phone"></i>
+                <span>+91 XXXXX XXXXX</span>
+            </div>
+        </div>
+
+        <!-- RIGHT FORM -->
+        <div class="contact-form-box">
+            <form class="contact-form">
+                <h3>Send Us a Message</h3>
+
+                <div class="form-group">
+                    <input type="text" placeholder="Your Name" required>
+                    <i class="fa fa-user"></i>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" placeholder="Your Email" required>
+                    <i class="fa fa-envelope"></i>
+                </div>
+
+                <div class="form-group">
+                    <textarea rows="5" placeholder="Your Message"></textarea>
+                    <i class="fa fa-comment"></i>
+                </div>
+
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+<script>
+    // SCROLL REVEAL
+    window.addEventListener("scroll",()=>{
+        document.querySelectorAll(".reveal").forEach(el=>{
+            let pos = el.getBoundingClientRect().top;
+            let screen = window.innerHeight / 1.2;
+            if(pos < screen){
+                el.classList.add("active");
+            }
+        });
+    });
+</script>
