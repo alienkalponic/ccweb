@@ -21,16 +21,21 @@
 
     // =========nav-ber==========
 
-    const nav = document.querySelector('.nav');
-    window.addEventListener('scroll', fixNav);
+    document.addEventListener('DOMContentLoaded', function () {
+        const nav = document.querySelector('.nav');
 
-    function fixNav() {
-        if (window.scrollY > nav.offsetHeight + 150) {
-            nav.classList.add('active');
-        } else {
-            nav.classList.remove('active');
+        if (!nav) return; // safety check
+
+        window.addEventListener('scroll', fixNav);
+
+        function fixNav() {
+            if (window.scrollY > nav.offsetHeight + 150) {
+                nav.classList.add('active');
+            } else {
+                nav.classList.remove('active');
+            }
         }
-    }
+    });
 
 
     const links = document.querySelectorAll('nav a');
