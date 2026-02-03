@@ -281,22 +281,34 @@ a {
     display: flex;
     justify-content: center; /* centers horizontally */
     align-items: center;
+    transition: box-shadow 0.45s cubic-bezier(.22, .61, .36, 1), transform 0.45s cubic-bezier(.22, .61, .36, 1);
+/*    will-change: transform;*/
 }
 
-    .swiper-slide button {
-        padding: 10px 20px;
-        background: rgba(255,255,255,0.8);
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
+.swiper-slide-active button {
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.8);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer!important;
+    transition: 0.3s;
+}
+
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 0 25px 45px rgba(0, 180, 255, 0.24), 0 0 55px rgba(0, 180, 255, 0.14), inset 0 0 0 1px rgba(255,255,255,0.05);
     }
 
-        .swiper-slide button:hover {
-            background: white;
-            transform: scale(1.05);
-        }
+    50% {
+        box-shadow: 0 30px 60px rgba(0, 180, 255, 0.34), 0 0 75px rgba(0, 180, 255, 0.22), inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+}
+
+    .swiper-slide-active button:hover {
+        background: white;
+        transform: scale(1.05);
+    }
 
 
 .card-content {
@@ -313,6 +325,30 @@ a {
     font-size: 16px;
     font-weight: 600;
     text-shadow: 0 2px 6px rgba(0,0,0,0.7); /* image er upor clear dekhabe */
+}
+
+/* ===== Active / Center slide only ===== */
+.swiper-slide-active,
+.swiper-slide-duplicate-active {
+    animation: glowPulse 4s ease-in-out infinite;
+    transform: translateY(-8px);
+}
+
+/* ===== Hover pause (desktop only) ===== */
+/*@media (hover: hover) {
+    .swiper-slide-active:hover {
+        animation-play-state: paused;
+    }
+}*/
+
+/* ===== Mobile optimization ===== */
+@media (max-width: 768px) {
+    .swiper-slide-active,
+    .swiper-slide-duplicate-active {
+        box-shadow: 0 18px 32px rgba(0, 180, 255, 0.20), 0 0 40px rgba(0, 180, 255, 0.12), inset 0 0 0 1px rgba(255,255,255,0.04);
+        transform: translateY(-4px);
+        animation-duration: 5s;
+    }
 }
 
 /* ---------------------video----------------------- */
