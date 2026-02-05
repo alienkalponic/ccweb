@@ -2,3 +2,311 @@
     ViewData["Title"] = "About";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+<style>
+    .hills {
+        position: relative;
+        width: calc(min(90rem, 90%));
+        margin: 0 auto;
+        min-height: 100vh;
+        column-gap: 3rem;
+        padding-block: min(20vh, 3rem);
+    }
+
+    .bg {
+        position: fixed;
+        top: 1rem;
+        left: -12rem;
+        z-index: -1;
+        opacity: 0;
+    }
+
+    .bg2 {
+        position: fixed;
+        bottom: -2rem;
+        right: -10rem;
+        z-index: -1;
+        /* width: 9.375rem; */
+        opacity: 0;
+    }
+
+    .hills > .hilles-text h1 {
+        text-transform: capitalize;
+        letter-spacing: 0.8px;
+        font-family: "Roboto", sans-serif;
+        font-weight: 900;
+        font-size: clamp(3.4375rem, 3.25rem + 0.75vw, 4rem);
+        background-color: #b08b45;
+        background-image: linear-gradient(45deg, #b08b45, #b3ac86) background-size: 100%;
+        background-repeat: repeat;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -moz-background-clip: text;
+        -moz-text-fill-color: transparent;
+    }
+
+    .hills > .hilles-text hr {
+        display: block;
+        background: #005baa;
+        height: 0.25rem;
+        width: 6.25rem;
+        border: none;
+        margin: 1.125rem 0 1.875rem 0;
+    }
+
+    .hills > .hilles-text p {
+        line-height: 1.6;
+        color: #fff;
+    }
+
+    .hills a {
+        display: inline-block;
+        text-decoration: none;
+        text-transform: uppercase;
+        color: #717171;
+        font-weight: 500;
+        background: #fff;
+        border-radius: 3.125rem;
+        transition: 0.3s ease-in-out;
+    }
+
+    .hills > .hilles-text > a {
+        border: 2px solid #c2c2c2;
+        margin-top: 2.188rem;
+        padding: 0.625rem 1.875rem;
+    }
+
+    .hills > .hilles-text > a:hover {
+        border: 0.125rem solid #005baa;
+        color: #005baa;
+    }
+
+    .swiper {
+        width: 100%;
+        padding-top: 3.125rem;
+    }
+
+    .swiper-pagination-bullet,
+    .swiper-pagination-bullet-active {
+        background: #fff;
+    }
+
+    .swiper-pagination {
+        bottom: 1.25rem !important;
+    }
+
+    .swiper-slide {
+        width: 18.75rem;
+        height: 28.125rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+        align-items: self-start;
+    }
+
+    .swiper-slide h2 {
+        color: #fff;
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-size: 1.4rem;
+        line-height: 1.4;
+        margin-bottom: 0.625rem;
+        padding: 0 0 0 1.563rem;
+        text-transform: uppercase;
+    }
+
+    .swiper-slide p {
+        color: #dadada;
+        font-family: "Roboto", sans-serif;
+        font-weight: 300;
+        padding: 0 1.563rem;
+        line-height: 1.6;
+        font-size: 0.75rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .swiper-slide a {
+        margin: 1.25rem 1.563rem 3.438rem 1.563rem;
+        padding: 0.438em 1.875rem;
+        font-size: 0.9rem;
+    }
+
+    .swiper-slide a:hover {
+        color: #005baa;
+    }
+
+    .swiper-slide div {
+        display: none;
+        opacity: 0;
+        padding-bottom: 0.625rem;
+    }
+
+    .swiper-slide-active div {
+        display: block;
+        opacity: 1;
+    }
+
+    .swiper-slide--one {
+        background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("https://images.unsplash.com/photo-1628944682084-831f35256163?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80") no-repeat 50% 50% / cover;
+    }
+
+    .swiper-slide--two {
+        background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("https://images.unsplash.com/photo-1515309025403-4b0184873cef?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=735&q=80") no-repeat 50% 50% / cover;
+    }
+
+    .swiper-slide--three {
+        background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("https://images.unsplash.com/photo-1545671913-b89ac1b4ac10?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80") no-repeat 50% 50% / cover;
+    }
+
+    .swiper-slide--four {
+        background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("https://images.unsplash.com/photo-1598977123118-4e30ba3c4f5b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80") no-repeat 50% 50% / cover;
+    }
+
+    .swiper-slide--five {
+        background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url("https://images.unsplash.com/photo-1570481662006-a3a1374699e8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=765&q=80") no-repeat 50% 50% / cover;
+    }
+
+    .swiper-3d .swiper-slide-shadow-left,
+    .swiper-3d .swiper-slide-shadow-right {
+        background-image: none;
+    }
+
+    @@media screen and (min-width: 48rem) {
+    .hills {
+        display: flex;
+        align-items: center;
+        }
+    }
+
+    .bg,
+    .bg2 {
+        opacity: 0.4;
+    }
+
+    @@media screen and (min-width: 93.75rem) {
+        .swiper {
+            width: 85%;
+        }
+    }
+</style>
+
+<div class="about-banner">
+    <img src="../Assets/AboutImg/pexels-83916533-8892405.jpg" alt="Trekking Banner">
+    <h1>About Summit Trekkers Club</h1>
+</div>
+
+
+<div class=" mx-auto md:px-6 About-page"">
+    <!-- Section: Design Block -->
+   
+        <div class="hills">
+            <div class="hilles-text">
+                <h1>From a Dream to a Legacy</h1>
+                <hr>
+                <p>Beauty and mystery are hidden in the beautiful waters that surround the St. Petersburg and Tampa regions. Explore, learn, and let yourself go with daily departures & private charters upon request.</p>
+                <a href="#">CHECK AVAILABILITY</a>
+            </div>
+            <div class="swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide swiper-slide--one">
+                        <div>
+                            <h2>Jellyfish</h2>
+                            <p>Jellyfish and sea jellies are the informal common names given to the medusa-phase of certain gelatinous members of the subphylum Medusozoa, a major part of the phylum Cnidaria.</p>
+                            @* <a href="https://en.wikipedia.org/wiki/Jellyfish" target="_blank">explore</a> *@
+                        </div>
+                    </div>
+                    <div class="swiper-slide swiper-slide--two">
+                        <div>
+                            <h2>Seahorse</h2>
+                            <p>
+                                Experience the magic of a Florida sunset like never before on our daily Sunset Cruise. Departing from St. Petersburg, this 90-minute excursion offers the perfect vantage point to witness the breathtaking hues of the setting sun reflecting off the tranquil waters. Join us aboard to find that sweet spot where sky meets sea in a spectacular display of color and light.
+                            </p>
+                           
+                        </div>
+                    </div>
+
+                    <div class="swiper-slide swiper-slide--three">
+
+                        <div>
+                            <h2>octopus</h2>
+                            <p>
+                                Octopuses inhabit various regions of the ocean, including coral reefs, pelagic waters, and the seabed; some live in the intertidal zone and others at abyssal depths. Most species grow quickly, mature early, and are short-lived.
+                            </p>
+                            
+                        </div>
+                    </div>
+
+                    <div class="swiper-slide swiper-slide--four">
+
+                        <div>
+                            <h2>Shark</h2>
+                            <p>
+                                Sharks are a group of elasmobranch fish characterized by a cartilaginous skeleton, five to seven gill slits on the sides of the head, and pectoral fins that are not fused to the head.
+                            </p>
+                            
+                        </div>
+                    </div>
+
+                    <div class="swiper-slide swiper-slide--five">
+
+                        <div>
+                            <h2>Dolphin</h2>
+                            <p>
+                                Dolphins are widespread. Most species prefer the warm waters of the tropic zones, but some, such as the right whale dolphin, prefer colder climates. Dolphins feed largely on fish and squid, but a few, such as the orca, feed on large mammals such as seals.
+                            </p>
+                            
+                        </div>
+                    </div>
+                </div>
+                <!-- Add Pagination -->
+                <div class="swiper-pagination"></div>
+            </div>
+            <img src="../Assets/AboutImg/golden-mountain-range-silhouette.jpg" alt="" class="bg">
+            <img src="../Assets/AboutImg/golden-mountain-silhouette-front.jpg" alt="" class="bg2">
+        </div>
+
+    <!-- Section: Design Block -->
+</div>
+
+
+
+<section class="textimoial-slide">
+    <div class="testimonial-container">
+        <div class="testimonial-grid">
+            <div class="image-container" id="image-container"></div>
+            <div class="testimonial-content">
+                <div>
+                    <h3 class="name" id="name"></h3>
+                    <p class="designation" id="designation"></p>
+                    <p class="quote" id="quote"></p>
+                </div>
+                <div class="arrow-buttons">
+                    <button class="arrow-button prev-button" id="prev-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+                        </svg>
+                    </button>
+                    <button class="arrow-button next-button" id="next-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- ================map============== -->
+    < class="container mt-5">
+			<div class="maps maps_img">
+				<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3684.387725242958!2d88.35698507599885!3d22.564597533262322!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0277e6859e6af3%3A0x996de928e2ff0b59!2sChhatra%20samity!5e0!3m2!1sen!2sin!4v1770286133410!5m2!1sen!2sin" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+			</div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
