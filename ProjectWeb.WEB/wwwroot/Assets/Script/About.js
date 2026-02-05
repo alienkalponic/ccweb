@@ -4,49 +4,113 @@
     var contollername = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
 
     if (action_name === "about") {
+        //var swiper = new Swiper(".swiper", {
+        //    effect: "coverflow",
+        //    grabCursor: true,
+        //    centeredSlides: true,
+        //    coverflowEffect: {
+        //        rotate: 0,
+        //        stretch: 0,
+        //        depth: 100,
+        //        modifier: 3,
+        //        slideShadows: true
+        //    },
+        //    keyboard: {
+        //        enabled: true
+        //    },
+        //    mousewheel: {
+        //        thresholdDelta: 70
+        //    },
+        //    loop: true,
+        //    //pagination: {
+        //    //    el: ".swiper-pagination",
+        //    //    clickable: true
+        //    //},
+        //    breakpoints: {
+        //        500: {
+        //            slidesPerView: 1
+        //        },
+        //        640: {
+        //            slidesPerView: 2
+        //        },
+        //        768: {
+        //            slidesPerView: 1
+        //        },
+        //        1024: {
+        //            slidesPerView: 1
+        //        },
+        //        1250: {
+        //            slidesPerView: 1
+        //        },
+        //        1560: {
+        //            slidesPerView: 3
+        //        }
+        //    }
+        //});
+
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.location.hash === "#about-hills") {
+                const target = document.getElementById("about-hills");
+                if (target) {
+                    setTimeout(() => {
+                        target.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+                    }, 300); // navbar load হওয়ার সময় দেয়
+                }
+            }
+        });
+
         var swiper = new Swiper(".swiper", {
             effect: "coverflow",
             grabCursor: true,
             centeredSlides: true,
-            coverflowEffect: {
-                rotate: 0,
-                stretch: 0,
-                depth: 100,
-                modifier: 3,
-                slideShadows: true
-            },
-            keyboard: {
-                enabled: true
-            },
-            mousewheel: {
-                thresholdDelta: 70
-            },
             loop: true,
-            //pagination: {
-            //    el: ".swiper-pagination",
-            //    clickable: true
-            //},
+            speed: 800, // smoother transition
+
+            coverflowEffect: {
+                rotate: 15,      // slight angle for depth
+                stretch: 0,
+                depth: 180,      // more 3D feel
+                modifier: 1.5,
+                slideShadows: false // cleaner, modern look
+            },
+
+            keyboard: {
+                enabled: true,
+                onlyInViewport: true
+            },
+
+            mousewheel: {
+                forceToAxis: true,
+                sensitivity: 0.6
+            },
+
+            autoplay: {
+                delay: 3500,
+                disableOnInteraction: false
+            },
+
             breakpoints: {
-                500: {
+                0: {
                     slidesPerView: 1
                 },
                 640: {
-                    slidesPerView: 2
+                    slidesPerView: 1.2
                 },
                 768: {
-                    slidesPerView: 1
+                    slidesPerView: 1.5
                 },
                 1024: {
-                    slidesPerView: 1
+                    slidesPerView: 2
                 },
-                1250: {
-                    slidesPerView: 1
-                },
-                1560: {
+                1440: {
                     slidesPerView: 3
                 }
             }
         });
+
 
 
 

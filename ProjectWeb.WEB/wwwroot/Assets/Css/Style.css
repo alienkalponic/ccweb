@@ -1413,7 +1413,9 @@ height: auto;
     }
 }
 
-
+#about-hills {
+    scroll-margin-top: 90px; /* navbar height */
+}
 
 .maps iframe {
     width: 100%;
