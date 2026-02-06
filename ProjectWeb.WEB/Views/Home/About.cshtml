@@ -47,7 +47,7 @@
 
     .hills > .hilles-text hr {
         display: block;
-        background: #005baa;
+        background: #b08b45;
         height: 0.25rem;
         width: 6.25rem;
         border: none;
@@ -65,7 +65,7 @@
         text-transform: uppercase;
         color: #717171;
         font-weight: 500;
-        background: #fff;
+        background: transparent;
         border-radius: 3.125rem;
         transition: 0.3s ease-in-out;
     }
@@ -77,8 +77,8 @@
     }
 
     .hills > .hilles-text > a:hover {
-        border: 0.125rem solid #005baa;
-        color: #005baa;
+            border: 0.125rem solid #b08b45;
+            color: #b08b45;
     }
 
     .swiper {
@@ -129,7 +129,7 @@
     }
 
     .swiper-slide a {
-        margin: 1.25rem 1.563rem 3.438rem 1.563rem;
+        margin: 1.25rem 1.563rem 0.438rem 1.563rem;
         padding: 0.438em 1.875rem;
         font-size: 0.9rem;
     }
@@ -183,9 +183,19 @@
     }
 
     @@media screen and (min-width: 48rem) {
-    .hills {
-        display: flex;
-        align-items: center;
+        hills {
+            flex-direction: column;
+            padding-block: 3rem;
+        }
+
+        .hilles-text,
+        .swiper {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .swiper {
+            margin-top: 2rem;
         }
     }
 
@@ -200,26 +210,26 @@
         }
     }
     /* Desktop */
-@@media screen and (min-width: 1024px) {
+/* @@media screen and (min-width: 1024px) {
     .swiper {
         width: 100%;
         max-width: 520px;
     }
-}
+} */
 
 /* Large desktop */
-@@media screen and (min-width: 1400px) {
+/* @@media screen and (min-width: 1400px) {
     .swiper {
         max-width: 600px;
     }
-}
+} */
 
 /* Extra large screens */
-@@media screen and (min-width: 1600px) {
+/* @@media screen and (min-width: 1600px) {
     .swiper {
         max-width: 680px;
     }
-}
+} */
 
 </style>
 
@@ -229,14 +239,15 @@
 </div>
 
 
-<div class="mx-auto md:px-6 About-page" id="about-hills">
+<div class="mx-auto md:px-6 About-page">
     <!-- Section: Design Block -->
    
         <div class="hills">
-            <div class="hilles-text">
-                <h3>Climbers’ Circle 50 years of adventure, brotherhood, and mountains that shaped generations.</h3>
+        <div class="hilles-text" >
+            <h3 id="about-hills">Climbers’ Circle 50 years of adventure, brotherhood, and mountains that shaped generations.</h3>
                 <hr>
-                <p>Climbers’ Circle represents fifty years of courage, commitment, and climb. Since 1977, our journey has been built on experience in the mountains and proven across steep faces, high ridges, and demanding terrain shaped by passion, discipline, and deep respect for nature. What began as a small group of dedicated climbers has grown into a lasting legacy, where generations have learned to rise not only as climbers, but also in character and purpose.
+            <p>
+                Climbers’ Circle represents fifty years of courage, commitment, and climb. Since 1977, our journey has been built on experience in the mountains and proven across steep faces, high ridges, and demanding terrain shaped by passion, discipline, and deep respect for nature. What began as a small group of dedicated climbers has grown into a lasting legacy, where generations have learned to rise not only as climbers, but also in character and purpose.
 						From sun-warmed crags to snowbound couloirs, from technical pitches to long alpine routes, our members have honed skills through rigorous training, meaningful expeditions, and shared rope experiences. We continue to uphold the highest standards of safe climbing, teamwork, self-reliance, and exploration. As we celebrate fifty years of ascent, we honor the routes that shaped us, the mountains that tested us, and the spirit that binds us looking ahead with confidence to unclimbed walls and frozen lines yet to come.</p>
                 <a href="#">CHECK AVAILABILITY</a>
             </div>
@@ -246,7 +257,7 @@
                         <div>
                             <h2>Young Explorers in Survival Training</h2>
                             <p>As part of the junior camping program, children gather in nature to learn essential survival concepts. The session encourages curiosity, discipline, and confidence while connecting with the natural environment.</p>
-                            
+                            <a></a>
                         </div>
                     </div>
                     <div class="swiper-slide swiper-slide--two">
@@ -255,7 +266,7 @@
                             <p>
                                 A serene night-time moment from camp, highlighting the beauty of the star-filled sky and the spirit of outdoor exploration.
                             </p>
-                           
+                            <a></a>
                         </div>
                     </div>
 
@@ -266,7 +277,7 @@
                             <p>
                                 Climbers reviewing safety measures, equipment, and strategy prior to beginning a long face climb.
                             </p>
-                            
+                            <a></a>
                         </div>
                     </div>
 
@@ -277,7 +288,7 @@
                             <p>
                             A high altitude trekking team moving together, proving that teamwork is essential for success in extreme conditions.
                             </p>
-                            
+                            <a></a>
                         </div>
                     </div>
 
@@ -288,7 +299,7 @@
                             <p>
                             Expedition members negotiating rocky slopes at high altitude, maintaining formation, load management, and pace as part of a planned ascent.
                             </p>
-                            
+                            <a></a>
                         </div>
                     </div>
 
@@ -299,7 +310,7 @@
                         <p>
                             Surrounded by snow-covered peaks, the expedition team comes together to mark a significant milestone—an expression of resilience, unity, and the pursuit of high-altitude exploration.
                         </p>
-
+                        <a></a>
                     </div>
                 </div>
 
@@ -310,7 +321,7 @@
                         <p>
                             Set within lush green terrain, the expedition team’s colorful gear stands out as they carefully negotiate steep slopes, reflecting focus, coordination, and resilience at high altitude.
                         </p>
-
+                        <a></a>
                     </div>
                 </div>
                 </div>

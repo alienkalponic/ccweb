@@ -68,7 +68,7 @@
             centeredSlides: true,
             loop: true,
             speed: 800, // smoother transition
-
+            slidesPerView: "auto",
             coverflowEffect: {
                 rotate: 15,      // slight angle for depth
                 stretch: 0,
@@ -91,7 +91,11 @@
                 delay: 3500,
                 disableOnInteraction: false
             },
-
+            loop: true,
+                pagination: {
+                    el: ".swiper-pagination",
+                    clickable: true
+                },
             breakpoints: {
                 0: {
                     slidesPerView: 1
