@@ -172,83 +172,83 @@
             {
                 id: "5",
                 src:
-                    "/Assets/GalleryDetails/testimonials5.jpeg"
+                    "/Assets/GalleryDetails/high1.jpg"
             },
             {
                 id: "5",
                 src:
-                    "/Assets/GalleryDetails/male.jpg"
+                    "/Assets/GalleryDetails/high2.jpg"
             },
             {
                 id: "5",
                 src:
-                    "/Assets/GalleryDetails/male.jpg"
+                    "/Assets/GalleryDetails/high3.jpg"
             },
             {
                 id: "5",
                 src:
-                    "/Assets/GalleryDetails/male.jpg"
+                    "/Assets/GalleryDetails/high4.jpg"
             },
-            {
-                id: "5",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "5",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "5",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "5",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/testimonials6.jpeg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
-            {
-                id: "6",
-                src:
-                    "/Assets/GalleryDetails/male.jpg"
-            },
+            //{
+            //    id: "5",
+            //    src:
+            //        "/Assets/GalleryDetails/high5.jpg"
+            //},
+            //{
+            //    id: "5",
+            //    src:
+            //        "/Assets/GalleryDetails/high1.jpg"
+            //},
+            //{
+            //    id: "5",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "5",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/testimonials6.jpeg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
+            //{
+            //    id: "6",
+            //    src:
+            //        "/Assets/GalleryDetails/male.jpg"
+            //},
 
         ];
         detailsImageGalleryBind();

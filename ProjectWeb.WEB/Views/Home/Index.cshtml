@@ -53,7 +53,7 @@
 			</div>
 		</div>
 		<div class="carousel-item">
-			<img class="d-block w-100" src="../Assets/bannerSection/banner7.jpeg" alt="Third slide">
+			<img class="d-block w-100" src="../Assets/bannerSection/banner7.jpg" alt="Third slide">
 			<div class="carousel-caption d-none d-md-block">
 				@* <h5>Slider One Item</h5> *@
 				<p>Climbing route of Mt.Ramjak (6,318 m) as seen from the Summit Camp (5,718 m).</p>
@@ -87,14 +87,16 @@
 				<div class="w-full shrink-0 grow-0 basis-auto md:w-8/12 total-text">
 					<div class="px-6 py-12 md:px-12">
 						<h2 class="mb-6 text-3xl font-bold project_text">
-							<span class="dark:text-danger-500 project_text_sub">A Few Words </span>
-							"About Us"
+							<span class="dark:text-danger-500 project_text_sub">Climb higher. Explore further. Grow stronger.</span>
+							
 						</h2>
 						<p class="mb-6 text-neutral-500 dark:text-neutral-300  paragraph_text">
-							</p>
-						<button onclick="myFunction()" id="myBtnreadmore">Read more</button>
-						Climbers’ Circle represents fifty years of courage, commitment, and climb. Since 1977, our journey has been built on experience in the mountains and proven across steep faces, high ridges, and demanding terrain shaped by passion, discipline, and deep respect for nature. What began as a small group of dedicated climbers has grown into a lasting legacy, where generations have learned to rise not only as climbers, but also in character and purpose.
-						From sun-warmed crags to snowbound couloirs, from technical pitches to long alpine routes, our members have honed skills through rigorous training, meaningful expeditions, and shared rope experiences. We continue to uphold the highest standards of safe climbing, teamwork, self-reliance, and exploration. As we celebrate fifty years of ascent, we honor the routes that shaped us, the mountains that tested us, and the spirit that binds us looking ahead with confidence to unclimbed walls and frozen lines yet to come...<a href="@Url.Action("About", "Home")#about-hills" style="color:royalblue">see more.</a>
+							
+							<span style="font-weight:bold">Climbers’ Circle</span>is a premium adventure club dedicated to Mountaineering and Rock Climbing conducted for all ages and skill levels.
+							We create safe, exciting outdoor experiences that build confidence, resilience and a sense of belonging in nature.<a href="@Url.Action("About", "Home")#about-hills" style="color:royalblue">see more.</a>
+						</p>
+						@* <button onclick="myFunction()" id="myBtnreadmore">Read more</button>  *@
+						
 						<div class="image-box_about us">
 							<!-- First Image Section -->
 							<div class="w-full md:w-1/4 image_1">
@@ -106,10 +108,10 @@
 								<img src="../Assets/images/images.jpeg" alt="About Us Image 2" class="w-full h-auto object-cover">
 								
 							</div>
-							@* <div class="w-full md:w-1/4 image_2">
+							@*  <div class="w-full md:w-1/4 image_2">
 								<img src="../Assets/images/aboutus1.jpeg" alt="About Us Image 2" class="w-full h-auto object-cover">
 
-							</div> *@
+							</div>  *@
 						</div>
 
 					</div>
@@ -121,7 +123,7 @@
 		</div>
 	</section>
 	<!-- Section: Design Block -->
-</div>
+</div> 
 
 <!------------------ACTIVITY-------------------->
 <div class="container-fluied mx-auto md:px-6 service clearfix" id="activity">
@@ -251,9 +253,9 @@
 					</div>
 					<div class="HomeVideoTitleSection">
 						<div class="SectionTitle">
-							<h2>
+							@* <h2>
 								Just a demo how to climb
-							</h2>
+							</h2> *@
 						</div>
 						<div class="SectionContent"></div>
 
