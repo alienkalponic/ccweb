@@ -8,12 +8,17 @@
 <!-- Gallery Details Header -->
 <div class="gallery-details-header">
     <div class="container">
-        <a href="@Url.Action("Index", "GalleryContent")" class="back-btn">
+        @* <a href="@Url.Action("Index", "GalleryContent")" class="back-btn">
             <i class="fa fa-arrow-left"></i> Back to Gallery
-        </a>
+        </a> *@
         <h1 class="gallery-details-title">Adventure Gallery</h1>
         <p class="gallery-details-subtitle">Captured moments from our thrilling adventures</p>
     </div>
+</div>
+<div class="gallery-bottom-back">
+    <a href="@Url.Action("Index", "GalleryContent")" class="back-btn bottom-back-btn">
+        <i class="fa fa-arrow-left"></i> Back to Gallery
+    </a>
 </div>
 
 <!-- Gallery Details Grid -->

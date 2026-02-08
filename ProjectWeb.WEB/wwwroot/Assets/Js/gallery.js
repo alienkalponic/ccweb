@@ -31,6 +31,8 @@
         galleryItems.forEach((item, index) => {
             item.addEventListener('click', () => {
                 openLightbox(index);
+                item.addEventListener('click', () => openLightbox(index));
+                item.addEventListener('touchstart', () => openLightbox(index), { passive: true });
             });
         });
 
