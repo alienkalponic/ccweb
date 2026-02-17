@@ -1,6 +1,7 @@
 ﻿<script src="~/Assets/Js/jquery-2.2.4.min.js"></script>
 <script src="~/Assets/Js/bootstrap.bundle.min.js"></script>
 <script src="~/Assets/Js/Common.min.js"></script>
+<script src="~/Assets/Js/loader.js" asp-append-version="true"></script>
 <script src="~/Assets/Admin/Js/jquery-ui.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
@@ -52,5 +53,27 @@
 
 <script src="~/Assets/Script/Gallery.js"></script>
 <script src="~/Assets/Js/gallery.js"></script>
+ 
+<!-- Toastr.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script>
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": true,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": true,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+</script>
 
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Model;
 using ProjectWeb.Domain.Utility;
@@ -125,7 +126,7 @@ namespace ProjectWeb.WEB.Controllers
         {
             return View();
         }
-        [Authorize(Roles = "Administrator")]
+        [Authorize(Roles = "2")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(2147483647)]       //unit is bytes => 2GB
@@ -136,7 +137,49 @@ namespace ProjectWeb.WEB.Controllers
                 .ContentManagement
                 .BannerCreate<APIResponse>(mmm.BannerCreateDto);
 
-            return Json(response);
+            // Use explicit serialization to ensure casing matches exactly what we expect
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(2147483647)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        public async Task<IActionResult> UpdateBanner(MultipleModel mmm)
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .BannerUpdate<APIResponse>(mmm.BannerUpdateDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetBannerList()
+        {
+            MultipleModel mmm=new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .BannerGetAll<APIResponse>("10","1","");
+
+            mmm.BannerDtos = JsonConvert.DeserializeObject<List<BannerDto>>(Convert.ToString(response.Response)!);
+            return Content(JsonConvert.SerializeObject(mmm.BannerDtos), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetBannerById(int id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .BannerGet<APIResponse>(id);
+
+            mmm.BannerDto = JsonConvert.DeserializeObject<List<BannerDto>>(Convert.ToString(response.Response)!)!.FirstOrDefault();
+            return Content(JsonConvert.SerializeObject(mmm.BannerDto), "application/json");
         }
 
         #endregion

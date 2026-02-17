@@ -57,10 +57,17 @@ namespace ProjectWeb.Infrastucture.Service.Master
                     return _apiMessageRequestBuilder.Build(apiRequest);
                 };
 
-
                 HttpResponseMessage httpResponseMessage = null;
 
-                httpResponseMessage = await SendWithAccessTokenAsync(client, messageFactory, withBearer);
+                try
+                {
+                    httpResponseMessage = await SendWithAccessTokenAsync(client, messageFactory, withBearer);
+                }
+                catch (Exception ex)
+                {
+                    // Catch failures during the actual send (e.g. DNS, connection refused)
+                    return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.ServiceUnavailable);
+                }
 
                 APIResponse FinalApiResponse = new()
                 {
@@ -72,32 +79,49 @@ namespace ProjectWeb.Infrastucture.Service.Master
                     switch (httpResponseMessage.StatusCode)
                     {
                         case HttpStatusCode.NotFound:
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Not Found" };
+                            FinalApiResponse.StatusCode = HttpStatusCode.NotFound;
+                            FinalApiResponse.ErrorMassage = new List<string>() { $"API Endpoint Not Found: {apiRequest.Url}" };
                             break;
                         case HttpStatusCode.Forbidden:
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Access Denied" };
+                            FinalApiResponse.StatusCode = HttpStatusCode.Forbidden;
+                            FinalApiResponse.ErrorMassage = new List<string>() { "Access Denied / Forbidden" };
                             break;
                         case HttpStatusCode.Unauthorized:
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Unauthorized" };
+                            FinalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
+                            FinalApiResponse.ErrorMassage = new List<string>() { "Unauthorized - Token may be invalid or expired" };
                             break;
                         case HttpStatusCode.InternalServerError:
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Internal Server Error" };
+                            FinalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                            var serverContent = await httpResponseMessage.Content.ReadAsStringAsync();
+                            FinalApiResponse.ErrorMassage = new List<string>() { "Internal Server Error from API", serverContent };
+                            break;
+                        case HttpStatusCode.BadRequest:
+                            FinalApiResponse.StatusCode = HttpStatusCode.BadRequest;
+                            var badReqContent = await httpResponseMessage.Content.ReadAsStringAsync();
+                            FinalApiResponse.ErrorMassage = new List<string>() { "Bad Request (400)", badReqContent };
                             break;
                         default:
                             var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
-                            FinalApiResponse.Success = true;
-                            FinalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                            if (httpResponseMessage.IsSuccessStatusCode)
+                            {
+                                FinalApiResponse.Success = true;
+                                FinalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                            }
+                            else
+                            {
+                                FinalApiResponse.StatusCode = httpResponseMessage.StatusCode;
+                                FinalApiResponse.ErrorMassage = new List<string>() { $"Error: {httpResponseMessage.StatusCode}", apiContent };
+                            }
                             break;
                     }
                 }
                 catch (Exception e)
                 {
-
-                    FinalApiResponse.ErrorMassage = new List<string>() { "Error Encountered", e.Message.ToString() };
+                    FinalApiResponse.ErrorMassage = new List<string>() { "Response Parsing Error", e.Message.ToString() };
                 }
+
                 var res = JsonConvert.SerializeObject(FinalApiResponse);
-                var returnObj = JsonConvert.DeserializeObject<T>(res);
-                return returnObj;
+                return JsonConvert.DeserializeObject<T>(res);
             }
             catch (AuthException)
             {
@@ -105,15 +129,20 @@ namespace ProjectWeb.Infrastucture.Service.Master
             }
             catch (Exception e)
             {
-                var dto = new APIResponse
-                {
-                    ErrorMassage = new List<string> { Convert.ToString(e.Message) },
-                    Success = false
-                };
-                var res = JsonConvert.SerializeObject(dto);
-                var APIResponse = JsonConvert.DeserializeObject<T>(res);
-                return APIResponse;
+                return CreateErrorResponse<T>(apiRequest.Url, e.Message, HttpStatusCode.InternalServerError);
             }
+        }
+
+        private T CreateErrorResponse<T>(string url, string message, HttpStatusCode status)
+        {
+            var dto = new APIResponse
+            {
+                ErrorMassage = new List<string> { message, $"URL: {url}" },
+                Success = false,
+                StatusCode = status
+            };
+            var res = JsonConvert.SerializeObject(dto);
+            return JsonConvert.DeserializeObject<T>(res);
         }
         private async Task<HttpResponseMessage> SendWithAccessTokenAsync(HttpClient httpClient, Func<HttpRequestMessage> httpRequestMessageFactory, bool withBearer = true)
         {

@@ -66,6 +66,8 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
+app.UseMiddleware<ProjectWeb.WEB.Middlewares.ExceptionMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

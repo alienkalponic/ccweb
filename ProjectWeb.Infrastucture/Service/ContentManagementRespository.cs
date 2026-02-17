@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ProjectWeb.Infrastucture.Service
 {
-    public class ContentManagementRespository:IContentManagement
+    public class ContentManagementRespository : IContentManagement
     {
         private readonly IHttpClientFactory _clientFactory;
         private string projectUrl;
@@ -37,8 +37,43 @@ namespace ProjectWeb.Infrastucture.Service
             {
                 ApiType = StaticDetails.ApiType.POST,
                 Data = obj,
-                Url = projectUrl + "/api/content/Create-banner"
-            }, withBearer: false);
+                Url = projectUrl.TrimEnd('/') + "/api/content/Create-banner",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> BannerUpdate<T>(BannerUpdateDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.PUT,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Update-banner",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public Task<T> BannerDelete<T>(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<T> BannerGet<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Get-banner-by-id/" + id,
+            });
+        }
+
+        public async Task<T> BannerGetAll<T>(string pageSize, string pageNumber, string Search)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Get-all-banner/" + pageSize+"/"+pageNumber,
+            });
         }
     }
 }

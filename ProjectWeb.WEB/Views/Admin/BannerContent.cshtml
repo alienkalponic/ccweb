@@ -3,9 +3,15 @@
     Layout = "~/Views/Shared/Admin_Layout.cshtml";
 }
 @using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @{
     var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
 }
+<script>
+    var _ProjectAPI = '@projectApiUrl';
+</script>
 <style>
     .modal-header {
         border-bottom: none;
@@ -39,9 +45,8 @@
                         <tr class="dataHead">
                             <th>SL.No</th>
                             <th>Background Image Name</th>
-                            <th>Split Image Name</th>
+                            <th>Caption</th>
                             <th>Display Priority</th>
-                            <th>Redirect Link</th>
                             <th>Banner Heading</th>
                             <th>Active</th>
                             <th>Action</th>
@@ -82,6 +87,7 @@
                 <!-- Modal Body -->
                 <div class="modal-body">
                     <form id="bannar_form" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
 
                         <!-- Images -->
                         <div class="row">
@@ -89,8 +95,9 @@
                                 <div class="form-group">
                                     <label>Background Image</label>
                                     <div class="border rounded p-2 text-center">
+                                        <input type="hidden" id="hdn_BannerId" name="BannerUpdateDto.BannerId" />
                                         <img id="targetImgback" class="img-fluid mb-2" style="max-height:200px;" />
-                                        <input type="file" class="form-control-file" id="back_img" name="File">
+                                        <input type="file" class="form-control-file" id="back_img" name="BannerCreateDto.File">
                                     </div>
                                     <small class="text-danger">
                                         Size: 600×490px – 650×550px
@@ -128,27 +135,27 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Display Priority</label>
-                                    <input type="number" class="form-control" id="txt_DisplayPriority" name="DisplayOrder">
+                                    <input type="number" class="form-control" id="txt_DisplayPriority" name="BannerCreateDto.DisplayOrder">
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label>Banner Title</label>
-                            <textarea class="form-control" id="txt_BannerTitle" rows="2" name="Title"></textarea>
+                            <textarea class="form-control" id="txt_BannerTitle" rows="2" name="BannerCreateDto.Title"></textarea>
                         </div>
 
                         <div class="form-group">
                             <label>Banner Caption</label>
-                            <textarea class="form-control" id="txt_BannerHeading" rows="2" name="Caption"></textarea>
+                            <textarea class="form-control" id="txt_BannerHeading" rows="2" name="BannerCreateDto.Caption"></textarea>
+                        </div>
+
+                        <div class="form-group d-none" id="active_mode">
+                            <label>Banner Active</label>
+                            <input type="checkbox" name="BannerCreateDto.IsActive" id="chk_IsActive" />
                         </div>
 
                         @* <div class="form-group">
-                            <label>Banner Content</label>
-                            <textarea class="form-control" id="txt_BannerContent" rows="3"></textarea>
-                        </div>
-
-                        <div class="form-group">
                             <label>Button Text</label>
                             <input type="text" class="form-control" id="txt_ButtonText">
                         </div> *@
@@ -161,8 +168,11 @@
                     <button type="button" class="btn btn-default btnCancel">
                         <i class="fa fa-times"></i> Cancel
                     </button>
-                    <button type="button" class="btn btn-success" id="btnSave">
+                    <button type="button" class="btn btn-success" id="btnSave" data-url="@Url.Action("CreateBanner", "Admin")">
                         <i class="fa fa-save"></i> Save Banner
+                    </button>
+                    <button type="button" class="btn btn-primary d-none" id="btnUpdate" data-url="@Url.Action("UpdateBanner", "Admin")">
+                        <i class="fa fa-save"></i> Update Banner
                     </button>
                 </div>
 

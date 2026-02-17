@@ -9,6 +9,9 @@ namespace ProjectWeb.Domain.Model
 {
     public class MultipleModel
     {
-        public BannerCreateDto BannerCreateDto { get; set; }
+        public BannerCreateDto? BannerCreateDto { get; set; }
+        public List<BannerDto>? BannerDtos { get; set; }
+        public BannerDto? BannerDto { get; set; }
+        public BannerUpdateDto? BannerUpdateDto { get; set; }
     }
 }

@@ -11,5 +11,9 @@ namespace ProjectWeb.Application.Common.Repository
     public interface IContentManagement
     {
         Task<T> BannerCreate<T>(BannerCreateDto model);
+        Task<T> BannerUpdate<T>(BannerUpdateDto model);
+        Task<T> BannerDelete<T>(int id);
+        Task<T> BannerGet<T>(int id);
+        Task<T> BannerGetAll<T>(string pageSize,string pageNumber,string Search);
     }
 }
