@@ -10,5 +10,6 @@ namespace ProjectWeb.Application.Common.Repository.Master
     public interface IUnitOfWork
     {
         IUserRepository User { get; }
-    }
+        IContentManagement ContentManagement { get; }
+        }
 }

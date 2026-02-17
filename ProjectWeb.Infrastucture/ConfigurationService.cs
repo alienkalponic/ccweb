@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProjectWeb.Application;
 using ProjectWeb.Application.Common.Repository.Master;
@@ -22,10 +23,6 @@ namespace ProjectWeb.Infrastucture
             services.AddScoped<ITokenProvider, TokenProvider>();
             services.AddSingleton<IApiMessageRequestBuilder, ApiMessageRequestBuilder>();
             services.AddHttpContextAccessor();
-            
-
-
-
 
             return services;
         }

@@ -8,10 +8,18 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddInfrastructureService();
 builder.Services.AddDistributedMemoryCache();
 
+// Enable Response Compression
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
+
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
               .AddCookie(options =>
               {
-                  options.Cookie.Name = "ClimbersCircle";
+                  options.Cookie.Name = "ClimbersCircleWeb";
                   options.Cookie.HttpOnly = true;
                   //options.ExpireTimeSpan = TimeSpan.FromHours(4);
                   options.ExpireTimeSpan = TimeSpan.FromDays(6);
@@ -67,7 +75,19 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// Use Response Compression
+app.UseResponseCompression();
+
+// Configure Static Files with Caching
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        const int durationInSeconds = 60 * 60 * 24 * 365; // 365 days
+        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=" + durationInSeconds + ",immutable";
+    }
+});
 
 app.UseRouting();
 

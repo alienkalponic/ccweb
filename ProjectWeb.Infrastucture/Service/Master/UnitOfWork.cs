@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using ProjectWeb.Application.Common.Repository;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Application.Common.Repository.SystemLogin;
 using ProjectWeb.Infrastucture.Service.SystemLogin;
@@ -19,6 +20,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
         private readonly IBaseService _baseService;
 
         public IUserRepository User { get; private set; }
+        public IContentManagement ContentManagement { get; private set; }
 
         public UnitOfWork(IHttpClientFactory clientFactory, IConfiguration configuration, IHttpContextAccessor contextAccessor, IBaseService baseService)
         {
@@ -28,6 +30,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
             _baseService = baseService;
 
             User = new UserRepository(_clientFactory, _configuration, _baseService, _contextAccessor);
+            ContentManagement = new ContentManagementRespository(_clientFactory, _configuration, _baseService, _contextAccessor);
         }
     }
 }

@@ -90,7 +90,7 @@
                                     <label>Background Image</label>
                                     <div class="border rounded p-2 text-center">
                                         <img id="targetImgback" class="img-fluid mb-2" style="max-height:200px;" />
-                                        <input type="file" class="form-control-file" id="back_img" name="img1">
+                                        <input type="file" class="form-control-file" id="back_img" name="File">
                                     </div>
                                     <small class="text-danger">
                                         Size: 600×490px – 650×550px
@@ -98,12 +98,12 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2 text-center">
+                            @* <div class="col-md-2 text-center">
                                 <label class="d-block">Split?</label>
                                 <input type="checkbox" id="txt_splitimg" value="1">
-                            </div>
+                            </div> *@
 
-                            <div class="col-md-5">
+                            @* <div class="col-md-5">
                                 <div class="form-group">
                                     <label>Split Image</label>
                                     <div class="border rounded p-2 text-center">
@@ -111,39 +111,39 @@
                                         <input type="file" class="form-control-file" id="split_img" name="img2">
                                     </div>
                                 </div>
-                            </div>
+                            </div> *@
                         </div>
 
                         <hr />
 
                         <!-- Inputs -->
                         <div class="row">
-                            <div class="col-md-6">
+                            @* <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Redirect Link</label>
                                     <input type="text" class="form-control" id="txt_RedirectLink">
                                 </div>
-                            </div>
+                            </div> *@
 
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Display Priority</label>
-                                    <input type="number" class="form-control" id="txt_DisplayPriority">
+                                    <input type="number" class="form-control" id="txt_DisplayPriority" name="DisplayOrder">
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label>Banner Title</label>
-                            <textarea class="form-control" id="txt_BannerTitle" rows="2"></textarea>
+                            <textarea class="form-control" id="txt_BannerTitle" rows="2" name="Title"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label>Banner Heading</label>
-                            <textarea class="form-control" id="txt_BannerHeading" rows="2"></textarea>
+                            <label>Banner Caption</label>
+                            <textarea class="form-control" id="txt_BannerHeading" rows="2" name="Caption"></textarea>
                         </div>
 
-                        <div class="form-group">
+                        @* <div class="form-group">
                             <label>Banner Content</label>
                             <textarea class="form-control" id="txt_BannerContent" rows="3"></textarea>
                         </div>
@@ -151,7 +151,7 @@
                         <div class="form-group">
                             <label>Button Text</label>
                             <input type="text" class="form-control" id="txt_ButtonText">
-                        </div>
+                        </div> *@
 
                     </form>
                 </div>

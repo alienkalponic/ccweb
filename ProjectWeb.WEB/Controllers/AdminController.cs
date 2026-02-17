@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO.LoginDto;
+using ProjectWeb.Domain.Model;
 using ProjectWeb.Domain.Utility;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -103,12 +105,40 @@ namespace ProjectWeb.WEB.Controllers
             return data;
         }
 
-        public async Task<IActionResult>BannerContent()
+        public async Task<IActionResult> Logout()
         {
+            await HttpContext.SignOutAsync();
+
+            
+            HttpContext.Session.Clear();
+            return RedirectToAction("AdminLogin");
+        }
+
+        public IActionResult AccessDenied()
+        {
+
             return View();
         }
 
         #region::Banner
+        public async Task<IActionResult> BannerContent()
+        {
+            return View();
+        }
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(2147483647)]       //unit is bytes => 2GB
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        public async Task<IActionResult> CreateBanner(MultipleModel mmm)
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .BannerCreate<APIResponse>(mmm.BannerCreateDto);
+
+            return Json(response);
+        }
+
         #endregion
 
     }

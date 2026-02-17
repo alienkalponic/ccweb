@@ -50,7 +50,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
             try
             {
                 var client = httpClient.CreateClient("NewProjectAPI");
-                client.Timeout = TimeSpan.FromMinutes(30);
+                client.Timeout = TimeSpan.FromMinutes(1);
 
                 var messageFactory = () =>
                 {

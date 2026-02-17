@@ -1,0 +1,125 @@
+@{
+    ViewData["Title"] = "The Gallery | Climbers' Circle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/Assets/Css/gallery-editorial.css" asp-append-version="true" />
+
+<div class="gallery-editorial">
+    <div class="gallery-editorial-container">
+        
+        <!-- Hero Section -->
+        <header class="gallery-hero">
+            <h1>The Gallery</h1>
+            <p>Capturing fifty years of dedication, exploration, and the vertical world through our lenses.</p>
+        </header>
+
+        <!-- Section 1: Text Left, Image Right -->
+        <section class="gallery-section scroll-reveal">
+            <div class="gallery-content">
+                <h2>Alpine Blueprints</h2>
+                <p>From the first light touching the peaks to the long shadows of the descent, every route tells a story of preparation and perseverance. Our members have documented these technical journeys across rock, snow, and ice since 1977.</p>
+                <a href="#" class="gallery-btn">Explore Peaks</a>
+            </div>
+            <div class="gallery-image-box">
+                <img src="~/Assets/gallerySection/MangsuPassorMonirang1982.jpg" alt="Alpine Peaks">
+            </div>
+        </section>
+
+        <!-- Section 2: Image Left, Text Right -->
+        <section class="gallery-section scroll-reveal">
+            <div class="gallery-content">
+                <h2>The Vertical Path</h2>
+                <p>Rock climbing is more than just a sport; it's a conversation with the mountain. These frames capture the focus, the friction, and the freedom found on the technical pitches of our local crags and remote faces.</p>
+                <a href="#" class="gallery-btn">View Ascents</a>
+            </div>
+            <div class="gallery-image-box">
+                <img src="~/Assets/ActivityImg/rockClimbing.jpg" alt="Rock Climbing">
+            </div>
+        </section>
+
+        <!-- Section 3: Text Left, Image Right -->
+        <section class="gallery-section scroll-reveal">
+            <div class="gallery-content">
+                <h2>Shared Expeditions</h2>
+                <p>Teamwork is the thread that holds every rope team together. These moments reflect the community we've built—generations of climbers supporting, teaching, and exploring the wilderness side by side.</p>
+                <a href="#" class="gallery-btn">Our Stories</a>
+            </div>
+            <div class="gallery-image-box">
+                <img src="~/Assets/bannerSection/banner8.jpg" alt="Expedition Team">
+            </div>
+        </section>
+
+        <!-- Section 4: Image Left, Text Right -->
+        <section class="gallery-section scroll-reveal">
+            <div class="gallery-content">
+                <h2>Legacy of the Peaks</h2>
+                <p>Fifty years of history are etched into these mountains. From the early expeditions in the late 70s to the modern alpine pushes of today, our gallery preserves the legacy of those who looked up and dared to climb.</p>
+                <a href="#" class="gallery-btn">View Archives</a>
+            </div>
+            <div class="gallery-image-box">
+                <img src="~/Assets/gallerySection/Exp2003BhagirathiII.jpg" alt="Bhagirathi Expedition">
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<div id="imageLightbox" class="lightbox-modal">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="img01">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- SCROLL REVEAL ---
+        const sections = document.querySelectorAll('.scroll-reveal');
+        const observerOptions = { threshold: 0.15 };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+
+        // --- FLOATING LIGHTBOX LOGIC ---
+        const modal = document.getElementById("imageLightbox");
+        const modalImg = document.getElementById("img01");
+        const galleryImages = document.querySelectorAll('.gallery-image-box img');
+        const closeBtn = document.querySelector(".lightbox-close");
+
+        galleryImages.forEach(img => {
+            img.onclick = function() {
+                modal.style.display = "flex";
+                modalImg.src = this.src;
+                document.body.style.overflow = "hidden";
+                
+                // Allow display flex to register before adding active class
+                setTimeout(() => {
+                    modal.classList.add("active");
+                }, 10);
+            }
+        });
+
+        const closeModal = () => {
+            modal.classList.remove("active");
+            setTimeout(() => {
+                modal.style.display = "none";
+                document.body.style.overflow = "auto";
+            }, 600);
+        };
+
+        closeBtn.onclick = closeModal;
+        modal.onclick = (e) => {
+            if (e.target === modal) closeModal();
+        };
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && modal.style.display === "flex") closeModal();
+        });
+    });
+</script>
