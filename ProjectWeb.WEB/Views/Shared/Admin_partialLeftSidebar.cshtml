@@ -5,25 +5,7 @@
     
     var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 }
-<style>
-    .sub {
-        display: none;
-        padding-left: 15px;
-    }
-
-        .sub.open {
-            display: block;
-        }
-
-    .sub1 {
-        padding-left: 10px;
-    }
-
-    .sidebar-menu li a {
-        cursor: pointer;
-    }
-
-</style>
+@* Sidebar styles are now managed in admin-components.css *@
 <!--Leftsidebar start-->
 @if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
 {
@@ -42,67 +24,76 @@
                     <li class="sub-menu">
                         <a><i class="fa fa-folder-open"></i> <span>Content Management</span></a>
                         <ul class="sub">
-
-                            <!-- Home -->
-                            <li class="sub-menu">
-                                <a><i class="fa fa-home"></i> <span>Home</span></a>
-                                <ul class="sub">
-                                    <li class="sub1">
-                                        <a href="@Url.Content("~/Admin/BannerContent")">
-                                            <i class="fa fa-picture-o"></i> Banner
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <!-- Diagnostic Service -->
-                            <li class="sub-menu">
-                                <a><i class="fa fa-medkit"></i> <span>Diagnostic Service</span></a>
-                                <ul class="sub">
-
-                                    <li class="sub1">
-                                        <a href="@Url.Content("~/Admin/DiagnosticServiceBanner")">
-                                            <i class="fa fa-image"></i> Banner
-                                        </a>
-                                    </li>
-
-                                    <li class="sub1">
-                                        <a href="@Url.Content("~/Admin/DiagnosticServiceType")">
-                                            <i class="fa fa-list"></i> Service Type
-                                        </a>
-                                    </li>
-
-                                    <li class="sub-menu sub1">
-                                        <a><i class="fa fa-sitemap"></i> Sub Type</a>
-                                        <ul class="sub">
+                            <div>
+                                <!-- Home -->
+                                <li class="sub-menu">
+                                    <a><i class="fa fa-home"></i> <span>Home</span></a>
+                                    <ul class="sub">
+                                        <div>
                                             <li class="sub1">
-                                                <a href="@Url.Content("~/Admin/DiagnosticSubContent")">
-                                                    <i class="fa fa-file-text"></i> Sub Content
+                                                <a href="@Url.Content("~/Admin/BannerContent")">
+                                                    <i class="fa fa-picture-o"></i> Banner
                                                 </a>
                                             </li>
+                                    <li class="sub1">
+                                        <a href="@Url.Content("~/Admin/ClubDescription")">
+                                            <i class="fa fa-picture-o"></i> ClubDescription
+                                        </a>
+                                    </li>
+                                        </div>
+                                    </ul>
+                                </li>
+
+                                <!-- Diagnostic Service -->
+                                <li class="sub-menu">
+                                    <a><i class="fa fa-medkit"></i> <span>Diagnostic Service</span></a>
+                                    <ul class="sub">
+                                        <div>
                                             <li class="sub1">
-                                                <a href="@Url.Content("~/Admin/DiagnosticServiceOtherContent")">
-                                                    <i class="fa fa-files-o"></i> Other Section
+                                                <a href="@Url.Content("~/Admin/DiagnosticServiceBanner")">
+                                                    <i class="fa fa-image"></i> Banner
                                                 </a>
                                             </li>
-                                        </ul>
-                                    </li>
 
-                                </ul>
-                            </li>
+                                            <li class="sub1">
+                                                <a href="@Url.Content("~/Admin/DiagnosticServiceType")">
+                                                    <i class="fa fa-list"></i> Service Type
+                                                </a>
+                                            </li>
 
-                            <li>
-                                <a href="@Url.Content("~/Admin/SkinConcernsBlog")">
-                                    <i class="fa fa-heart"></i> Skin Concerns
-                                </a>
-                            </li>
+                                            <li class="sub-menu sub1">
+                                                <a><i class="fa fa-sitemap"></i> Sub Type</a>
+                                                <ul class="sub">
+                                                    <div>
+                                                        <li class="sub1">
+                                                            <a href="@Url.Content("~/Admin/DiagnosticSubContent")">
+                                                                <i class="fa fa-file-text"></i> Sub Content
+                                                            </a>
+                                                        </li>
+                                                        <li class="sub1">
+                                                            <a href="@Url.Content("~/Admin/DiagnosticServiceOtherContent")">
+                                                                <i class="fa fa-files-o"></i> Other Section
+                                                            </a>
+                                                        </li>
+                                                    </div>
+                                                </ul>
+                                            </li>
+                                        </div>
+                                    </ul>
+                                </li>
 
-                            <li>
-                                <a href="@Url.Content("~/Admin/Blog")">
-                                    <i class="fa fa-pencil-square-o"></i> Blog
-                                </a>
-                            </li>
+                                <li>
+                                    <a href="@Url.Content("~/Admin/SkinConcernsBlog")">
+                                        <i class="fa fa-heart"></i> Skin Concerns
+                                    </a>
+                                </li>
 
+                                <li>
+                                    <a href="@Url.Content("~/Admin/Blog")">
+                                        <i class="fa fa-pencil-square-o"></i> Blog
+                                    </a>
+                                </li>
+                            </div>
                         </ul>
                     </li>
 
@@ -110,16 +101,18 @@
                     <li class="sub-menu">
                         <a><i class="fa fa-users"></i> User Management</a>
                         <ul class="sub">
-                            <li>
-                                <a href="@Url.Content("~/Admin/user_management")">
-                                    <i class="fa fa-user"></i> Users
-                                </a>
-                            </li>
-                            <li>
-                                <a href="@Url.Content("~/Admin/ExcelExport")">
-                                    <i class="fa fa-file-excel-o"></i> Excel Export
-                                </a>
-                            </li>
+                            <div>
+                                <li>
+                                    <a href="@Url.Content("~/Admin/user_management")">
+                                        <i class="fa fa-user"></i> Users
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Content("~/Admin/ExcelExport")">
+                                        <i class="fa fa-file-excel-o"></i> Excel Export
+                                    </a>
+                                </li>
+                            </div>
                         </ul>
                     </li>
 
@@ -127,16 +120,18 @@
                     <li class="sub-menu">
                         <a><i class="fa fa-shopping-cart"></i> Order Management</a>
                         <ul class="sub">
-                            <li>
-                                <a href="@Url.Content("~/Admin/order_management")">
-                                    <i class="fa fa-list-alt"></i> Orders
-                                </a>
-                            </li>
-                            <li>
-                                <a href="@Url.Content("~/Admin/apology_mail")">
-                                    <i class="fa fa-envelope"></i> Apology Mail
-                                </a>
-                            </li>
+                            <div>
+                                <li>
+                                    <a href="@Url.Content("~/Admin/order_management")">
+                                        <i class="fa fa-list-alt"></i> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Content("~/Admin/apology_mail")">
+                                        <i class="fa fa-envelope"></i> Apology Mail
+                                    </a>
+                                </li>
+                            </div>
                         </ul>
                     </li>
 
@@ -144,10 +139,12 @@
                     <li class="sub-menu">
                         <a><i class="fa fa-briefcase"></i> Product Management</a>
                         <ul class="sub">
-                            <li><a href="@Url.Content("~/Admin/ProductBrand")"><i class="fa fa-tags"></i> Brand</a></li>
-                            <li><a href="@Url.Content("~/Admin/Products")"><i class="fa fa-cube"></i> Product</a></li>
-                            <li><a href="@Url.Content("~/Admin/ProductCategory")"><i class="fa fa-list-ul"></i> Category</a></li>
-                            <li><a href="@Url.Content("~/Admin/RecommendedProducts")"><i class="fa fa-thumbs-up"></i> Recommended</a></li>
+                            <div>
+                                <li><a href="@Url.Content("~/Admin/ProductBrand")"><i class="fa fa-tags"></i> Brand</a></li>
+                                <li><a href="@Url.Content("~/Admin/Products")"><i class="fa fa-cube"></i> Product</a></li>
+                                <li><a href="@Url.Content("~/Admin/ProductCategory")"><i class="fa fa-list-ul"></i> Category</a></li>
+                                <li><a href="@Url.Content("~/Admin/RecommendedProducts")"><i class="fa fa-thumbs-up"></i> Recommended</a></li>
+                            </div>
                         </ul>
                     </li>
 
@@ -170,12 +167,36 @@
         document.querySelectorAll(".sub-menu > a").forEach(function (menu) {
             menu.addEventListener("click", function (e) {
                 e.preventDefault();
-
+                
+                const parentLi = this.parentElement;
                 const submenu = this.nextElementSibling;
+                
                 if (submenu && submenu.classList.contains("sub")) {
+                    // Close other open submenus at the same level if desired (accordion style)
+                    // parentLi.parentElement.querySelectorAll(':scope > li > .sub.open').forEach(openSub => {
+                    //     if (openSub !== submenu) openSub.classList.remove('open');
+                    // });
+
                     submenu.classList.toggle("open");
+                    this.classList.toggle("active");
                 }
             });
+        });
+
+        // Auto-expand current active menu based on URL
+        const currentPath = window.location.pathname;
+        document.querySelectorAll(".sidebar-menu a").forEach(function(link) {
+            if (link.getAttribute("href") && currentPath.includes(link.getAttribute("href"))) {
+                link.classList.add("active");
+                // Expand parent sub-menus
+                let parent = link.closest(".sub");
+                while (parent) {
+                    parent.classList.add("open");
+                    let toggle = parent.previousElementSibling;
+                    if (toggle) toggle.classList.add("active");
+                    parent = parent.parentElement.closest(".sub");
+                }
+            }
         });
     });
 </script>

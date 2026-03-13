@@ -1,0 +1,425 @@
+/* Modern Admin Global Styles */
+
+body.admin-modern {
+    background-color: var(--admin-bg-body);
+    font-family: var(--admin-font-interface);
+    color: var(--admin-text-main);
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+#container.admin-modern-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Typography Overrides */
+.admin-modern h1,
+.admin-modern h2,
+.admin-modern h3,
+.admin-modern h4,
+.admin-modern h5,
+.admin-modern h6 {
+    font-family: var(--admin-font-heading);
+    color: var(--admin-text-main);
+    font-weight: 700;
+}
+
+.admin-modern p,
+.admin-modern span,
+.admin-modern label {
+    font-family: var(--admin-font-body);
+}
+
+/* Layout Reset for BucketAdmin */
+.admin-modern #main-content {
+    margin-left: var(--sidebar-width);
+    padding-top: var(--admin-header-height);
+    /* Space for sticky header */
+    transition: var(--admin-transition-smooth);
+    background: transparent;
+}
+
+.admin-modern .wrapper {
+    padding: 24px;
+    margin-top: 0;
+    /* Override legacy margin */
+}
+
+/* Navbar/Header Modernization */
+.admin-modern .header {
+    height: var(--admin-header-height);
+    background: var(--admin-bg-header) !important;
+    border-bottom: 1px solid var(--admin-border-color);
+    box-shadow: var(--admin-shadow-sm);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    overflow: visible !important;
+    /* Allow dropdowns to overflow */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+/* Brand Section */
+.admin-modern .brand {
+    width: var(--sidebar-width) !important;
+    height: var(--admin-header-height) !important;
+    background: var(--admin-bg-sidebar) !important;
+    border-bottom: 1px solid var(--admin-border-color);
+    border-right: 1px solid var(--admin-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px !important;
+}
+
+.admin-modern .logo {
+    font-family: var(--admin-font-heading);
+    font-weight: 700 !important;
+    color: var(--admin-primary) !important;
+    font-size: 20px !important;
+    margin: 0 !important;
+}
+
+/* Sidebar Modernization */
+.admin-modern #sidebar {
+    width: var(--sidebar-width) !important;
+    background: var(--admin-bg-sidebar) !important;
+    border-right: 1px solid var(--admin-border-color);
+    box-shadow: var(--admin-shadow-sm);
+    top: var(--admin-header-height) !important;
+    padding-top: 20px !important;
+}
+
+/* Helper spacing classes */
+.mt-0 {
+    margin-top: 0 !important;
+}
+
+.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+.p-0 {
+    padding: 0 !important;
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation classes for modern elements */
+.animate-fade-in {
+    animation: fadeIn 0.4s var(--admin-timing-smooth) forwards;
+}
+
+/* Header User Dropdown Enhancements */
+.admin-modern .top-nav {
+    margin-top: 0;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    overflow: visible !important;
+    /* Allow dropdowns to overflow */
+}
+
+.admin-modern .user-trigger {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 0 15px !important;
+    height: var(--admin-header-height);
+    background: transparent !important;
+    transition: var(--admin-transition-fast);
+    border: none !important;
+    color: var(--admin-text-main) !important;
+    position: relative;
+    z-index: 10;
+}
+
+.admin-modern .user-trigger:hover,
+.admin-modern li.dropdown.open .user-trigger {
+    background: var(--admin-primary-light) !important;
+    color: var(--admin-primary) !important;
+}
+
+.admin-modern .user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--admin-border-color);
+    box-shadow: var(--admin-shadow-sm);
+    flex-shrink: 0;
+}
+
+.admin-modern .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.admin-modern .username {
+    font-family: var(--admin-font-interface);
+    font-weight: 600;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-modern .header-dropdown {
+    width: 220px !important;
+    padding: 8px !important;
+    border-radius: var(--admin-radius-md) !important;
+    box-shadow: var(--admin-shadow-lg) !important;
+    margin-top: 2px !important;
+    background: #ffffff !important;
+    z-index: 1200 !important;
+    border: 1px solid var(--admin-border-color) !important;
+}
+
+/* Trigger animation only when dropdown is open */
+.admin-modern li.dropdown.open .header-dropdown,
+.admin-modern li.dropdown.show .header-dropdown {
+    display: block !important;
+    animation: fadeIn 0.3s var(--admin-timing-smooth) forwards;
+}
+
+.admin-modern .header-dropdown .dropdown-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--admin-text-muted);
+    padding: 10px 12px 5px;
+    display: block;
+}
+
+.admin-modern .header-dropdown li a {
+    padding: 10px 15px !important;
+    border-radius: var(--admin-radius-sm);
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    color: var(--admin-text-main) !important;
+    transition: var(--admin-transition-fast);
+    font-weight: 500;
+    font-size: 13.5px;
+}
+
+.admin-modern .header-dropdown li a:hover {
+    background: var(--admin-primary-light) !important;
+    color: var(--admin-primary) !important;
+    transform: translateX(4px);
+}
+
+.admin-modern .header-dropdown li a i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+    color: inherit;
+}
+
+.admin-modern .divider {
+    height: 1px;
+    margin: 8px 0;
+    background-color: var(--admin-divider) !important;
+    display: block;
+}
+
+/* Responsive Handling */
+@media (max-width: 768px) {
+    .admin-modern .username {
+        display: none;
+    }
+
+    .admin-modern .user-trigger {
+        padding: 0 10px !important;
+        gap: 0;
+    }
+
+    .admin-modern .user-trigger i.fa-angle-down {
+        display: none;
+    }
+
+    .admin-modern .header-dropdown {
+        right: 10px !important;
+        left: auto !important;
+        width: 180px !important;
+    }
+}
+
+/* Image Gallery Stack & Hover Popover */
+.img-gallery-stack {
+    position: relative;
+    width: 60px;
+    height: 45px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.img-stack-item {
+    position: absolute;
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: #fff;
+    transition: all 0.4s var(--admin-timing-smooth);
+    object-fit: cover;
+    z-index: 1;
+    backface-visibility: hidden;
+    will-change: transform;
+}
+
+/* Stacking logic */
+.img-stack-item:nth-child(1) {
+    z-index: 3;
+    transform: translateX(0);
+}
+
+.img-stack-item:nth-child(2) {
+    z-index: 2;
+    transform: translateX(8px) scale(0.95);
+    opacity: 0.8;
+}
+
+.img-stack-item:nth-child(3) {
+    z-index: 1;
+    transform: translateX(16px) scale(0.9);
+    opacity: 0.6;
+}
+
+.img-count-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: var(--admin-primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    border: 2px solid #fff;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover Reveal Popover */
+.img-hover-popover {
+    position: absolute;
+    top: 50%;
+    left: 80px;
+    transform: translateY(-50%) translateX(20px);
+    background: #fff;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1000;
+    pointer-events: none;
+    border: 1px solid var(--admin-border-color);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+
+.img-gallery-stack:hover .img-hover-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+}
+
+.popover-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #eee;
+    transition: transform 0.3s ease;
+}
+
+.popover-img:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+/* Modern Label/Badge Styles (Matching Banner Section) */
+.label {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.label-success {
+    background-color: #2ecc71 !important;
+    color: #fff;
+}
+
+.label-danger {
+    background-color: #e74c3c !important;
+    color: #fff;
+}
+
+/* Table Action Buttons (Sync with Banner) */
+.btn-xs {
+    padding: 2px 6px;
+    font-size: 11px;
+    line-height: normal;
+    border-radius: 4px;
+    margin: 0 1px;
+}
+
+.btn-primary.btn-xs i,
+.btn-danger.btn-xs i {
+    font-size: 13px;
+}
+
+/* Custom Text Clipping for rich captions */
+.caption-preview-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--admin-text-main);
+    max-width: 250px;
+}
+
+/* Ensure table container doesn't clip popovers */
+.table-responsive {
+    overflow: visible !important;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .img-hover-popover {
+        display: none !important;
+    }
+}

@@ -1,13 +1,15 @@
 ﻿<!DOCTYPE html>
 <html>
-@{Html.RenderPartial("Admin_Header"); }
+<head>
+    @{Html.RenderPartial("Admin_Header"); }
+    @await RenderSectionAsync("Styles", required: false)
+</head>
 
-
-<body class="">
-    @*<div class="nav_overlay"> </div>
-        <div class="load_overlay"> </div>*@
+<body class="admin-modern">
+    <div class="nav_overlay" onclick="toggleSidebar()"> </div>
+    @*<div class="load_overlay"> </div>*@
     <div class="msg_panel error_msg Header_TopMsg"></div>
-    <section id="container">
+    <section id="container" class="admin-modern-layout">
         @{Html.RenderPartial("Admin_TopHeader");}
         @{Html.RenderPartial("Admin_partialLeftSidebar");}
 
@@ -22,8 +24,26 @@
             <img src="~/Assets/images/CCLogo.png" alt="Loading..." class="loader-logo" />
         </div>
     </div>
+    <!-- ===== Global Confirmation Dialog ===== -->
+    <div id="ccConfirmOverlay" class="cc-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="ccConfirmTitle">
+        <div class="cc-confirm-dialog">
+            <div class="cc-confirm-icon">
+                <i class="fa fa-trash-o"></i>
+            </div>
+            <h5 class="cc-confirm-title" id="ccConfirmTitle">Are you sure?</h5>
+            <p class="cc-confirm-message" id="ccConfirmMessage">If you want this file delete?</p>
+            <div class="cc-confirm-actions">
+                <button id="ccBtnYes" class="cc-btn cc-btn-yes">
+                    <i class="fa fa-check"></i> Yes, Delete
+                </button>
+                <button id="ccBtnNo" class="cc-btn cc-btn-no">
+                    <i class="fa fa-times"></i> No, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @{ Html.RenderPartial("_Script");}
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
-
-
-@{ Html.RenderPartial("_Script");}
 </html>

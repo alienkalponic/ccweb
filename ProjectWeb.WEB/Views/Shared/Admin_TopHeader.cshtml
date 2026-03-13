@@ -4,12 +4,11 @@
 
     <!--logo start-->
     <div class="brand">
-        <a href="@Url.Content("~/Dashboard")" class="logo">
-            @*<img src="@Url.Content("~/images/logo.png")" alt="">*@
-            Climbers' Circle
+        <a href="@Url.Content("~/Admin/Dashboard")" class="logo">
+            <span class="logo-text">Climbers'<span>Circle</span></span>
         </a>
         <div class="sidebar-toggle-box">
-            <div class="fa fa-bars"></div>
+            <i class="fa fa-bars"></i>
         </div>
     </div>
     <!--logo end-->
@@ -21,24 +20,29 @@
         <!--search & user info start-->
         <ul class="nav pull-right top-menu">
 
-            <li class="">
-
-                <a data-toggle="dropdown" class="dropdown-toggle" href="javascript:void(0);">
-
-
-
-                    <img alt="" src="@Url.Content("~/Assets/WithLogin/images/dashboard_logo.png")">
+            <li class="dropdown">
+                <a data-toggle="dropdown" class="dropdown-toggle user-trigger" href="javascript:void(0);">
+                    <div class="user-avatar">
+                        <img alt="User Avatar" src="@Url.Content("~/Assets/WithLogin/images/dashboard_logo.png")">
+                    </div>
                     <span class="username">
                         @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
                     </span>
-
-
-                    <b class="caret"></b>
+                    <i class="fa fa-angle-down"></i>
                 </a>
-                <ul class="dropdown-menu extended logout">
-                    <li id="idProfile"><a href="@Url.Content("~/Admin/AdminProfile")"><i class=" fa fa-suitcase"></i>Profile</a></li>
-                    @*<li><a href="javascript:void(0);"><i class="fa fa-cog"></i> Settings</a></li>*@
-                    <li><a href="@Url.Content("~/Userauthentication/logout")"><i class="fa fa-key"></i> Log Out</a></li>
+                <ul class="dropdown-menu dropdown-menu-right header-dropdown">
+                    <li class="dropdown-header">Account Settings</li>
+                    <li>
+                        <a href="@Url.Content("~/Admin/AdminProfile")">
+                            <i class="fa fa-user"></i> <span>Profile</span>
+                        </a>
+                    </li>
+                    <li class="divider"></li>
+                    <li>
+                        <a href="@Url.Content("~/Admin/Logout")" class="text-danger">
+                            <i class="fa fa-sign-out"></i> <span>Log Out</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
             <!-- user login dropdown end -->

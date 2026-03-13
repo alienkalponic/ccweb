@@ -1,0 +1,54 @@
+:root {
+    /* Color Palette - Matching Main Website */
+    --admin-primary: #a01c2b;
+    /* Deep Red accent from main site */
+    --admin-primary-dark: #8b1825;
+    --admin-primary-light: #fbebed;
+    --admin-secondary: #b08b45;
+    /* Gold accent from main site */
+    --admin-secondary-dark: #9a7a3b;
+
+    /* Neutral Colors - Modern Light Theme */
+    --admin-bg-body: #f8f9fc;
+    --admin-bg-sidebar: #ffffff;
+    --admin-bg-card: #ffffff;
+    --admin-bg-header: #ffffff;
+
+    --admin-text-main: #334155;
+    --admin-text-muted: #64748b;
+    --admin-text-light: #94a3b8;
+
+    --admin-border-color: #e2e8f0;
+    --admin-divider: #f1f5f9;
+
+    /* Shadow System */
+    --admin-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --admin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --admin-shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+
+    /* Typography */
+    --admin-font-heading: 'Playfair Display', serif;
+    --admin-font-body: 'Roboto', sans-serif;
+    --admin-font-interface: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Border Radius */
+    --admin-radius-sm: 6px;
+    --admin-radius-md: 10px;
+    --admin-radius-lg: 16px;
+    --admin-radius-full: 9999px;
+
+    /* Transitions & Animations */
+    --admin-timing-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --admin-timing-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --admin-transition-fast: all var(--admin-timing-fast);
+    --admin-transition-smooth: all var(--admin-timing-smooth);
+    --admin-ease-out: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Premium "bounce" effect */
+    --admin-transition-stagger: 0.05s;
+
+    /* Layout Config */
+    --admin-header-height: 70px;
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+}

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Model;
 using ProjectWeb.Domain.Utility;
@@ -182,6 +183,83 @@ namespace ProjectWeb.WEB.Controllers
             return Content(JsonConvert.SerializeObject(mmm.BannerDto), "application/json");
         }
 
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> DeleteBannerById(int id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Banner ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .BannerDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        #endregion
+
+        #region::ClubDescription
+        public async Task<IActionResult> ClubDescription()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(2147483647)]       //unit is bytes => 2GB
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        public async Task<IActionResult> CreateClubDescription(MultipleModel mmm)
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .DescriptionCreate<APIResponse>(mmm.CreateClubDescriptionDto!);
+
+            // Use explicit serialization to ensure casing matches exactly what we expect
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetDescriptionList()
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .DescriptionGetAll<APIResponse>("10", "1", "");
+
+            mmm.ClubDescriptionDtos = JsonConvert.DeserializeObject<List<GetClubDescriptionDto>>(Convert.ToString(response.Response)!);
+            return Content(JsonConvert.SerializeObject(mmm.ClubDescriptionDtos), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetDescriptionById(int id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .DescriptionGet<APIResponse>(id);
+
+            mmm.ClubDescriptionDto = JsonConvert.DeserializeObject<List<GetClubDescriptionDto>>(Convert.ToString(response.Response)!)!.FirstOrDefault();
+            return Content(JsonConvert.SerializeObject(mmm.ClubDescriptionDto), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(2147483647)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        public async Task<IActionResult> UpdateClubDescription(MultipleModel mmm)
+        {
+            
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .DescriptionUpdate<APIResponse>(mmm.UpdateClubDescriptionDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
         #endregion
 
     }

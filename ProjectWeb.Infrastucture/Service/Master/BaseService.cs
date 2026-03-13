@@ -45,6 +45,94 @@ namespace ProjectWeb.Infrastucture.Service.Master
                         : configuration.GetValue<string>("LiveServerServiceUrls:ProjectAPI");
         }
 
+        //public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
+        //{
+        //    try
+        //    {
+        //        var client = httpClient.CreateClient("NewProjectAPI");
+        //        client.Timeout = TimeSpan.FromMinutes(1);
+
+        //        var messageFactory = () =>
+        //        {
+        //            return _apiMessageRequestBuilder.Build(apiRequest);
+        //        };
+
+        //        HttpResponseMessage httpResponseMessage = null;
+
+        //        try
+        //        {
+        //            httpResponseMessage = await SendWithAccessTokenAsync(client, messageFactory, withBearer);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            // Catch failures during the actual send (e.g. DNS, connection refused)
+        //            return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.ServiceUnavailable);
+        //        }
+
+        //        APIResponse FinalApiResponse = new()
+        //        {
+        //            Success = false
+        //        };
+
+        //        try
+        //        {
+        //            switch (httpResponseMessage.StatusCode)
+        //            {
+        //                case HttpStatusCode.NotFound:
+        //                    FinalApiResponse.StatusCode = HttpStatusCode.NotFound;
+        //                    FinalApiResponse.ErrorMassage = new List<string>() { $"API Endpoint Not Found: {apiRequest.Url}" };
+        //                    break;
+        //                case HttpStatusCode.Forbidden:
+        //                    FinalApiResponse.StatusCode = HttpStatusCode.Forbidden;
+        //                    FinalApiResponse.ErrorMassage = new List<string>() { "Access Denied / Forbidden" };
+        //                    break;
+        //                case HttpStatusCode.Unauthorized:
+        //                    FinalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
+        //                    FinalApiResponse.ErrorMassage = new List<string>() { "Unauthorized - Token may be invalid or expired" };
+        //                    break;
+        //                case HttpStatusCode.InternalServerError:
+        //                    FinalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
+        //                    var serverContent = await httpResponseMessage.Content.ReadAsStringAsync();
+        //                    FinalApiResponse.ErrorMassage = new List<string>() { "Internal Server Error from API", serverContent };
+        //                    break;
+        //                case HttpStatusCode.BadRequest:
+        //                    FinalApiResponse.StatusCode = HttpStatusCode.BadRequest;
+        //                    var badReqContent = await httpResponseMessage.Content.ReadAsStringAsync();
+        //                    FinalApiResponse.ErrorMassage = new List<string>() { "Bad Request (400)", badReqContent };
+        //                    break;
+        //                default:
+        //                    var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
+        //                    if (httpResponseMessage.IsSuccessStatusCode)
+        //                    {
+        //                        FinalApiResponse.Success = true;
+        //                        FinalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+        //                    }
+        //                    else
+        //                    {
+        //                        FinalApiResponse.StatusCode = httpResponseMessage.StatusCode;
+        //                        FinalApiResponse.ErrorMassage = new List<string>() { $"Error: {httpResponseMessage.StatusCode}", apiContent };
+        //                    }
+        //                    break;
+        //            }
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            FinalApiResponse.ErrorMassage = new List<string>() { "Response Parsing Error", e.Message.ToString() };
+        //        }
+
+        //        var res = JsonConvert.SerializeObject(FinalApiResponse);
+        //        return JsonConvert.DeserializeObject<T>(res);
+        //    }
+        //    catch (AuthException)
+        //    {
+        //        throw;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return CreateErrorResponse<T>(apiRequest.Url, e.Message, HttpStatusCode.InternalServerError);
+        //    }
+        //}
+
         public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
         {
             try
@@ -54,10 +142,19 @@ namespace ProjectWeb.Infrastucture.Service.Master
 
                 var messageFactory = () =>
                 {
-                    return _apiMessageRequestBuilder.Build(apiRequest);
+                    var message = _apiMessageRequestBuilder.Build(apiRequest);
+
+                    // 🔥 Handle MultipartFormData
+                    if (apiRequest.Data != null &&
+                        apiRequest.ContentType == StaticDetails.ContentType.MultipartFormData)
+                    {
+                        message.Content = apiRequest.Data as MultipartFormDataContent;
+                    }
+
+                    return message;
                 };
 
-                HttpResponseMessage httpResponseMessage = null;
+                HttpResponseMessage httpResponseMessage;
 
                 try
                 {
@@ -65,11 +162,10 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 }
                 catch (Exception ex)
                 {
-                    // Catch failures during the actual send (e.g. DNS, connection refused)
                     return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.ServiceUnavailable);
                 }
 
-                APIResponse FinalApiResponse = new()
+                APIResponse finalApiResponse = new()
                 {
                     Success = false
                 };
@@ -79,57 +175,88 @@ namespace ProjectWeb.Infrastucture.Service.Master
                     switch (httpResponseMessage.StatusCode)
                     {
                         case HttpStatusCode.NotFound:
-                            FinalApiResponse.StatusCode = HttpStatusCode.NotFound;
-                            FinalApiResponse.ErrorMassage = new List<string>() { $"API Endpoint Not Found: {apiRequest.Url}" };
+                            finalApiResponse.StatusCode = HttpStatusCode.NotFound;
+                            finalApiResponse.ErrorMassage = new List<string>
+                    {
+                        $"API Endpoint Not Found: {apiRequest.Url}"
+                    };
                             break;
+
                         case HttpStatusCode.Forbidden:
-                            FinalApiResponse.StatusCode = HttpStatusCode.Forbidden;
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Access Denied / Forbidden" };
+                            finalApiResponse.StatusCode = HttpStatusCode.Forbidden;
+                            finalApiResponse.ErrorMassage = new List<string>
+                    {
+                        "Access Denied / Forbidden"
+                    };
                             break;
+
                         case HttpStatusCode.Unauthorized:
-                            FinalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Unauthorized - Token may be invalid or expired" };
+                            finalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
+                            finalApiResponse.ErrorMassage = new List<string>
+                    {
+                        "Unauthorized - Token may be invalid or expired"
+                    };
                             break;
+
                         case HttpStatusCode.InternalServerError:
-                            FinalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                            finalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
                             var serverContent = await httpResponseMessage.Content.ReadAsStringAsync();
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Internal Server Error from API", serverContent };
+                            finalApiResponse.ErrorMassage = new List<string>
+                    {
+                        "Internal Server Error from API",
+                        serverContent
+                    };
                             break;
+
                         case HttpStatusCode.BadRequest:
-                            FinalApiResponse.StatusCode = HttpStatusCode.BadRequest;
+                            finalApiResponse.StatusCode = HttpStatusCode.BadRequest;
                             var badReqContent = await httpResponseMessage.Content.ReadAsStringAsync();
-                            FinalApiResponse.ErrorMassage = new List<string>() { "Bad Request (400)", badReqContent };
+                            finalApiResponse.ErrorMassage = new List<string>
+                    {
+                        "Bad Request (400)",
+                        badReqContent
+                    };
                             break;
+
                         default:
                             var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
+
                             if (httpResponseMessage.IsSuccessStatusCode)
                             {
-                                FinalApiResponse.Success = true;
-                                FinalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                finalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                finalApiResponse.Success = true;
                             }
                             else
                             {
-                                FinalApiResponse.StatusCode = httpResponseMessage.StatusCode;
-                                FinalApiResponse.ErrorMassage = new List<string>() { $"Error: {httpResponseMessage.StatusCode}", apiContent };
+                                finalApiResponse.StatusCode = httpResponseMessage.StatusCode;
+                                finalApiResponse.ErrorMassage = new List<string>
+                        {
+                            $"Error: {httpResponseMessage.StatusCode}",
+                            apiContent
+                        };
                             }
                             break;
                     }
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    FinalApiResponse.ErrorMassage = new List<string>() { "Response Parsing Error", e.Message.ToString() };
+                    finalApiResponse.ErrorMassage = new List<string>
+            {
+                "Response Parsing Error",
+                ex.Message
+            };
                 }
 
-                var res = JsonConvert.SerializeObject(FinalApiResponse);
+                var res = JsonConvert.SerializeObject(finalApiResponse);
                 return JsonConvert.DeserializeObject<T>(res);
             }
             catch (AuthException)
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                return CreateErrorResponse<T>(apiRequest.Url, e.Message, HttpStatusCode.InternalServerError);
+                return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.InternalServerError);
             }
         }
 

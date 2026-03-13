@@ -1,4 +1,5 @@
 ﻿using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.ClubDescription;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,9 @@ namespace ProjectWeb.Domain.Model
         public List<BannerDto>? BannerDtos { get; set; }
         public BannerDto? BannerDto { get; set; }
         public BannerUpdateDto? BannerUpdateDto { get; set; }
+        public CreateClubDescriptionDto? CreateClubDescriptionDto { get; set; }
+        public List<GetClubDescriptionDto>? ClubDescriptionDtos { get; set; }
+        public GetClubDescriptionDto? ClubDescriptionDto { get; set; }
+        public UpdateClubDescriptionRequestDto? UpdateClubDescriptionDto { get; set; }
     }
 }

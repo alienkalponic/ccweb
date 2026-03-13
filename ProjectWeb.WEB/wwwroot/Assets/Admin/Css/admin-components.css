@@ -1,0 +1,312 @@
+/* Modern Admin Components */
+
+/* Dashboard mini-stats cards */
+.admin-modern .mini-stat {
+    background: var(--admin-bg-card);
+    border-radius: var(--admin-radius-md);
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--admin-shadow-md);
+    transition: var(--admin-transition-smooth);
+    border: 1px solid var(--admin-border-color);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.admin-modern .mini-stat:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--admin-shadow-lg);
+    border-color: var(--admin-secondary);
+}
+
+.admin-modern .mini-stat-icon {
+    width: 50px !important;
+    height: 50px !important;
+    line-height: 50px !important;
+    border-radius: var(--admin-radius-sm) !important;
+    font-size: 20px !important;
+    background: var(--admin-primary-light) !important;
+    color: var(--admin-primary) !important;
+    text-align: center;
+}
+
+.admin-modern .mini-stat-info {
+    font-family: var(--admin-font-body);
+    color: var(--admin-text-muted);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.admin-modern .mini-stat-info span {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--admin-text-main);
+    margin-bottom: 2px;
+}
+
+/* Modern Tables */
+.admin-modern .table-responsive {
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--admin-radius-lg);
+    overflow: hidden;
+    background: var(--admin-bg-card);
+    box-shadow: var(--admin-shadow-sm);
+}
+
+.admin-modern table.table {
+    margin-bottom: 0;
+}
+
+.admin-modern table.table thead th {
+    background-color: var(--admin-bg-body);
+    color: var(--admin-text-main);
+    font-family: var(--admin-font-interface);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    padding: 16px;
+    border-bottom: 2px solid var(--admin-border-color);
+}
+
+.admin-modern table.table tbody td {
+    padding: 16px;
+    vertical-align: middle;
+    color: var(--admin-text-main);
+    border-bottom: 1px solid var(--admin-divider);
+    transition: var(--admin-transition-fast);
+}
+
+.admin-modern table.table tbody tr:hover td {
+    background-color: var(--admin-divider);
+}
+
+/* Premium Buttons */
+.admin-modern .btn {
+    border-radius: var(--admin-radius-sm);
+    padding: 8px 16px;
+    font-weight: 600;
+    font-family: var(--admin-font-interface);
+    transition: var(--admin-transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+}
+
+.admin-modern .btn-primary {
+    background-color: var(--admin-primary) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px 0 rgba(160, 28, 43, 0.3);
+}
+
+.admin-modern .btn-primary:hover {
+    background-color: var(--admin-primary-dark) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px 0 rgba(160, 28, 43, 0.4);
+}
+
+/* Modern Forms & Inputs */
+.admin-modern .form-control {
+    border-radius: var(--admin-radius-sm);
+    border: 1px solid var(--admin-border-color);
+    padding: 10px 14px;
+    font-family: var(--admin-font-body);
+    transition: var(--admin-transition-fast);
+    box-shadow: none;
+    height: auto;
+}
+
+.admin-modern .form-control:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 3px var(--admin-primary-light);
+    outline: none;
+}
+
+.admin-modern label {
+    font-weight: 600;
+    color: var(--admin-text-main);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+/* Sidebar Nav Redesign */
+.admin-modern .sidebar-menu li a {
+    color: var(--admin-text-muted) !important;
+    padding: 12px 18px !important;
+    border-radius: var(--admin-radius-sm);
+    margin: 4px 12px;
+    transition: var(--admin-transition-smooth);
+    border: none !important;
+    font-weight: 500;
+    display: flex !important;
+    align-items: center;
+    text-decoration: none !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Active State Indicator Bar */
+.admin-modern .sidebar-menu li a.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 3px;
+    background: var(--admin-primary);
+    border-radius: 0 4px 4px 0;
+    transition: var(--admin-transition-smooth);
+}
+
+.admin-modern .sidebar-menu li a:hover {
+    background: var(--admin-divider) !important;
+    color: var(--admin-primary) !important;
+    transform: translateX(4px);
+}
+
+.admin-modern .sidebar-menu li a.active {
+    background: var(--admin-primary-light) !important;
+    color: var(--admin-primary) !important;
+    font-weight: 600;
+}
+
+.admin-modern .sidebar-menu li a i {
+    width: 20px;
+    margin-right: 12px;
+    font-size: 16px !important;
+    text-align: center;
+    flex-shrink: 0;
+    transition: transform 0.3s var(--admin-ease-out);
+}
+
+.admin-modern .sidebar-menu li a:hover i {
+    transform: scale(1.2);
+}
+
+.admin-modern .sidebar-menu li a span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: transform 0.3s var(--admin-ease-out);
+}
+
+/* Sub-menu Smooth Transition (CSS Grid Trick) */
+.admin-modern .sidebar-menu ul.sub {
+    padding: 0;
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    list-style: none;
+    opacity: 0;
+}
+
+.admin-modern .sidebar-menu ul.sub.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.admin-modern .sidebar-menu ul.sub>div {
+    min-height: 0;
+}
+
+.admin-modern .sidebar-menu ul.sub li a {
+    padding: 10px 18px 10px 48px !important;
+    margin: 2px 12px;
+    font-size: 13.5px;
+    transform: translateX(-10px);
+    opacity: 0;
+    transition: all 0.3s var(--admin-ease-out);
+}
+
+.admin-modern .sidebar-menu ul.sub.open li a {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Staggered Delay for Submenu Items */
+.admin-modern .sidebar-menu ul.sub li:nth-child(1) a {
+    transition-delay: calc(1 * var(--admin-transition-stagger));
+}
+
+.admin-modern .sidebar-menu ul.sub li:nth-child(2) a {
+    transition-delay: calc(2 * var(--admin-transition-stagger));
+}
+
+.admin-modern .sidebar-menu ul.sub li:nth-child(3) a {
+    transition-delay: calc(3 * var(--admin-transition-stagger));
+}
+
+.admin-modern .sidebar-menu ul.sub li:nth-child(4) a {
+    transition-delay: calc(4 * var(--admin-transition-stagger));
+}
+
+.admin-modern .sidebar-menu ul.sub li:nth-child(5) a {
+    transition-delay: calc(5 * var(--admin-transition-stagger));
+}
+
+.admin-modern .sidebar-menu ul.sub .sub1 a {
+    padding-left: 58px !important;
+}
+
+.admin-modern .sidebar-menu .sub-menu>a {
+    position: relative;
+}
+
+.admin-modern .sidebar-menu .sub-menu>a::after {
+    content: '\f105';
+    font-family: 'FontAwesome';
+    position: absolute;
+    right: 15px;
+    transition: transform 0.4s var(--admin-ease-out);
+}
+
+.admin-modern .sidebar-menu .sub-menu>a.active::after,
+.admin-modern .sidebar-menu .sub-menu.active>a::after {
+    transform: rotate(90deg);
+}
+
+/* Modals Modernization */
+.admin-modern .modal-content {
+    border-radius: var(--admin-radius-lg);
+    border: none;
+    box-shadow: var(--admin-shadow-lg);
+    overflow: hidden;
+}
+
+.admin-modern .modal-header {
+    background: var(--admin-bg-header);
+    border-bottom: 1px solid var(--admin-border-color);
+    padding: 20px 24px;
+}
+
+.admin-modern .modal-title {
+    font-family: var(--admin-font-heading);
+    font-weight: 700;
+    color: var(--admin-text-main);
+}
+
+.admin-modern .modal-body {
+    padding: 24px;
+    background: #ffffff !important;
+}
+
+.admin-modern .modal-footer {
+    border-top: 1px solid var(--admin-border-color);
+    padding: 16px 24px;
+}
+
+/* Alerts / Toastr Customization */
+.admin-modern #toast-container>div {
+    border-radius: var(--admin-radius-md);
+    box-shadow: var(--admin-shadow-lg);
+    opacity: 1;
+}
+
+/* Responsive sidebar collapsed state icons */
+.admin-modern.sidebar-collapsed #sidebar .sidebar-menu li a span {
+    display: none;
+}
