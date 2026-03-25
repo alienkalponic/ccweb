@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO;
@@ -29,20 +30,34 @@ namespace ProjectWeb.Infrastucture.Service.Master
         private readonly IApiMessageRequestBuilder _apiMessageRequestBuilder;
         protected readonly string projectUrl;
         private IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<BaseService> _logger;
 
-        public BaseService(IHttpClientFactory httpClient, ITokenProvider tokenProvider, IConfiguration configuration
-            , IHttpContextAccessor httpContextAccessor, IApiMessageRequestBuilder apiMessageRequestBuilder)
+        public BaseService(
+            IHttpClientFactory httpClient,
+            ITokenProvider tokenProvider,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor,
+            IApiMessageRequestBuilder apiMessageRequestBuilder,
+            ILogger<BaseService> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _tokenProvider = tokenProvider;
             this.apiResponse = new();
             this.httpClient = httpClient;
             _apiMessageRequestBuilder = apiMessageRequestBuilder;
+            _logger = logger;
 
-            var hostName = _httpContextAccessor.HttpContext?.Request.Host.Host!;
-            projectUrl = hostName.Contains("localhost")
-                        ? configuration.GetValue<string>("ServiceUrls:ProjectAPI")
-                        : configuration.GetValue<string>("LiveServerServiceUrls:ProjectAPI");
+            // Read ASPNETCORE_ENVIRONMENT from configuration (set by hosting or env var).
+            // Avoids hostname sniffing which breaks behind reverse proxies.
+            var envName = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Production";
+            var isProduction = !envName.Equals("Development", StringComparison.OrdinalIgnoreCase);
+
+            projectUrl = isProduction
+                        ? configuration.GetValue<string>("LiveServerServiceUrls:ProjectAPI")!
+                        : configuration.GetValue<string>("ServiceUrls:ProjectAPI")!;
+
+            _logger.LogInformation("[BaseService] Resolved API URL: {Url} (Environment: {Env})",
+                projectUrl, envName);
         }
 
         //public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
@@ -133,22 +148,164 @@ namespace ProjectWeb.Infrastucture.Service.Master
         //    }
         //}
 
+        //public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
+        //{
+        //    try
+        //    {
+        //        var client = httpClient.CreateClient("NewProjectAPI");
+        //        // Increased to 5 minutes to support large multi-file uploads
+        //        client.Timeout = TimeSpan.FromMinutes(5);
+
+        //        _logger.LogDebug("[SendAsync] → {Method} {Url} ContentType={CT}",
+        //            apiRequest.ApiType, apiRequest.Url, apiRequest.ContentType);
+
+        //        // Build is called by the factory on every send attempt (including the 401 retry).
+        //        // The builder handles both DTO reflection and pre-built MultipartFormDataContent correctly.
+        //        // DO NOT add any message.Content assignment here — that was Bug 1 (overwrote builder output with null).
+        //        var messageFactory = () => _apiMessageRequestBuilder.Build(apiRequest);
+
+        //        HttpResponseMessage httpResponseMessage;
+
+        //        try
+        //        {
+        //            httpResponseMessage = await SendWithAccessTokenAsync(client, messageFactory, withBearer);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError(ex, "[SendAsync] Connection failure to {Url}", apiRequest.Url);
+        //            return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.ServiceUnavailable);
+        //        }
+
+        //        APIResponse finalApiResponse = new()
+        //        {
+        //            Success = false
+        //        };
+
+        //        try
+        //        {
+        //            switch (httpResponseMessage.StatusCode)
+        //            {
+        //                case HttpStatusCode.NotFound:
+        //                    finalApiResponse.StatusCode = HttpStatusCode.NotFound;
+        //                    finalApiResponse.ErrorMassage = new List<string>
+        //            {
+        //                $"API Endpoint Not Found: {apiRequest.Url}"
+        //            };
+        //                    break;
+
+        //                case HttpStatusCode.Forbidden:
+        //                    finalApiResponse.StatusCode = HttpStatusCode.Forbidden;
+        //                    finalApiResponse.ErrorMassage = new List<string>
+        //            {
+        //                "Access Denied / Forbidden"
+        //            };
+        //                    break;
+
+        //                case HttpStatusCode.Unauthorized:
+        //                    finalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
+        //                    finalApiResponse.ErrorMassage = new List<string>
+        //            {
+        //                "Unauthorized - Token may be invalid or expired"
+        //            };
+        //                    break;
+
+        //                case HttpStatusCode.InternalServerError:
+        //                    finalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
+        //                    var serverContent = await httpResponseMessage.Content.ReadAsStringAsync();
+        //                    _logger.LogError("[SendAsync] API 500 from {Url}: {Body}", apiRequest.Url, serverContent);
+        //                    finalApiResponse.ErrorMassage = new List<string>
+        //            {
+        //                "Internal Server Error from API",
+        //                serverContent
+        //            };
+        //                    break;
+
+        //                case HttpStatusCode.BadRequest:
+        //                    finalApiResponse.StatusCode = HttpStatusCode.BadRequest;
+        //                    var badReqContent = await httpResponseMessage.Content.ReadAsStringAsync();
+        //                    _logger.LogWarning("[SendAsync] API 400 from {Url}: {Body}", apiRequest.Url, badReqContent);
+        //                    finalApiResponse.ErrorMassage = new List<string>
+        //            {
+        //                "Bad Request (400)",
+        //                badReqContent
+        //            };
+        //                    break;
+
+        //                default:
+        //                    var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
+
+        //                    if (httpResponseMessage.IsSuccessStatusCode)
+        //                    {
+        //                        finalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+        //                        finalApiResponse.Success = true;
+        //                    }
+        //                    else
+        //                    {
+        //                        _logger.LogWarning("[SendAsync] API {Status} from {Url}: {Body}",
+        //                            httpResponseMessage.StatusCode, apiRequest.Url, apiContent);
+        //                        finalApiResponse.StatusCode = httpResponseMessage.StatusCode;
+        //                        finalApiResponse.ErrorMassage = new List<string>
+        //                {
+        //                    $"Error: {httpResponseMessage.StatusCode}",
+        //                    apiContent
+        //                };
+        //                    }
+        //                    break;
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError(ex, "[SendAsync] Response parsing error from {Url}", apiRequest.Url);
+        //            finalApiResponse.ErrorMassage = new List<string>
+        //    {
+        //        "Response Parsing Error",
+        //        ex.Message
+        //    };
+        //        }
+
+        //        var res = JsonConvert.SerializeObject(finalApiResponse);
+        //        return JsonConvert.DeserializeObject<T>(res);
+        //    }
+        //    catch (AuthException)
+        //    {
+        //        throw;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "[SendAsync] Unhandled exception for {Url}", apiRequest.Url);
+        //        return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.InternalServerError);
+        //    }
+        //}
+
         public async Task<T> SendAsync<T>(APIRequest apiRequest, bool withBearer = true)
         {
             try
             {
                 var client = httpClient.CreateClient("NewProjectAPI");
-                client.Timeout = TimeSpan.FromMinutes(1);
+                client.Timeout = TimeSpan.FromMinutes(5);
 
+                _logger.LogDebug("[SendAsync] → {Method} {Url} ContentType={CT}",
+                    apiRequest.ApiType, apiRequest.Url, apiRequest.ContentType);
+
+                // Factory দিয়ে message তৈরি হবে (important)
                 var messageFactory = () =>
                 {
                     var message = _apiMessageRequestBuilder.Build(apiRequest);
 
-                    // 🔥 Handle MultipartFormData
-                    if (apiRequest.Data != null &&
-                        apiRequest.ContentType == StaticDetails.ContentType.MultipartFormData)
+                    // 🔥 TOKEN ATTACH (MAIN FIX)
+                    if (withBearer)
                     {
-                        message.Content = apiRequest.Data as MultipartFormDataContent;
+                        var token = _httpContextAccessor.HttpContext?.Session.GetString("JWToken");
+
+                        if (!string.IsNullOrEmpty(token))
+                        {
+                            message.Headers.Authorization =
+                                new AuthenticationHeaderValue("Bearer", token);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("[SendAsync] Token missing for {Url}", apiRequest.Url);
+                        }
                     }
 
                     return message;
@@ -158,10 +315,11 @@ namespace ProjectWeb.Infrastucture.Service.Master
 
                 try
                 {
-                    httpResponseMessage = await SendWithAccessTokenAsync(client, messageFactory, withBearer);
+                    httpResponseMessage = await client.SendAsync(messageFactory());
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "[SendAsync] Connection failure to {Url}", apiRequest.Url);
                     return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.ServiceUnavailable);
                 }
 
@@ -172,6 +330,8 @@ namespace ProjectWeb.Infrastucture.Service.Master
 
                 try
                 {
+                    var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
+
                     switch (httpResponseMessage.StatusCode)
                     {
                         case HttpStatusCode.NotFound:
@@ -186,7 +346,8 @@ namespace ProjectWeb.Infrastucture.Service.Master
                             finalApiResponse.StatusCode = HttpStatusCode.Forbidden;
                             finalApiResponse.ErrorMassage = new List<string>
                     {
-                        "Access Denied / Forbidden"
+                        "Access Denied / Forbidden",
+                        apiContent // 🔥 extra debug info
                     };
                             break;
 
@@ -194,33 +355,34 @@ namespace ProjectWeb.Infrastucture.Service.Master
                             finalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
                             finalApiResponse.ErrorMassage = new List<string>
                     {
-                        "Unauthorized - Token may be invalid or expired"
+                        "Unauthorized - Token invalid or expired",
+                        apiContent
                     };
                             break;
 
                         case HttpStatusCode.InternalServerError:
+                            _logger.LogError("[SendAsync] API 500 from {Url}: {Body}", apiRequest.Url, apiContent);
+
                             finalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
-                            var serverContent = await httpResponseMessage.Content.ReadAsStringAsync();
                             finalApiResponse.ErrorMassage = new List<string>
                     {
                         "Internal Server Error from API",
-                        serverContent
+                        apiContent
                     };
                             break;
 
                         case HttpStatusCode.BadRequest:
+                            _logger.LogWarning("[SendAsync] API 400 from {Url}: {Body}", apiRequest.Url, apiContent);
+
                             finalApiResponse.StatusCode = HttpStatusCode.BadRequest;
-                            var badReqContent = await httpResponseMessage.Content.ReadAsStringAsync();
                             finalApiResponse.ErrorMassage = new List<string>
                     {
                         "Bad Request (400)",
-                        badReqContent
+                        apiContent
                     };
                             break;
 
                         default:
-                            var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
-
                             if (httpResponseMessage.IsSuccessStatusCode)
                             {
                                 finalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
@@ -228,6 +390,9 @@ namespace ProjectWeb.Infrastucture.Service.Master
                             }
                             else
                             {
+                                _logger.LogWarning("[SendAsync] API {Status} from {Url}: {Body}",
+                                    httpResponseMessage.StatusCode, apiRequest.Url, apiContent);
+
                                 finalApiResponse.StatusCode = httpResponseMessage.StatusCode;
                                 finalApiResponse.ErrorMassage = new List<string>
                         {
@@ -240,6 +405,8 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "[SendAsync] Response parsing error from {Url}", apiRequest.Url);
+
                     finalApiResponse.ErrorMassage = new List<string>
             {
                 "Response Parsing Error",
@@ -256,6 +423,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "[SendAsync] Unhandled exception for {Url}", apiRequest.Url);
                 return CreateErrorResponse<T>(apiRequest.Url, ex.Message, HttpStatusCode.InternalServerError);
             }
         }

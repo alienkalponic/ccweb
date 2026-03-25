@@ -1,14 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using static ProjectWeb.Domain.Utility.StaticDetails;
 
 namespace ProjectWeb.Infrastucture.Service.Master
@@ -17,7 +13,19 @@ namespace ProjectWeb.Infrastucture.Service.Master
     {
         public HttpRequestMessage Build(APIRequest apiRequest)
         {
-            HttpRequestMessage message = new();
+            var message = new HttpRequestMessage();
+
+            // Set HTTP method
+            message.Method = apiRequest.ApiType switch
+            {
+                StaticDetails.ApiType.POST   => HttpMethod.Post,
+                StaticDetails.ApiType.PUT    => HttpMethod.Put,
+                StaticDetails.ApiType.DELETE => HttpMethod.Delete,
+                _                            => HttpMethod.Get
+            };
+
+            message.RequestUri = new Uri(apiRequest.Url);
+
             if (apiRequest.ContentType == ContentType.MultipartFormData)
             {
                 message.Headers.Add("Accept", "*/*");
@@ -26,70 +34,80 @@ namespace ProjectWeb.Infrastucture.Service.Master
             {
                 message.Headers.Add("Accept", "application/json");
             }
-            message.RequestUri = new Uri(apiRequest.Url);
 
-            if (apiRequest.Data != null)
+            if (apiRequest.Data == null)
+                return message;
+
+            if (apiRequest.ContentType == ContentType.MultipartFormData)
             {
-                if (apiRequest.ContentType == ContentType.MultipartFormData)
+                // If the caller already built a MultipartFormDataContent (Update flow),
+                // use it directly — do NOT re-reflect it.
+                if (apiRequest.Data is MultipartFormDataContent preBuilt)
                 {
-                    var content = new MultipartFormDataContent();
-
-                    foreach (var prop in apiRequest.Data.GetType().GetProperties())
-                    {
-                        var value = prop.GetValue(apiRequest.Data);
-                        if (value is IFormFile file)
-                        {
-                            if (file != null)
-                            {
-                                var fileContent = new StreamContent(file.OpenReadStream());
-                                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-                                content.Add(fileContent, prop.Name, file.FileName);
-                            }
-                        }
-                        else if (value is IEnumerable<IFormFile> files)
-                        {
-                            if (files != null)
-                            {
-                                foreach (var f in files)
-                                {
-                                    var fileContent = new StreamContent(f.OpenReadStream());
-                                    fileContent.Headers.ContentType = new MediaTypeHeaderValue(f.ContentType);
-                                    content.Add(fileContent, prop.Name, f.FileName);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            content.Add(new StringContent(Convert.ToString(value) ?? ""), prop.Name);
-                        }
-                    }
-                    message.Content = content;
+                    message.Content = preBuilt;
                 }
                 else
                 {
-                    message.Content = new StringContent(JsonConvert.SerializeObject(apiRequest.Data),
-                        Encoding.UTF8, "application/json");
+                    // Reflect the DTO into multipart (Create flow / Banner flow)
+                    message.Content = BuildMultipartFromDto(apiRequest.Data);
                 }
             }
-
-            switch (apiRequest.ApiType)
+            else
             {
-                case StaticDetails.ApiType.POST:
-                    message.Method = HttpMethod.Post;
-                    break;
-                case StaticDetails.ApiType.PUT:
-                    message.Method = HttpMethod.Put;
-                    break;
-                case StaticDetails.ApiType.DELETE:
-                    message.Method = HttpMethod.Delete;
-                    break;
-                default:
-                    message.Method = HttpMethod.Get;
-                    break;
-
+                message.Content = new StringContent(
+                    JsonConvert.SerializeObject(apiRequest.Data),
+                    Encoding.UTF8,
+                    "application/json");
             }
 
             return message;
+        }
+
+        /// <summary>
+        /// Reflects a plain DTO into a MultipartFormDataContent, handling:
+        ///   - IFormFile  → file stream part
+        ///   - IEnumerable&lt;IFormFile&gt; → multiple file parts (same field name)
+        ///   - IEnumerable (non-string, e.g. List&lt;long&gt;) → repeated string parts (same field name)
+        ///   - Everything else → string part
+        /// </summary>
+        private static MultipartFormDataContent BuildMultipartFromDto(object data)
+        {
+            var content = new MultipartFormDataContent();
+
+            foreach (var prop in data.GetType().GetProperties())
+            {
+                var value = prop.GetValue(data);
+                if (value == null) continue;
+
+                if (value is IFormFile singleFile)
+                {
+                    var fc = new StreamContent(singleFile.OpenReadStream());
+                    fc.Headers.ContentType = new MediaTypeHeaderValue(singleFile.ContentType);
+                    content.Add(fc, prop.Name, singleFile.FileName);
+                }
+                else if (value is IEnumerable<IFormFile> files)
+                {
+                    foreach (var f in files)
+                    {
+                        var fc = new StreamContent(f.OpenReadStream());
+                        fc.Headers.ContentType = new MediaTypeHeaderValue(f.ContentType);
+                        content.Add(fc, prop.Name, f.FileName);
+                    }
+                }
+                else if (value is not string && value is IEnumerable enumerable)
+                {
+                    // Handles List<long>, List<int>, List<string>, etc.
+                    // Each item becomes a separate form field with the same name.
+                    foreach (var item in enumerable)
+                        content.Add(new StringContent(Convert.ToString(item) ?? ""), prop.Name);
+                }
+                else
+                {
+                    content.Add(new StringContent(Convert.ToString(value) ?? ""), prop.Name);
+                }
+            }
+
+            return content;
         }
     }
 }

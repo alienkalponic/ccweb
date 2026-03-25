@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Admin Panel Responsive Logic
  */
 function toggleSidebar() {
@@ -628,13 +628,32 @@ $(document).ready(function () {
 
         function submitDescriptionUpdate($btn) {
             const isUpdate = $("#hdn_DescriptionId").val() !== "0";
-            const url = $btn.data("url"); // This should point to /Admin/UpdateClubDescription
 
-            if ($btn.prop("disabled")) return;
+            // 1. Environment-safe API URL Resolution
+            let rawUrl = $btn.data("url");
+            let url = rawUrl;
+
+            if (!url) {
+                // Fallback routing if data-url is missing
+                const basePath = typeof _BaseURL !== 'undefined' ? _BaseURL : window.location.origin;
+                url = basePath + (isUpdate ? "/Admin/UpdateClubDescription" : "/Admin/CreateClubDescription");
+                console.warn("[submitDescriptionUpdate] data-url missing on button. Falling back to:", url);
+            } else if (url.startsWith("/")) {
+                // Ensure absolute URL if it is a rooted relative path, avoiding tricky relative base tag issues in live env
+                const origin = window.location.origin;
+                url = origin + url;
+            }
+
+            // 2. Prevent duplicate submission
+            if ($btn.prop("disabled")) {
+                console.warn("[submitDescriptionUpdate] Duplicate submission prevented. Request is already in progress.");
+                return;
+            }
 
             $btn.prop("disabled", true).find(".spinner-border").removeClass("d-none");
             toastr.info(isUpdate ? "Updating..." : "Saving...", "Please wait");
 
+            // 3. Prepare FormData
             const formData = new FormData();
             const prefix = isUpdate ? "UpdateClubDescriptionDto." : "CreateClubDescriptionDto.";
 
@@ -649,50 +668,161 @@ $(document).ready(function () {
 
             if (isUpdate) {
                 // IDs of existing images to delete (Repeated Fields)
-                deletedImageIds.forEach(id => {
-                    formData.append(prefix + "DeletedImageIds", id);
-                });
+                if (Array.isArray(deletedImageIds)) {
+                    deletedImageIds.forEach(id => {
+                        formData.append(prefix + "DeletedImageIds", id);
+                    });
+                }
 
                 // New images to add (List<IFormFile>)
-                selectedFiles.forEach(file => {
-                    formData.append(prefix + "NewImages", file);
-                });
+                if (Array.isArray(selectedFiles)) {
+                    selectedFiles.forEach(file => {
+                        formData.append(prefix + "NewImages", file);
+                    });
+                }
             } else {
                 // For Create, DTO property is 'Files'
-                selectedFiles.forEach(file => {
-                    formData.append(prefix + "Files", file);
-                });
+                if (Array.isArray(selectedFiles)) {
+                    selectedFiles.forEach(file => {
+                        formData.append(prefix + "Files", file);
+                    });
+                }
+            }
+
+            // 4. Debug Logging - Payload Summary
+            console.group("[submitDescriptionUpdate] Payload Summary");
+            console.log("Final Request URL:", url);
+            console.log("Is Update Mode:", isUpdate);
+            console.log("Selected Files Count:", selectedFiles ? selectedFiles.length : 0);
+            if (isUpdate) {
+                console.log("Deleted Image IDs:", deletedImageIds);
+            }
+            console.log("FormData Keys:");
+            for (let pair of formData.entries()) {
+                if (pair[1] instanceof File) {
+                    console.log(`  ${pair[0]}: File [name=${pair[1].name}, size=${pair[1].size}, type=${pair[1].type}]`);
+                } else {
+                    console.log(`  ${pair[0]}: ${pair[1]}`);
+                }
+            }
+            console.groupEnd();
+
+            // 5. Antiforgery token — append to BOTH header AND FormData body.
+            // Header alone can be stripped by Nginx/IIS reverse proxies (Bug 6 fix).
+            // ASP.NET Core will accept the token from either location.
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
             }
 
             showLoader();
+
+            // 6. AJAX Call setup & robust handlers
             $.ajax({
                 url: url,
                 type: 'POST',
                 data: formData,
-                contentType: false, // REQUIRED for multipart/form-data
-                processData: false, // REQUIRED for multipart/form-data
+                contentType: false,  // REQUIRED for multipart/form-data
+                processData: false,  // REQUIRED for multipart/form-data
                 cache: false,
+                timeout: 300000,     // 5 minutes — matches server HttpClient timeout for large uploads
                 headers: {
-                    "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    // Keep header for non-proxy environments
+                    "RequestVerificationToken": antiforgeryToken
                 },
-                success: function (data) {
-                    const res = typeof data === "string" ? JSON.parse(data) : data;
-                    const isSuccess = res && (res.Success || res.Status || res.status === "True" || res.success === true);
+                success: function (data, textStatus, xhr) {
+                    console.log("[submitDescriptionUpdate] Success response status:", xhr.status);
+
+                    let res;
+                    if (typeof data === "string") {
+                        try {
+                            res = JSON.parse(data);
+                        } catch (e) {
+                            console.error("[submitDescriptionUpdate] JSON parse error in success callback:", e);
+                            toastr.error("Received malformed JSON from server.", "Parsing Error");
+                            return;
+                        }
+                    } else {
+                        res = data;
+                    }
+
+                    const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
 
                     if (isSuccess) {
                         toastr.success(res.Response || res.response || "Success!", "Success");
                         setTimeout(() => location.reload(), 1500);
                         $("#addDescriptionModal").modal('hide');
                     } else {
-                        toastr.warning(res.Response || res.response || "Operation failed.", "Error");
+                        const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
+                        toastr.warning(errorMsg, "Warning");
+                        console.warn("[submitDescriptionUpdate] API returned success=false:", res);
                     }
                 },
                 error: function (xhr, status, error) {
-                    handleAjaxError(xhr, status, error);
+                    console.error("[submitDescriptionUpdate] AJAX Error Details:", {
+                        status: xhr.status,
+                        readyState: xhr.readyState,
+                        responseText: xhr.responseText,
+                        textStatus: status,
+                        errorThrown: error,
+                        finalUrl: url
+                    });
+
+                    let errorMessage = "An error occurred while uploading. Please try again.";
+
+                    if (status === 'timeout') {
+                        errorMessage = "Request timed out. The file might be too large or your connection is slow.";
+                    } else if (status === 'abort') {
+                        errorMessage = "Request was aborted.";
+                    } else if (xhr.status === 0) {
+                        errorMessage = "Network error: API unreachable, blocked by CORS, or connection dropped. URL: " + url;
+                    } else if (xhr.status === 400) {
+                        errorMessage = "Bad Request (400): Validation failed or invalid data.";
+                    } else if (xhr.status === 401) {
+                        errorMessage = "Unauthorized (401): Your session may have expired.";
+                    } else if (xhr.status === 403) {
+                        errorMessage = "Forbidden (403): You do not have permission.";
+                    } else if (xhr.status === 404) {
+                        errorMessage = "Not Found (404): The API endpoint could not be found. Checked URL: " + url;
+                    } else if (xhr.status === 405) {
+                        errorMessage = "Method Not Allowed (405): Server configuration rejected POST request.";
+                    } else if (xhr.status === 413) {
+                        errorMessage = "Payload Too Large (413): The uploaded files exceed the server limit.";
+                    } else if (xhr.status === 500) {
+                        errorMessage = "Server Error (500): Something went wrong on the server.";
+                    }
+
+                    // Attempt to parse validation errors or detailed messages from JSON response
+                    if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            const parsedMsg = errorData.message || errorData.title || errorData.Response || errorData.response || errorData.detail;
+
+                            if (parsedMsg) {
+                                errorMessage += "<br/><strong>Details:</strong> " + parsedMsg;
+                            }
+
+                            if (errorData.errors) {
+                                // Extract ASP.NET core validation errors dictionary
+                                const errorList = Object.values(errorData.errors).flat().join("<br/>");
+                                errorMessage += "<br/><strong>Validation:</strong><br/>" + errorList;
+                            }
+                        } catch (e) {
+                            console.warn("[submitDescriptionUpdate] Could not parse error response text as JSON.", e);
+                            if (xhr.status >= 400 && xhr.status < 500 && xhr.responseText.length < 150) {
+                                // Strip basic HTML to avoid massive HTML error screens and dump text snippet
+                                errorMessage += "<br/>" + xhr.responseText.replace(/<[^>]*>?/gm, '');
+                            }
+                        }
+                    }
+
+                    toastr.error(errorMessage, "Upload Failed");
                 },
                 complete: function () {
+                    // 10. Restore button state in cleanup logic
                     $btn.prop("disabled", false).find(".spinner-border").addClass("d-none");
                     hideLoader();
+                    console.log("[submitDescriptionUpdate] Request complete.");
                 }
             });
         }
@@ -840,12 +970,14 @@ $(document).ready(function () {
         });
 
         function loadDescriptionById(id) {
+            
             const apiUrl = _BaseURL + "/Admin/GetDescriptionById?id=" + id;
             showLoader();
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                
                 success: function (res) {
                     if (res) {
                         const data = res.Response || res;
@@ -894,11 +1026,20 @@ $(document).ready(function () {
         }
 
         function deleteDescriptionById(id) {
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
+            }
             ccConfirmSetLoading(true);
             $.ajax({
                 url: _BaseURL + "/Admin/DeleteDescriptionById",
-                type: 'GET',
+                type: 'POST',
+                dataType: 'json',
                 data: { id: id },
+                headers: {
+                    // Keep header for non-proxy environments
+                    "RequestVerificationToken": antiforgeryToken
+                },
                 success: function (res) {
                     const ok = res && (res.Success || res.Status || res.status === "True");
                     if (ok) {

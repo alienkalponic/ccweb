@@ -1,12 +1,47 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Infrastucture;
 using ProjectWeb.Infrastucture.Service.Master;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Upload size limits (must be before AddControllersWithViews) ──────────────
+// Kestrel limit — controls what the .NET web server accepts before ASP.NET sees it.
+// Default is 30MB. Set to 500MB (or null for unlimited).
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 524_288_000; // 500 MB
+    options.Limits.KeepAliveTimeout  = TimeSpan.FromMinutes(10);
+    options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(1);
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddInfrastructureService();
 builder.Services.AddDistributedMemoryCache();
+
+// ── Antiforgery — read token from form body as well as header ────────────────
+// This ensures the token works even if the custom header is stripped by Nginx/IIS.
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName    = "RequestVerificationToken";  // legacy header name your JS sends
+    options.FormFieldName = "__RequestVerificationToken"; // also read from form body (Bug 6 fix)
+});
+
+// ── Form body size limits at the ASP.NET Core middleware level ───────────────
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit  = 524_288_000; // 500 MB
+    options.ValueLengthLimit          = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
+// ── Outbound HttpClient logging handler ─────────────────────────────────────
+// Logs every outbound API request and response (status + error body) to the app log.
+builder.Services.AddTransient<HttpClientLoggingHandler>();
+builder.Services.AddHttpClient("NewProjectAPI")
+    .AddHttpMessageHandler<HttpClientLoggingHandler>();
 
 // Enable Response Compression
 builder.Services.AddResponseCompression(options =>

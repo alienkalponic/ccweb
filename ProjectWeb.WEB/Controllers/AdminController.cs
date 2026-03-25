@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO.Banner;
@@ -21,13 +22,20 @@ namespace ProjectWeb.WEB.Controllers
         private readonly IMapper _mapper;
         private IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenProvider _tokenProvider;
+        private readonly ILogger<AdminController> _logger;
 
-        public AdminController(IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, ITokenProvider tokenProvider)
+        public AdminController(
+            IMapper mapper,
+            IUnitOfWork unitOfWork,
+            IHttpContextAccessor httpContextAccessor,
+            ITokenProvider tokenProvider,
+            ILogger<AdminController> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _tokenProvider = tokenProvider;
+            _logger = logger;
         }
         public IActionResult Index()
 		{
@@ -208,15 +216,22 @@ namespace ProjectWeb.WEB.Controllers
         [Authorize(Roles = "2")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequestSizeLimit(2147483647)]       //unit is bytes => 2GB
-        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> CreateClubDescription(MultipleModel mmm)
         {
+            _logger.LogInformation("[CreateClubDescription] Action hit. DTO null={IsNull}",
+                mmm.CreateClubDescriptionDto == null);
+            _logger.LogInformation("[CreateClubDescription] Files={Count}",
+                mmm.CreateClubDescriptionDto?.Files?.Count ?? 0);
+
             APIResponse response = await _unitOfWork
                 .ContentManagement
                 .DescriptionCreate<APIResponse>(mmm.CreateClubDescriptionDto!);
 
-            // Use explicit serialization to ensure casing matches exactly what we expect
+            _logger.LogInformation("[CreateClubDescription] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
 
@@ -249,17 +264,42 @@ namespace ProjectWeb.WEB.Controllers
         [Authorize(Roles = "2")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequestSizeLimit(2147483647)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 2147483647)]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> UpdateClubDescription(MultipleModel mmm)
         {
-            
+            _logger.LogInformation("[UpdateClubDescription] Action hit. DTO null={IsNull}",
+                mmm.UpdateClubDescriptionDto == null);
+            _logger.LogInformation("[UpdateClubDescription] NewImages={Imgs} DeletedIds={Ids}",
+                mmm.UpdateClubDescriptionDto?.NewImages?.Count ?? 0,
+                string.Join(",", mmm.UpdateClubDescriptionDto?.DeletedImageIds ?? new List<long>()));
+
             APIResponse response = await _unitOfWork
                 .ContentManagement
                 .DescriptionUpdate<APIResponse>(mmm.UpdateClubDescriptionDto!);
 
+            _logger.LogInformation("[UpdateClubDescription] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
+
+        [Authorize(Roles = "2,Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDescriptionById(int id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Banner ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .DescriptionDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+
         #endregion
 
     }
