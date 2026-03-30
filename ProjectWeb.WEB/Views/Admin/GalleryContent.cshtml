@@ -1,0 +1,163 @@
+@{
+    ViewData["Title"] = "Gallery";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <section class="panel mb-4 animate-fade-in">
+                <header class="panel-heading border-none bg-transparent" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
+                    <h2 class="mb-0">Gallery</h2>
+                    <button type="button" class="btn btn-primary" id="btnAddNewGallery">
+                        <i class="fa fa-plus"></i> Add New Gallery
+                    </button>
+                </header>
+                <div class="row mt-3">
+                     <div class="col-md-4">
+                         <div class="input-group">
+                             <input type="text" id="txtSearchGallery" class="form-control" placeholder="Search gallery...">
+                             <button class="btn btn-outline-secondary" type="button" id="btnSearchGallery" style="background-color: var(--admin-primary); color: white;"><i class="fa fa-search"></i></button>
+                         </div>
+                     </div>
+                </div>
+            </section>
+
+            <div class="table-responsive animate-fade-in">
+                <table id="tab_gallery" class="table" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th>SL.No</th>
+                            <th>Image</th>
+                            <th>Title</th>
+                            <th>SubTitle</th>
+                            <th>Exp. Year</th>
+                            <th>Display Order</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="pagination_outer" style="text-align: right!important;">
+                <ul class="pagination" id="galleryPagination"></ul>
+            </div>
+        </section>
+    </section>
+
+    <!-- Modal for Create and Update -->
+    <div class="modal fade" id="addGalleryModal" tabindex="-1" role="dialog" aria-labelledby="addGalleryModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg);">
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-image fs-4" style="color: var(--admin-primary);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="addGalleryModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main);">Add Gallery</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnCancelGallery" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body p-4">
+                    <form id="galleryForm" novalidate onsubmit="return false;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="hdn_GalleryId" name="UpdateGalleryDto.GalleryId" value="0" />
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtGalleryTitle" name="CreateGalleryDto.Title" placeholder="Enter title..." required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">SubTitle</label>
+                                <input type="text" class="form-control" id="txtGallerySubTitle" name="CreateGalleryDto.SubTitle" placeholder="Enter subtitle...">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Expedition Year <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtExpeditionYear" name="CreateGalleryDto.ExpeditionYear" placeholder="e.g. 2024">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Display Order</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fa fa-sort"></i></span>
+                                    <input type="number" class="form-control" id="numGalleryDisplayOrder" value="0" min="0" name="CreateGalleryDto.DisplayOrder">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3 d-flex align-items-end" id="divGalleryStatus">
+                                <div class="form-check form-switch p-0 ml-4 mb-2">
+                                    <label class="form-check-label fw-semibold mr-3" for="chkGalleryIsActive">Is Active</label>
+                                    <div class="custom-control custom-switch pt-1 d-inline-block">
+                                        <input type="checkbox" class="custom-control-input" id="chkGalleryIsActive" name="CreateGalleryDto.IsActive" checked>
+                                        <label class="custom-control-label" for="chkGalleryIsActive"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold d-block mb-2">Upload Image <span class="text-danger">*</span></label>
+                                <div class="upload-zone p-4 text-center border-dashed rounded-3 bg-light" id="galleryDropZone" style="border: 2px dashed #e2e8f0; cursor: pointer;">
+                                    <input type="file" id="galleryFileInput" accept="image/*" class="d-none" name="CreateGalleryDto.File">
+                                    <div class="upload-content py-2" id="btnGalleryBrowse">
+                                        <i class="fa fa-cloud-upload text-muted mb-2" style="font-size: 2.5rem;"></i>
+                                        <p class="mb-1 text-dark fw-bold">Click to upload or drag and drop</p>
+                                        <p class="text-muted small">Only images (JPG, PNG, WEBP) are allowed</p>
+                                    </div>
+                                </div>
+                                <div id="galleryImagePreviewContainer" class="mt-3 text-center" style="display:none;">
+                                    <img id="galleryImgPreview" src="" alt="Preview" style="max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                                    <br>
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="btnRemoveGalleryImg">Remove Image</button>
+                                </div>
+                                <div id="galleryImageError" class="text-danger small mt-1 d-none">Please select an image.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 mr-2 btnCancelGallery" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveGallery">
+                        <span class="spinner-border spinner-border-sm me-2 d-none btnSpin" role="status" aria-hidden="true"></span>
+                        <span class="btnText"><i class="fa fa-save mr-2"></i> Save Changes</span>
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center d-none" id="btnUpdateGallery">
+                        <span class="spinner-border spinner-border-sm me-2 d-none btnSpin" role="status" aria-hidden="true"></span>
+                        <span class="btnText"><i class="fa fa-refresh mr-2"></i> Update</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script>
+            var _ProjectAPI = '@projectApiUrl';
+            var galleryUrls = {
+                getAll: '@Url.Action("GetGalleryList", "Admin")',
+                getById: '@Url.Action("GetGalleryById", "Admin")',
+                create: '@Url.Action("CreateGallery", "Admin")',
+                update: '@Url.Action("UpdateGallery", "Admin")',
+                delete: '@Url.Action("DeleteGallery", "Admin")'
+            };
+        </script>
+    }
+}

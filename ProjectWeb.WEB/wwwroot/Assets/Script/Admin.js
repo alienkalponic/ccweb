@@ -1026,20 +1026,12 @@ $(document).ready(function () {
         }
 
         function deleteDescriptionById(id) {
-            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
-            if (antiforgeryToken) {
-                formData.append("__RequestVerificationToken", antiforgeryToken);
-            }
             ccConfirmSetLoading(true);
             $.ajax({
                 url: _BaseURL + "/Admin/DeleteDescriptionById",
-                type: 'POST',
-                dataType: 'json',
+                type: 'GET',
                 data: { id: id },
-                headers: {
-                    // Keep header for non-proxy environments
-                    "RequestVerificationToken": antiforgeryToken
-                },
+                dataType: 'json',
                 success: function (res) {
                     const ok = res && (res.Success || res.Status || res.status === "True");
                     if (ok) {
@@ -1056,6 +1048,735 @@ $(document).ready(function () {
                     handleAjaxError(xhr, status, error);
                 }
             });
+        }
+    }
+
+    if (action_name === "clubactivities") {
+        let currentPage = 1;
+        let selectedActivityFile = null;
+
+        loadActivities(currentPage);
+
+        // Events
+        $("#btnAddNewActivity").on("click", function () {
+            resetActivityModal();
+            $("#addActivityModal").modal("show");
+        });
+
+        $(".btnCancelActivity").on("click", function () {
+            $("#addActivityModal").modal("hide");
+        });
+
+        $("#txtSearchActivity").on("keyup", function (e) {
+            if (e.key === "Enter" || $(this).val().length === 0 || $(this).val().length > 2) {
+                currentPage = 1;
+                loadActivities(currentPage);
+            }
+        });
+
+        $("#btnSearchActivity").on("click", function () {
+            currentPage = 1;
+            loadActivities(currentPage);
+        });
+
+        // File logic
+        $("#activityDropZone").on("click", function (e) {
+            // Prevent recursive loop when clicking the hidden input
+            if (e.target.id === "activityFileInput") return;
+            $("#activityFileInput").click();
+        });
+
+        // Drag and Drop
+        $("#activityDropZone").on("dragover", function (e) {
+            e.preventDefault();
+            $(this).addClass("bg-primary-soft");
+        }).on("dragleave", function () {
+            $(this).removeClass("bg-primary-soft");
+        }).on("drop", function (e) {
+            e.preventDefault();
+            $(this).removeClass("bg-primary-soft");
+            const files = e.originalEvent.dataTransfer.files;
+            handleActivityFiles(files);
+        });
+
+        $("#activityFileInput").on("change", function (e) {
+            handleActivityFiles(e.target.files);
+        });
+
+        function handleActivityFiles(files) {
+            if (files && files.length > 0) {
+                // Ensure only one file is taken
+                selectedActivityFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $("#activityImgPreview").attr("src", e.target.result);
+                    $("#activityImagePreviewContainer").show();
+                    $("#activityDropZone").hide();
+                    $("#activityImageError").addClass("d-none");
+                }
+                reader.readAsDataURL(selectedActivityFile);
+            }
+        }
+
+        $("#btnRemoveActivityImg").on("click", function () {
+            selectedActivityFile = null;
+            $("#activityFileInput").val("");
+            $("#activityImgPreview").attr("src", "");
+            $("#activityImagePreviewContainer").hide();
+            $("#activityDropZone").show();
+        });
+
+        $("#btnSaveActivity").on("click", function () {
+            createActivity($(this));
+        });
+
+        $("#btnUpdateActivity").on("click", function () {
+            updateActivity($(this));
+        });
+
+        $(document).on("click", ".btnEditActivity", function () {
+            getActivityById($(this).data("id"));
+        });
+
+        $(document).on("click", ".btnDeleteActivity", function () {
+            const id = $(this).data("id");
+            showConfirmDialog({
+                title: 'Delete Activity',
+                message: 'Are you sure you want to delete this activity?',
+                onYes: function () { deleteActivity(id); }
+            });
+        });
+
+        // AJAX Functions
+        function loadActivities(pageNumber) {
+            currentPage = pageNumber;
+            const search = $("#txtSearchActivity").val() || "";
+            const pageSize = 10;
+            const url = _BaseURL + `/Admin/GetAllActivities?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
+
+            showLoader();
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    // Assuming res contains data array and Pagination info
+                    const data = res ? (res.Data || res.data || res) : [];
+                    bindActivityTable(data);
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                    bindActivityTable([]);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindActivityTable(data) {
+            const $tbody = $("#tab_activities tbody");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append('<tr><td colspan="7" class="text-center">No activities found</td></tr>');
+                return;
+            }
+
+            $.each(data, function (index, item) {
+                const slNo = (currentPage - 1) * 10 + (index + 1);
+                const imageUrl = item.ImageUrl || item.Image || "";
+                const title = item.Title || "N/A";
+                const subTitle = item.SubTitle || "";
+                const displayOrder = item.DisplayOrder || 0;
+                const isActiveHtml = item.IsActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>';
+
+                const apiBase = typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL;
+                const fullImageUrl = (imageUrl && imageUrl.startsWith('/')) ? apiBase + imageUrl : imageUrl;
+
+                const row = `
+                <tr>
+                    <td>${slNo}</td>
+                    <td><img src="${fullImageUrl}" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #ddd;"></td>
+                    <td class="fw-semibold">${title}</td>
+                    <td>${subTitle}</td>
+                    <td>${displayOrder}</td>
+                    <td>${isActiveHtml}</td>
+                    <td>
+                        <button class="btn btn-primary btn-xs btnEditActivity" data-id="${item.ActivityId || item.Id}" title="Edit"><i class="fa fa-pencil"></i></button>
+                        <button class="btn btn-danger btn-xs btnDeleteActivity" data-id="${item.ActivityId || item.Id}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                    </td>
+                </tr>`;
+                $tbody.append(row);
+            });
+        }
+
+        function createActivity($btn) {
+            if (!validateActivityForm(false)) return;
+
+            const formData = new FormData();
+            formData.append("CreateClubActivityDto.Title", $("#txtActivityTitle").val().trim());
+            formData.append("CreateClubActivityDto.SubTitle", $("#txtActivitySubTitle").val().trim());
+            formData.append("CreateClubActivityDto.Description", $("#txtActivityDescription").val().trim());
+            formData.append("CreateClubActivityDto.RedirectUrl", $("#txtRedirectUrl").val().trim());
+            formData.append("CreateClubActivityDto.DisplayOrder", $("#numActivityDisplayOrder").val());
+            formData.append("CreateClubActivityDto.IsActive", $("#chkActivityIsActive").is(":checked"));
+
+            if (selectedActivityFile) {
+                formData.append("CreateClubActivityDto.Image", selectedActivityFile);
+            }
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
+
+            submitActivityAjax(_BaseURL + "/Admin/CreateActivity", formData, $btn, false);
+        }
+
+        function updateActivity($btn) {
+            if (!validateActivityForm(true)) return;
+
+            const formData = new FormData();
+            formData.append("UpdateClubActivityDto.ActivityId", $("#hdn_ActivityId").val());
+            formData.append("UpdateClubActivityDto.Title", $("#txtActivityTitle").val().trim());
+            formData.append("UpdateClubActivityDto.SubTitle", $("#txtActivitySubTitle").val().trim());
+            formData.append("UpdateClubActivityDto.Description", $("#txtActivityDescription").val().trim());
+            formData.append("UpdateClubActivityDto.RedirectUrl", $("#txtRedirectUrl").val().trim());
+            formData.append("UpdateClubActivityDto.DisplayOrder", $("#numActivityDisplayOrder").val());
+            formData.append("UpdateClubActivityDto.IsActive", $("#chkActivityIsActive").is(":checked"));
+
+            if (selectedActivityFile) {
+                formData.append("UpdateClubActivityDto.Image", selectedActivityFile);
+            }
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
+
+            submitActivityAjax(_BaseURL + "/Admin/UpdateActivity", formData, $btn, true);
+        }
+
+        function submitActivityAjax(url, formData, $btn, isUpdate) {
+            if ($btn.prop("disabled")) return;
+            $btn.prop("disabled", true).find(".btnSpin").removeClass("d-none");
+            toastr.info("Saving...", "Please wait");
+            showLoader();
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() || "" },
+                success: function (data) {
+                    const res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.success === true || res.Status === true || res.Status === "True");
+                    
+                    if (isSuccess) {
+                        toastr.success(res.Response || res.message || "Successfully saved.", "Success");
+                        $("#addActivityModal").modal('hide');
+                        loadActivities(currentPage);
+                    } else {
+                        toastr.warning(res.Response || res.message || "Failed to save.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    $btn.prop("disabled", false).find(".btnSpin").addClass("d-none");
+                    hideLoader();
+                }
+            });
+        }
+
+        function deleteActivity(id) {
+            ccConfirmSetLoading(true);
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+
+            $.ajax({
+                url: _BaseURL + "/Admin/DeleteActivity",
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: antiforgeryToken },
+                success: function (data) {
+                    const res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.success === true || res.Status === true || res.Status === "True");
+                    if (isSuccess) {
+                        ccConfirmClose();
+                        toastr.success(res.Response || res.message || "Deleted successfully.", "Deleted");
+                        loadActivities(currentPage);
+                    } else {
+                        ccConfirmSetLoading(false);
+                        toastr.warning(res.Response || res.message || "Failed to delete.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    ccConfirmSetLoading(false);
+                    handleAjaxError(xhr, status, error);
+                }
+            });
+        }
+
+        function getActivityById(id) {
+            showLoader();
+            $.ajax({
+                url: _BaseURL + "/Admin/GetActivityById?id=" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    const data = res.Data || res.data || res.Response || res;
+                    const actualData = typeof data === "string" ? JSON.parse(data) : data;
+                    const mappedData = Array.isArray(actualData) ? actualData[0] : actualData;
+                    
+                    bindActivityModal(mappedData);
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindActivityModal(data) {
+            resetActivityModal();
+            if (!data) return;
+
+            $("#hdn_ActivityId").val(data.ActivityId || data.Id);
+            $("#txtActivityTitle").val(data.Title);
+            $("#txtActivitySubTitle").val(data.SubTitle);
+            $("#txtActivityDescription").val(data.Description);
+            $("#txtRedirectUrl").val(data.RedirectUrl);
+            $("#numActivityDisplayOrder").val(data.DisplayOrder);
+            $("#chkActivityIsActive").prop("checked", data.IsActive === true);
+
+            const img = data.ImageUrl || data.Image;
+            if (img) {
+                const apiBase = typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL;
+                const imgUrl = img.startsWith('/') ? apiBase + img : img;
+                $("#activityImgPreview").attr("src", imgUrl);
+                $("#activityImagePreviewContainer").show();
+                $("#activityDropZone").hide();
+            }
+
+            $("#addActivityModalTitle").html('<i class="fa fa-pencil"></i> Update Club Activity');
+            $("#btnSaveActivity").addClass("d-none");
+            $("#btnUpdateActivity").removeClass("d-none");
+            $("#divActivityStatus").removeClass("d-none");
+            $("#addActivityModal").modal("show");
+        }
+
+        function validateActivityForm(isUpdate) {
+            let errors = [];
+            const title = $("#txtActivityTitle").val().trim();
+
+            if (!title) errors.push("Title is required.");
+
+            if (!isUpdate && !selectedActivityFile) {
+                $("#activityImageError").removeClass("d-none");
+                errors.push("Image is required.");
+            } else {
+                $("#activityImageError").addClass("d-none");
+            }
+
+            if (selectedActivityFile) {
+                const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+                if (!allowedTypes.includes(selectedActivityFile.type)) {
+                    errors.push("Invalid file type. Allowed: JPG, PNG, WEBP.");
+                }
+                if (selectedActivityFile.size > 2 * 1024 * 1024) {
+                    errors.push("Image size must be less than 2MB.");
+                }
+            }
+
+            if (errors.length > 0) {
+                toastr.warning(errors.join("<br/>"), "Validation Error");
+                return false;
+            }
+            return true;
+        }
+
+        function resetActivityModal() {
+            $("#activityForm")[0].reset();
+            $("#hdn_ActivityId").val("0");
+            selectedActivityFile = null;
+            
+            $("#activityFileInput").val("");
+            $("#activityImgPreview").attr("src", "");
+            $("#activityImagePreviewContainer").hide();
+            $("#activityDropZone").show();
+            $("#activityImageError").addClass("d-none");
+            
+            $("#addActivityModalTitle").html('<i class="fa fa-tasks"></i> Add Club Activity');
+            $("#btnSaveActivity").removeClass("d-none");
+            $("#btnUpdateActivity").addClass("d-none");
+            $("#divActivityStatus").addClass("d-none"); 
+            $("#chkActivityIsActive").prop("checked", true);
+        }
+    }
+    
+    if (action_name === "gallerycontent" || $("#tab_gallery").length > 0) {
+        let currentPage = 1;
+        let selectedGalleryFile = null;
+
+        loadGallery(currentPage);
+
+        // Events
+        $("#btnAddNewGallery").on("click", function () {
+            resetGalleryModal();
+            $("#addGalleryModal").modal("show");
+        });
+
+        $(".btnCancelGallery").on("click", function () {
+            $("#addGalleryModal").modal("hide");
+        });
+
+        $("#txtSearchGallery").on("keyup", function (e) {
+            if (e.key === "Enter" || $(this).val().length === 0 || $(this).val().length > 2) {
+                currentPage = 1;
+                loadGallery(currentPage);
+            }
+        });
+
+        $("#btnSearchGallery").on("click", function () {
+            currentPage = 1;
+            loadGallery(currentPage);
+        });
+
+        // File logic
+        $("#galleryDropZone").on("click", function (e) {
+            if (e.target.id === "galleryFileInput") return;
+            $("#galleryFileInput").click();
+        });
+
+        // Drag and Drop
+        $("#galleryDropZone").on("dragover", function (e) {
+            e.preventDefault();
+            $(this).addClass("bg-primary-soft");
+        }).on("dragleave", function () {
+            $(this).removeClass("bg-primary-soft");
+        }).on("drop", function (e) {
+            e.preventDefault();
+            $(this).removeClass("bg-primary-soft");
+            const files = e.originalEvent.dataTransfer.files;
+            handleGalleryFiles(files);
+        });
+
+        $("#galleryFileInput").on("change", function (e) {
+            handleGalleryFiles(e.target.files);
+        });
+
+        function handleGalleryFiles(files) {
+            if (files && files.length > 0) {
+                selectedGalleryFile = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $("#galleryImgPreview").attr("src", e.target.result);
+                    $("#galleryImagePreviewContainer").show();
+                    $("#galleryDropZone").hide();
+                    $("#galleryImageError").addClass("d-none");
+                }
+                reader.readAsDataURL(selectedGalleryFile);
+            }
+        }
+
+        $("#btnRemoveGalleryImg").on("click", function () {
+            selectedGalleryFile = null;
+            $("#galleryFileInput").val("");
+            $("#galleryImgPreview").attr("src", "");
+            $("#galleryImagePreviewContainer").hide();
+            $("#galleryDropZone").show();
+        });
+
+        $("#btnSaveGallery").on("click", function () {
+            createGallery($(this));
+        });
+
+        $("#btnUpdateGallery").on("click", function () {
+            updateGallery($(this));
+        });
+
+        $(document).on("click", ".btnEditGallery", function () {
+            getGalleryById($(this).data("id"));
+        });
+
+        $(document).on("click", ".btnDeleteGallery", function () {
+            const id = $(this).data("id");
+            showConfirmDialog({
+                title: 'Delete Gallery',
+                message: 'Are you sure you want to delete this gallery item?',
+                onYes: function () { deleteGallery(id); }
+            });
+        });
+
+        // AJAX Functions
+        function loadGallery(pageNumber) {
+            currentPage = pageNumber;
+            const search = $("#txtSearchGallery").val() || "";
+            const pageSize = 12;
+            const url = _BaseURL + `/Admin/GetGalleryList?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
+
+            showLoader();
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    const data = res ? (res.Data || res.data || res) : [];
+                    bindGalleryTable(data);
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                    bindGalleryTable([]);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindGalleryTable(data) {
+            const $tbody = $("#tab_gallery tbody");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append('<tr><td colspan="8" class="text-center">No gallery items found</td></tr>');
+                return;
+            }
+
+            $.each(data, function (index, item) {
+                const slNo = (currentPage - 1) * 12 + (index + 1);
+                const galleryId = item.GalleryItemsId || item.Id || item.id || 0;
+                const imageUrl = item.ImageUrl || item.imageUrl || "";
+                const title = item.Title || item.title || "N/A";
+                const subTitle = item.SubTitle || item.subtitle || "";
+                const expYear = item.ExpeditionYear || item.expeditionYear || "";
+                const displayOrder = item.DisplayOrder || item.displayOrder || 0;
+                const isActiveHtml = (item.IsActive || item.isActive) ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>';
+
+                const apiBase = typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL;
+                const fullImageUrl = (imageUrl && imageUrl.startsWith('/')) ? apiBase + imageUrl : imageUrl;
+
+                const row = `
+                <tr>
+                    <td>${slNo}</td>
+                    <td><img src="${fullImageUrl}" alt="Thumbnail" style="height: 50px; border-radius: 4px; border: 1px solid #ddd;"></td>
+                    <td class="fw-semibold">${title}</td>
+                    <td>${subTitle}</td>
+                    <td>${expYear}</td>
+                    <td>${displayOrder}</td>
+                    <td>${isActiveHtml}</td>
+                    <td>
+                        <button class="btn btn-primary btn-xs btnEditGallery" data-id="${galleryId}" title="Edit"><i class="fa fa-pencil"></i></button>
+                        <button class="btn btn-danger btn-xs btnDeleteGallery" data-id="${galleryId}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                    </td>
+                </tr>`;
+                $tbody.append(row);
+            });
+        }
+
+        function createGallery($btn) {
+            if (!validateGalleryForm(false)) return;
+
+            const formData = new FormData();
+            formData.append("CreateGalleryDto.Title", $("#txtGalleryTitle").val().trim());
+            formData.append("CreateGalleryDto.SubTitle", $("#txtGallerySubTitle").val().trim());
+            formData.append("CreateGalleryDto.ExpeditionYear", $("#txtExpeditionYear").val().trim());
+            formData.append("CreateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val());
+            formData.append("CreateGalleryDto.IsActive", $("#chkGalleryIsActive").is(":checked"));
+
+            if (selectedGalleryFile) {
+                formData.append("CreateGalleryDto.File", selectedGalleryFile);
+            }
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
+
+            submitGalleryAjax(_BaseURL + "/Admin/CreateGallery", formData, $btn, false);
+        }
+
+        function updateGallery($btn) {
+            if (!validateGalleryForm(true)) return;
+
+            const formData = new FormData();
+            formData.append("UpdateGalleryDto.GalleryItemsId", $("#hdn_GalleryId").val());
+            formData.append("UpdateGalleryDto.Title", $("#txtGalleryTitle").val().trim());
+            formData.append("UpdateGalleryDto.SubTitle", $("#txtGallerySubTitle").val().trim());
+            formData.append("UpdateGalleryDto.ExpeditionYear", $("#txtExpeditionYear").val().trim());
+            formData.append("UpdateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val());
+            formData.append("UpdateGalleryDto.IsActive", $("#chkGalleryIsActive").is(":checked"));
+
+            if (selectedGalleryFile) {
+                formData.append("UpdateGalleryDto.File", selectedGalleryFile);
+            }
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
+
+            submitGalleryAjax(_BaseURL + "/Admin/UpdateGallery", formData, $btn, true);
+        }
+
+        function submitGalleryAjax(url, formData, $btn, isUpdate) {
+            if ($btn.prop("disabled")) return;
+            $btn.prop("disabled", true).find(".btnSpin").removeClass("d-none");
+            toastr.info("Saving...", "Please wait");
+            showLoader();
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() || "" },
+                success: function (data) {
+                    const res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.success === true || res.Status === true || res.Status === "True");
+                    
+                    if (isSuccess) {
+                        toastr.success(res.Response || res.message || "Successfully saved.", "Success");
+                        $("#addGalleryModal").modal('hide');
+                        loadGallery(currentPage);
+                    } else {
+                        toastr.warning(res.Response || res.message || "Failed to save.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    $btn.prop("disabled", false).find(".btnSpin").addClass("d-none");
+                    hideLoader();
+                }
+            });
+        }
+
+        function deleteGallery(id) {
+            ccConfirmSetLoading(true);
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+
+            $.ajax({
+                url: _BaseURL + "/Admin/DeleteGallery",
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: antiforgeryToken },
+                success: function (data) {
+                    const res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.success === true || res.Status === true || res.Status === "True");
+                    if (isSuccess) {
+                        ccConfirmClose();
+                        toastr.success(res.Response || res.message || "Deleted successfully.", "Deleted");
+                        loadGallery(currentPage);
+                    } else {
+                        ccConfirmSetLoading(false);
+                        toastr.warning(res.Response || res.message || "Failed to delete.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    ccConfirmSetLoading(false);
+                    handleAjaxError(xhr, status, error);
+                }
+            });
+        }
+
+        function getGalleryById(id) {
+            showLoader();
+            $.ajax({
+                url: _BaseURL + "/Admin/GetGalleryById?id=" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    const data = res.Data || res.data || res.Response || res;
+                    const actualData = typeof data === "string" ? JSON.parse(data) : data;
+                    const mappedData = Array.isArray(actualData) ? actualData[0] : actualData;
+                    
+                    bindGalleryModal(mappedData);
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindGalleryModal(data) {
+            resetGalleryModal();
+            if (!data) return;
+
+            $("#hdn_GalleryId").val(data.GalleryItemsId || data.Id || data.id || "0");
+            $("#txtGalleryTitle").val(data.Title || data.title || "");
+            $("#txtGallerySubTitle").val(data.SubTitle || data.subtitle || "");
+            $("#txtExpeditionYear").val(data.ExpeditionYear || data.expeditionYear || "");
+            $("#numGalleryDisplayOrder").val(data.DisplayOrder || data.displayOrder || 0);
+            $("#chkGalleryIsActive").prop("checked", (data.IsActive === true || data.isActive === true));
+
+            const img = data.ImageUrl || data.imageUrl || data.Image || data.image;
+            if (img) {
+                const apiBase = typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL;
+                const imgUrl = img.startsWith('/') ? apiBase + img : img;
+                $("#galleryImgPreview").attr("src", imgUrl);
+                $("#galleryImagePreviewContainer").show();
+                $("#galleryDropZone").hide();
+            }
+
+            $("#addGalleryModalTitle").html('<i class="fa fa-pencil"></i> Update Gallery');
+            $("#btnSaveGallery").addClass("d-none");
+            $("#btnUpdateGallery").removeClass("d-none");
+            $("#divGalleryStatus").removeClass("d-none");
+            $("#addGalleryModal").modal("show");
+        }
+
+        function validateGalleryForm(isUpdate) {
+            let errors = [];
+            const title = $("#txtGalleryTitle").val().trim();
+            const year = $("#txtExpeditionYear").val().trim();
+
+            if (!title) errors.push("Title is required.");
+            if (!year) errors.push("Expedition Year is required.");
+
+            if (!isUpdate && !selectedGalleryFile) {
+                $("#galleryImageError").removeClass("d-none");
+                errors.push("Image is required.");
+            } else {
+                $("#galleryImageError").addClass("d-none");
+            }
+
+            if (selectedGalleryFile) {
+                const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+                if (!allowedTypes.includes(selectedGalleryFile.type)) {
+                    errors.push("Invalid file type. Allowed: JPG, PNG, WEBP.");
+                }
+                if (selectedGalleryFile.size > 2 * 1024 * 1024) {
+                    errors.push("Image size must be less than 2MB.");
+                }
+            }
+
+            if (errors.length > 0) {
+                toastr.warning(errors.join("<br/>"), "Validation Error");
+                return false;
+            }
+            return true;
+        }
+
+        function resetGalleryModal() {
+            $("#galleryForm")[0].reset();
+            $("#hdn_GalleryId").val("0");
+            selectedGalleryFile = null;
+            
+            $("#galleryFileInput").val("");
+            $("#galleryImgPreview").attr("src", "");
+            $("#galleryImagePreviewContainer").hide();
+            $("#galleryDropZone").show();
+            $("#galleryImageError").addClass("d-none");
+            
+            $("#addGalleryModalTitle").html('<i class="fa fa-image"></i> Add Gallery');
+            $("#btnSaveGallery").removeClass("d-none");
+            $("#btnUpdateGallery").addClass("d-none");
+            $("#divGalleryStatus").addClass("d-none"); 
+            $("#chkGalleryIsActive").prop("checked", true);
         }
     }
 });

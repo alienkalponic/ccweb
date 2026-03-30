@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using ProjectWeb.Application.Common.Repository;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Utility;
@@ -69,8 +70,8 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.DELETE,
-                Url = projectUrl.TrimEnd('/') + "/api/content/delete-banner-by-id/" + id,
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/remove-banner-by-id/" + id,
             }, withBearer: true);
         }
 
@@ -167,10 +168,12 @@ namespace ProjectWeb.Infrastucture.Service
 
         public async Task<T> DescriptionDelete<T>(int id)
         {
+            _logger.LogInformation("[DescriptionDelete] Attempting to delete ID: {Id}", id);
+            
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.DELETE,
-                Url = projectUrl.TrimEnd('/') + "/api/content/delete-club-description-by-id/" + id,
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/remove-club-description-by-id/" + id,
             }, withBearer: true);
         }
 
@@ -189,6 +192,115 @@ namespace ProjectWeb.Infrastucture.Service
             {
                 ApiType = StaticDetails.ApiType.GET,
                 Url = projectUrl.TrimEnd('/') + "/api/content/Get-all-club-description/" + pageSize + "/" + pageNumber,
+            });
+        }
+
+        #endregion
+
+        #region:Club Activity
+
+        public async Task<T> ActivityCreate<T>(ProjectWeb.Domain.DTO.ClubActivity.CreateClubActivityDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/create-activity",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityUpdate<T>(ProjectWeb.Domain.DTO.ClubActivity.UpdateClubActivityDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.PUT,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/update-activity",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityDelete<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/remove-activity-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityGet<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/get-activity-by-id/" + id,
+            });
+        }
+
+        public async Task<T> ActivityGetAll<T>(string pageSize, string pageNumber, string Search)
+        {
+            string searchParam = !string.IsNullOrEmpty(Search) ? "?Search=" + Search : "";
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                // Assuming URL structure like: /api/.../get-all-activities/{PageSize}/{PageNumber}?Search=
+                Url = projectUrl.TrimEnd('/') + $"/api/content/get-all-activities/{pageSize}/{pageNumber}{searchParam}",
+            });
+        }
+
+        #endregion
+
+        #region:Gallery
+
+        public async Task<T> GalleryCreate<T>(CreateGalleryDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/create-gallery",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> GalleryUpdate<T>(UpdateGalleryDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.PUT,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/update-gallery",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> GalleryDelete<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/remove-gallery-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> GalleryGet<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/get-gallery-by-id/" + id,
+            });
+        }
+
+        public async Task<T> GalleryGetAll<T>(string pageSize, string pageNumber, string Search)
+        {
+            string searchParam = !string.IsNullOrEmpty(Search) ? "?Search=" + Search : "";
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + $"/api/content/get-all-gallery/{pageSize}/{pageNumber}{searchParam}",
             });
         }
 

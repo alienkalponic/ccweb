@@ -8,9 +8,11 @@ using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
+using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Model;
 using ProjectWeb.Domain.Utility;
+using ProjectWeb.WEB.Helpers;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -284,13 +286,12 @@ namespace ProjectWeb.WEB.Controllers
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
 
-        [Authorize(Roles = "2,Admin")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "2")]
+        [HttpGet]
         public async Task<IActionResult> DeleteDescriptionById(int id)
         {
             if (id <= 0)
-                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Banner ID." }), "application/json");
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Description ID." }), "application/json");
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -299,6 +300,182 @@ namespace ProjectWeb.WEB.Controllers
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
 
+
+        #endregion
+
+        #region::ClubActivities
+
+        public async Task<IActionResult> ClubActivities()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllActivities(int pageNumber = 1, int pageSize = 10, string search = "")
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                mmm.ClubActivityDtos = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>>(stringResponse);
+            }
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(mmm.ClubActivityDtos ?? new List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>()), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetActivityById(int id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityGet<APIResponse>(id);
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                mmm.ClubActivityDto = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>>(stringResponse)?.FirstOrDefault();
+            }
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(mmm.ClubActivityDto), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateActivity(MultipleModel mmm)
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityCreate<APIResponse>(mmm.CreateClubActivityDto!);
+
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateActivity(MultipleModel mmm)
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityUpdate<APIResponse>(mmm.UpdateClubActivityDto!);
+
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteActivity(int id)
+        {
+            if (id <= 0)
+                return Content(Newtonsoft.Json.JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Activity ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDelete<APIResponse>(id);
+
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        #endregion
+
+        #region::Gallery
+
+        public IActionResult GalleryContent()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetGalleryList(int pageNumber = 1, int pageSize = 12, string search = "")
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                mmm.GalleryDtos = JsonConvert.DeserializeObject<List<GalleryDto>>(stringResponse);
+            }
+            return Content(JsonConvert.SerializeObject(mmm.GalleryDtos ?? new List<GalleryDto>()), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetGalleryById(int id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryGet<APIResponse>(id);
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                mmm.GalleryDto = JsonConvert.DeserializeObject<List<GalleryDto>>(stringResponse)?.FirstOrDefault();
+            }
+            return Content(JsonConvert.SerializeObject(mmm.GalleryDto), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateGallery(MultipleModel mmm)
+        {
+            
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryCreate<APIResponse>(mmm.CreateGalleryDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateGallery(MultipleModel mmm)
+        {
+            
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryUpdate<APIResponse>(mmm.UpdateGalleryDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteGallery(int id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Gallery ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
 
         #endregion
 

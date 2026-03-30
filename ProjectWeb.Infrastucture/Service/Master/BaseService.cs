@@ -292,19 +292,34 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 {
                     var message = _apiMessageRequestBuilder.Build(apiRequest);
 
-                    // 🔥 TOKEN ATTACH (MAIN FIX)
+                    // 🔥 TOKEN ATTACH (Using ITokenProvider for consistency)
                     if (withBearer)
                     {
-                        var token = _httpContextAccessor.HttpContext?.Session.GetString("JWToken");
+                        var tokenDTO = _tokenProvider.GetToken();
 
-                        if (!string.IsNullOrEmpty(token))
+                        if (tokenDTO != null && !string.IsNullOrEmpty(tokenDTO.AccessToken))
                         {
                             message.Headers.Authorization =
-                                new AuthenticationHeaderValue("Bearer", token);
+                                new AuthenticationHeaderValue("Bearer", tokenDTO.AccessToken);
+                            
+                            _logger.LogDebug("[SendAsync] Attached Bearer token for {Url}", apiRequest.Url);
                         }
                         else
                         {
-                            _logger.LogWarning("[SendAsync] Token missing for {Url}", apiRequest.Url);
+                            // Fallback to Session just in case some legacy parts still use it, 
+                            // but prioritize TokenProvider (which uses Cookies/Items).
+                            var sessionToken = _httpContextAccessor.HttpContext?.Session.GetString("JWToken") 
+                                            ?? _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
+
+                            if (!string.IsNullOrEmpty(sessionToken))
+                            {
+                                message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", sessionToken);
+                                _logger.LogInformation("[SendAsync] Attached token from Session for {Url}", apiRequest.Url);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("[SendAsync] Token missing from both Provider and Session for {Url}", apiRequest.Url);
+                            }
                         }
                     }
 

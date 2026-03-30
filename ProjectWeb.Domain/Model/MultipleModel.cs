@@ -1,5 +1,6 @@
-﻿using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
+using ProjectWeb.Domain.DTO.Gallery;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,17 @@ namespace ProjectWeb.Domain.Model
         public List<GetClubDescriptionDto>? ClubDescriptionDtos { get; set; }
         public GetClubDescriptionDto? ClubDescriptionDto { get; set; }
         public UpdateClubDescriptionRequestDto? UpdateClubDescriptionDto { get; set; }
+
+        // Club Activity
+        public ProjectWeb.Domain.DTO.ClubActivity.CreateClubActivityDto? CreateClubActivityDto { get; set; }
+        public ProjectWeb.Domain.DTO.ClubActivity.UpdateClubActivityDto? UpdateClubActivityDto { get; set; }
+        public List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>? ClubActivityDtos { get; set; }
+        public ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto? ClubActivityDto { get; set; }
+
+        // Gallery
+        public CreateGalleryDto? CreateGalleryDto { get; set; }
+        public UpdateGalleryDto? UpdateGalleryDto { get; set; }
+        public List<GalleryDto>? GalleryDtos { get; set; }
+        public GalleryDto? GalleryDto { get; set; }
     }
 }

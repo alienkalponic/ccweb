@@ -1,5 +1,6 @@
-﻿using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
+using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.DTO.LoginDto;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,22 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> DescriptionDelete<T>(int id);
         Task<T> DescriptionGet<T>(int id);
         Task<T> DescriptionGetAll<T>(string pageSize, string pageNumber, string Search);
+        #endregion
+
+        #region:Club Activity
+        Task<T> ActivityCreate<T>(ProjectWeb.Domain.DTO.ClubActivity.CreateClubActivityDto model);
+        Task<T> ActivityUpdate<T>(ProjectWeb.Domain.DTO.ClubActivity.UpdateClubActivityDto model);
+        Task<T> ActivityDelete<T>(int id);
+        Task<T> ActivityGet<T>(int id);
+        Task<T> ActivityGetAll<T>(string pageSize, string pageNumber, string Search);
+        #endregion
+
+        #region:Gallery
+        Task<T> GalleryCreate<T>(CreateGalleryDto model);
+        Task<T> GalleryUpdate<T>(UpdateGalleryDto model);
+        Task<T> GalleryDelete<T>(int id);
+        Task<T> GalleryGet<T>(int id);
+        Task<T> GalleryGetAll<T>(string pageSize, string pageNumber, string Search);
         #endregion
     }
 }
