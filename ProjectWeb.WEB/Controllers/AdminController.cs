@@ -437,7 +437,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> CreateGallery(MultipleModel mmm)
         {
-            
+            if (mmm.CreateGalleryDto?.File != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+                FileUploadHelper.UploadFile(mmm.CreateGalleryDto.File, folderPath);
+            }
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -453,7 +457,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> UpdateGallery(MultipleModel mmm)
         {
-            
+            if (mmm.UpdateGalleryDto?.File != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+                FileUploadHelper.UploadFile(mmm.UpdateGalleryDto.File, folderPath);
+            }
 
             APIResponse response = await _unitOfWork
                 .ContentManagement

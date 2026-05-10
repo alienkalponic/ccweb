@@ -59,7 +59,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest()
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = model,
                 Url = projectUrl.TrimEnd('/') + "/api/content/Update-banner",
                 ContentType = StaticDetails.ContentType.MultipartFormData
@@ -90,7 +90,7 @@ namespace ProjectWeb.Infrastucture.Service
             {
                 ApiType = StaticDetails.ApiType.GET,
                 Url = projectUrl.TrimEnd('/') + "/api/content/Get-all-banner/" + pageSize + "/" + pageNumber,
-            });
+            }, withBearer: false);
         }
 
         #endregion

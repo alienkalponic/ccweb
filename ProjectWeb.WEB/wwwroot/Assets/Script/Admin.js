@@ -1385,9 +1385,9 @@ $(document).ready(function () {
                 if (!allowedTypes.includes(selectedActivityFile.type)) {
                     errors.push("Invalid file type. Allowed: JPG, PNG, WEBP.");
                 }
-                if (selectedActivityFile.size > 2 * 1024 * 1024) {
-                    errors.push("Image size must be less than 2MB.");
-                }
+                //if (selectedActivityFile.size > 2 * 1024 * 1024) {
+                //    errors.push("Image size must be less than 2MB.");
+                //}
             }
 
             if (errors.length > 0) {
@@ -1749,9 +1749,9 @@ $(document).ready(function () {
                 if (!allowedTypes.includes(selectedGalleryFile.type)) {
                     errors.push("Invalid file type. Allowed: JPG, PNG, WEBP.");
                 }
-                if (selectedGalleryFile.size > 2 * 1024 * 1024) {
-                    errors.push("Image size must be less than 2MB.");
-                }
+                //if (selectedGalleryFile.size > 2 * 1024 * 1024) {
+                //    errors.push("Image size must be less than 2MB.");
+                //}
             }
 
             if (errors.length > 0) {

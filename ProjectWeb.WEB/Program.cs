@@ -40,7 +40,12 @@ builder.Services.Configure<FormOptions>(options =>
 // ── Outbound HttpClient logging handler ─────────────────────────────────────
 // Logs every outbound API request and response (status + error body) to the app log.
 builder.Services.AddTransient<HttpClientLoggingHandler>();
-builder.Services.AddHttpClient("NewProjectAPI")
+builder.Services.AddHttpClient("NewProjectAPI", client =>
+{
+    // Fix: Add User-Agent. Many hosting providers (like eukhost) block requests without it.
+    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ProjectWeb/1.0");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
     .AddHttpMessageHandler<HttpClientLoggingHandler>();
 
 // Enable Response Compression
@@ -127,10 +132,11 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseSession();
+
 
 app.MapControllerRoute(
     name: "default",

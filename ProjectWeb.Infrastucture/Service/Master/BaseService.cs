@@ -301,14 +301,14 @@ namespace ProjectWeb.Infrastucture.Service.Master
                         {
                             message.Headers.Authorization =
                                 new AuthenticationHeaderValue("Bearer", tokenDTO.AccessToken);
-                            
+
                             _logger.LogDebug("[SendAsync] Attached Bearer token for {Url}", apiRequest.Url);
                         }
                         else
                         {
                             // Fallback to Session just in case some legacy parts still use it, 
                             // but prioritize TokenProvider (which uses Cookies/Items).
-                            var sessionToken = _httpContextAccessor.HttpContext?.Session.GetString("JWToken") 
+                            var sessionToken = _httpContextAccessor.HttpContext?.Session.GetString("JWToken")
                                             ?? _httpContextAccessor.HttpContext?.Session.GetString("JWTToken");
 
                             if (!string.IsNullOrEmpty(sessionToken))
