@@ -1,0 +1,235 @@
+﻿@{
+    ViewData["Title"] = "ClubDescription";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+@section Styles {
+    <!-- Quill.js Snow Theme -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+}
+
+
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <section class="panel mb-4 animate-fade-in">
+                <header class="panel-heading border-none bg-transparent" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
+                    <h2 class="mb-0">Activity Details</h2>
+                    <button type="button" class="btn btn-primary" id="btnAddNew">
+                        <i class="fa fa-plus"></i> Add New ActivityDetails
+                    </button>
+                </header>
+            </section>
+
+            <div id="activitydetailstableimg" class="table-responsive animate-fade-in">
+
+                <table id="tab_activitydetails_img" class="table" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th>SL.No</th>
+                            <th>Preview</th>
+                            <th>Caption</th>
+                            <th>Priority</th>
+                            <th>Title</th>
+                            <th>Section</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+            </div>
+
+            <div class="pagination_oputer" style="text-align: right!important;">
+                <ul class="pagination"></ul>
+            </div>
+            <div id="prtProfile">
+            </div>
+        </section>
+    </section>
+
+    <button class="link_add hide" style="display:none;" data-bs-toggle="modal" data-bs-target="#addActivitydetailsModal" role="button" id="hdnOpenModel">Open Model</button>
+    <!-- Modern addDescriptionModal -->
+    <div class="modal fade" id="addActivitydetailsModal" tabindex="-1" role="dialog" aria-labelledby="addModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-file-text-o fs-4" style="color: var(--admin-primary);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="addModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main);">Add Club Description</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        @* <button type="button" class="btn-close btn-close-white btnModalClose" data-bs-dismiss="modal" aria-label="Close"></button> *@
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="addactivitydetailsForm" novalidate onsubmit="return false;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="ImagesJson" name="@Model.CreateActivityDetailsDto??.ImagesJson" />
+                        <input type="hidden" id="hdn_activitydetailsId" name="@Model.UpdateActivityDetailsDto?.ActivitieDetailsId" />
+                        <div class="row g-3">
+                            <!-- Title -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold mb-2">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtTitle" name="@Model.CreateActivityDetailsDto?.Title" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a title.</div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold mb-2">Sub Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtSubTitle" name="@Model.CreateActivityDetailsDto?.SubTitle" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a sub title.</div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Start Date <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtSDate" name="@Model.CreateActivityDetailsDto?.StartDate" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a start date.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">End Date <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtEDate" name="@Model.CreateActivityDetailsDto?.EndDate" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a end date.</div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Location <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtLocation" name="@Model.CreateActivityDetailsDto?.Location" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a Location.</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Duration <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtDuration" name="@Model.CreateActivityDetailsDto?.Duration" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a Duration.</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Fee <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtFee" name="@Model.CreateActivityDetailsDto?.Fee" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a Fee.</div>
+                            </div>
+                            <!-- Description -->
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold mb-2">Description</label>
+                                <div id="quillEditorContainer" style="height: 200px; border-radius: 0 0 var(--admin-radius-sm) var(--admin-radius-sm);"></div>
+                                <input type="hidden" id="hdn_activitydetails_Description" name="@Model.CreateActivityDetailsDto?.Description">
+                            </div>
+
+                            <!-- Display Order & Active Status -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Display Order</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0" style="border-radius: var(--admin-radius-sm) 0 0 var(--admin-radius-sm);"><i class="fa fa-sort"></i></span>
+                                    <input type="number" class="form-control border-start-0" id="numDisplayOrder" value="0" min="0" name="@Model.CreateActivityDetailsDto?.DisplayOrder" style="border-radius: 0 var(--admin-radius-sm) var(--admin-radius-sm) 0;">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Section</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0" style="border-radius: var(--admin-radius-sm) 0 0 var(--admin-radius-sm);"><i class="fa fa-sort"></i></span>
+                                    <select class="form-select border-start-0" id="ddlSection" name="@Model.CreateActivityDetailsDto?.ActivityId" style="border-radius: 0 var(--admin-radius-sm) var(--admin-radius-sm) 0;">
+                                        @if(Model.ClubActivityDtos == null || !Model.ClubActivityDtos.Any())
+                                        {
+                                            <option value="">No Sections Available</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="">-- Select Section --</option>
+                                            @foreach (var item in Model.ClubActivityDtos)
+                                            {
+
+                                                if (Model.UpdateActivityDetailsDto != null && Model.UpdateActivityDetailsDto.ActivityId == item.ActivityId)
+                                                {
+                                                    <option value="@item.ActivityId" selected>@item.Title</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@item.ActivityId">@item.Title</option>
+                                                }
+
+                                            }
+                                        }
+  
+                                        
+                                    </select>
+                                    
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+                                <div class="form-check form-switch p-0 ml-4 mb-2">
+                                    <label class="form-check-label fw-semibold mr-3" for="chkIsActive">Is Active</label>
+                                    <div class="custom-control custom-switch pt-1 d-inline-block">
+                                        <input type="checkbox" class="custom-control-input" id="chkIsActive" name="@Model.CreateActivityDetailsDto?.IsActive" checked>
+                                        <label class="custom-control-label" for="chkIsActive"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- File Upload Section -->
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold d-block mb-2">Upload Club Images <span class="text-danger">*</span></label>
+                                <div class="upload-zone p-4 text-center border-dashed rounded-3 bg-light" id="dropZone" style="border: 2px dashed #e2e8f0; cursor: pointer; transition: all 0.3s ease; border-radius: var(--admin-radius-md);">
+                                    <input type="file" id="fileInput" multiple accept="image/*" class="d-none" name="@Model.CreateActivityDetailsDto?.Images">
+                                    <div class="upload-content py-2" id="btnBrowse">
+                                        <i class="fa fa-cloud-upload text-muted mb-2" style="font-size: 2.5rem;"></i>
+                                        <p class="mb-1 text-dark fw-bold">Click to upload or drag and drop</p>
+                                        <p class="text-muted small">Only images (JPG, PNG, WEBP) are allowed</p>
+                                    </div>
+                                </div>
+                                <div id="imagePreviewContainer" class="row g-2 mt-3">
+                                    <!-- Dynamic previews go here -->
+                                </div>
+                                <div id="imageError" class="text-danger small mt-1 d-none">Please select at least one image.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 mr-2 btnCancel" data-bs-dismiss="modal" style="border-radius: var(--admin-radius-sm); font-weight: 600;">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveactivitydetails" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("CreateActivityDetails", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Save Changes</span>
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center d-none" id="btnUpdateactivitydetails" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("UpdateActivityDetails", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Update Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+
+    </style>
+
+    <!-- Essential Scripts -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    @section Scripts {
+        <script>
+            var _ProjectAPI = '@projectApiUrl';
+        </script>
+    }
+}

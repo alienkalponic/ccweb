@@ -1,3 +1,4 @@
+using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.Gallery;
@@ -31,5 +32,10 @@ namespace ProjectWeb.Domain.Model
         public UpdateGalleryDto? UpdateGalleryDto { get; set; }
         public List<GalleryDto>? GalleryDtos { get; set; }
         public GalleryDto? GalleryDto { get; set; }
+        public CreateActivityDetailsDto? CreateActivityDetailsDto { get; set; }
+        public UpdateActivityDetailsDto? UpdateActivityDetailsDto { get; set; }
+        public ActivityDetailsDto? ActivityDetailsDto { get; set; }
+        public List<ActivityDetailsDto>? ActivityDetailsDtos { get; set; }
+
     }
 }

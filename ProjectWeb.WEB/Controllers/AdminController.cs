@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.Gallery;
@@ -481,6 +482,114 @@ namespace ProjectWeb.WEB.Controllers
             APIResponse response = await _unitOfWork
                 .ContentManagement
                 .GalleryDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        #endregion
+
+        #region::Activity Details
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> ActivityDetails()
+        {
+            int pageNumber = 1; int pageSize = 100; string search = "";
+            MultipleModel model = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                model.ClubActivityDtos = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>>(stringResponse);
+            }
+
+            return View(model);
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetActivityDetailsList()
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDetailsGetAll<APIResponse>("10", "1", "");
+
+            mmm.ActivityDetailsDtos = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(response.Response)!);
+            return Content(JsonConvert.SerializeObject(mmm.ActivityDetailsDtos), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetActivityDetailsById(int id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDetailsGet<APIResponse>(id);
+
+            mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(response.Response)!)!.FirstOrDefault();
+            return Content(JsonConvert.SerializeObject(mmm.ActivityDetailsDto), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateActivityDetails(MultipleModel mmm)
+        {
+            _logger.LogInformation("[CreateActivityDetails] Action hit. DTO null={IsNull}",
+                mmm.CreateActivityDetailsDto == null);
+            _logger.LogInformation("[CreateActivityDetails] Files={Count}",
+                mmm.CreateActivityDetailsDto?.Images?.Count ?? 0);
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDetailsCreate<APIResponse>(mmm.CreateActivityDetailsDto!);
+
+            _logger.LogInformation("[CreateActivityDetails] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateActivityDetails(MultipleModel mmm)
+        {
+            _logger.LogInformation("[UpdateActivityDetails] Action hit. DTO null={IsNull}",
+                mmm.UpdateActivityDetailsDto == null);
+            _logger.LogInformation("[UpdateActivityDetails] NewImages={Imgs} DeletedIds={Ids}",
+                mmm.UpdateActivityDetailsDto?.NewImages?.Count ?? 0,
+                string.Join(",", mmm.UpdateActivityDetailsDto?.DeletedImageIds ?? new List<long>()));
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDetailsUpdate<APIResponse>(mmm.UpdateActivityDetailsDto!);
+
+            _logger.LogInformation("[UpdateActivityDetails] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> DeleteActivityDetailsById(int id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Description ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .ActivityDetailsDelete<APIResponse>(id);
 
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }

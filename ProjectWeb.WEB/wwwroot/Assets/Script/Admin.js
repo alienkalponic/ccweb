@@ -51,6 +51,14 @@ $(document).ready(function () {
         console.error("AJAX Error:", { xhr, status, error });
     }
 
+    function stripHtml(html) {
+        if (!html) return "";
+        const div = document.createElement("div");
+        div.innerHTML = html;
+        const text = div.textContent || div.innerText || "";
+        return text.replace(/\s+/g, ' ').trim();
+    }
+
     if (action_name === "bannercontent") {
 
         loadBanners();
@@ -484,13 +492,7 @@ $(document).ready(function () {
 
         /* ---------- CORE FUNCTIONS ---------- */
 
-        function stripHtml(html) {
-            if (!html) return "";
-            const div = document.createElement("div");
-            div.innerHTML = html;
-            const text = div.textContent || div.innerText || "";
-            return text.replace(/\s+/g, ' ').trim();
-        }
+        
 
         function initQuill() {
             const container = document.getElementById('quillEditorContainer');
@@ -1777,6 +1779,654 @@ $(document).ready(function () {
             $("#btnUpdateGallery").addClass("d-none");
             $("#divGalleryStatus").addClass("d-none"); 
             $("#chkGalleryIsActive").prop("checked", true);
+        }
+    }
+
+    if (action_name === "activitydetails") {
+        let quillInstance = null;
+        let selectedFiles = [];
+        let deletedImageIds = []; // Track IDs of images to be deleted
+        let pendingQuillContent = "";
+
+        const startPicker = flatpickr("#txtSDate", {
+            dateFormat: "Y-m-d",
+        });
+
+        const endPicker = flatpickr("#txtEDate", {
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+
+        initModalEvents();
+
+        loadActivityDetails();
+
+        $(document).on('focusin', function (e) {
+            if ($(e.target).closest(".ql-container, .ql-toolbar, .ql-tooltip").length) {
+                e.stopImmediatePropagation();
+            }
+        });
+
+        // Open Modal - Add Mode
+        $("#btnAddNew").on("click", function () {
+            resetActivityDetailsModal();
+            $("#addActivitydetailsModal").modal("show");
+            $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Activity Details');
+            $("#btnSaveDescription").removeClass("d-none");
+            $("#btnUpdateDescription").addClass("d-none");
+        });
+
+        // Close Modal
+        $(".btnModalClose, .btnCancel").on("click", function () {
+            $("#addActivitydetailsModal").modal("hide");
+        });
+
+        $(document).on("click", ".btnEditActivityDetails", function () {
+            const id = $(this).data("id");
+            loadActivityDetailsById(id);
+        });
+
+        // File Selection Logic
+        $("#fileInput").on("change", function (e) {
+            handleFiles(e.target.files);
+            $(this).val(''); 
+        });
+
+        $("#btnBrowse").on("click", function () {
+            $("#fileInput").click();
+        });
+
+        // Drag and Drop
+        $("#dropZone").on("dragover", function (e) {
+            e.preventDefault();
+            $(this).addClass("bg-primary-soft");
+        }).on("dragleave", function () {
+            $(this).removeClass("bg-primary-soft");
+        }).on("drop", function (e) {
+            e.preventDefault();
+            $(this).removeClass("bg-primary-soft");
+            handleFiles(e.originalEvent.dataTransfer.files);
+        });
+
+        $(document).on("click", ".remove-preview", function () {
+            const fileName = $(this).data("name");
+            selectedFiles = selectedFiles.filter(f => f.name !== fileName);
+            $(this).closest(".preview-item").remove();
+            if (selectedFiles.length === 0 && $("#hdn_DescriptionId").val() === "0") {
+                $("#imageError").removeClass("d-none");
+            }
+        });
+
+        $(document).on("click", ".remove-existing", function () {
+            const imageId = $(this).data("id");
+            if (imageId) {
+                deletedImageIds.push(imageId);
+            }
+            $(this).closest(".preview-item").remove();
+        });
+
+        $(document).on("click", "#btnSaveactivitydetails, #btnUpdateactivitydetails", function (e) {
+            e.preventDefault();
+            if (validateActivityDetailsForm()) {
+                submitActivityDetailsUpdate($(this));
+            }
+        });
+
+        $(document).on("click", ".btnDeleteActivityDetails", function () {
+            const id = $(this).data("id");
+            showConfirmDialog({
+                title: 'Delete Description',
+                message: 'Are you sure you want to delete this club description?',
+                onYes: function () { deleteActivityDetailsById(id); }
+            });
+        });
+
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+            if (newFiles.length > 0) $("#imageError").addClass("d-none");
+
+            newFiles.forEach(file => {
+                const isNew = !selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (isNew) {
+                    selectedFiles.push(file);
+                    renderPreview(file);
+                }
+            });
+        }
+
+        function renderPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const html = `
+                    <div class="col-4 col-md-3 col-lg-2 preview-item new-upload">
+                        <div class="preview-card" title="${file.name}">
+                            <button type="button" class="remove-preview" data-name="${file.name}">
+                                <i class="fa fa-times"></i>
+                            </button>
+                            <div class="preview-img-container">
+                                <img src="${e.target.result}" alt="Preview">
+                            </div>
+                            <div class="preview-info">
+                                <div class="preview-name">${file.name}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                $("#imagePreviewContainer").append(html);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initQuill() {
+            const container = document.getElementById('quillEditorContainer');
+            if (container && !quillInstance) {
+                quillInstance = new Quill('#quillEditorContainer', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['link'],
+                            ['clean']
+                        ]
+                    },
+                    placeholder: 'Briefly describe the club...'
+                });
+            }
+        }
+
+        function initModalEvents() {
+            $('#addActivitydetailsModal').on('hidden.bs.modal', function () {
+                resetActivityDetailsModal();
+            }).on('shown.bs.modal', function () {
+                initQuill();
+                if (quillInstance) {
+                    quillInstance.update();
+                    quillInstance.focus();
+
+                    // If content was waiting for Quill to initialize, set it now
+                    if (pendingQuillContent) {
+                        quillInstance.root.innerHTML = pendingQuillContent;
+                        pendingQuillContent = "";
+                    }
+                }
+            });
+        }
+
+        function resetActivityDetailsModal() {
+            $("#addactivitydetailsForm")[0].reset();
+            $("#hdn_activitydetailsId").val(0);
+            if (quillInstance) {
+                quillInstance.setContents([]);
+            }
+            pendingQuillContent = "";
+            selectedFiles = [];
+            deletedImageIds = []; // Clear deleted tracker
+            $("#imagePreviewContainer").empty();
+            $("#imageError").addClass("d-none");
+            $(".is-invalid").removeClass("is-invalid");
+
+            // Reset UI state
+            $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Activity Details');
+            $("#btnSaveDescription").removeClass("d-none");
+            $("#btnUpdateDescription").addClass("d-none");
+        }
+
+        function loadActivityDetails() {
+            const apiUrl = _BaseURL + "/Admin/GetActivityDetailsList";
+            showLoader();
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data != null) {
+                        const res = typeof data === "string" ? JSON.parse(data) : data;
+                        const finalData = res.Response || res;
+
+                        if (Array.isArray(finalData)) {
+                            bindActivityDetailsTable(finalData);
+                        } else {
+                            console.error("Expected array but got:", finalData);
+                            bindActivityDetailsTable([]);
+                        }
+                    }
+                    else {
+                        bindActivityDetailsTable([]);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                    bindActivityDetailsTable([]);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindActivityDetailsTable(data) {
+            const $tbody = $("#tab_activitydetails_img tbody");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">No Activity Details found</td></tr>');
+                return;
+            }
+
+            const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+
+            $.each(data, function (index, item) {
+                const slNo = index + 1;
+                const title = item.Title || "N/A";
+                const displayOrder = item.DisplayOrder || 0;
+
+                // Scrub HTML for table preview
+                const plainDescription = stripHtml(item.Description);
+
+                const isActive = item.IsActive ?
+                    '<span class="label label-success">Active</span>' :
+                    '<span class="label label-danger">Inactive</span>';
+
+                // Image Gallery Logic
+                const images = item.Images || [];
+                let galleryHtml = "";
+                let popoverHtml = "";
+
+                if (images.length > 0) {
+                    const primaryImg = images[0].ImageUrl;
+                    const primaryFullUrl = primaryImg && primaryImg.startsWith('/') ? apiBase + primaryImg : primaryImg;
+
+                    galleryHtml = `<div class="img-gallery-stack">`;
+                    for (let i = 0; i < Math.min(images.length, 3); i++) {
+                        const imgUrl = images[i].ImagePath1;
+                        const fullUrl = imgUrl && imgUrl.startsWith('/') ? apiBase + imgUrl : imgUrl;
+                        galleryHtml += `<img src="${fullUrl}" class="img-stack-item">`;
+                    }
+
+                    if (images.length > 1) {
+                        galleryHtml += `<div class="img-count-badge">+${images.length - 1}</div>`;
+                    }
+
+                    popoverHtml = `<div class="img-hover-popover">`;
+                    images.forEach(img => {
+                        const fullUrl = img.ImageUrl && img.ImageUrl.startsWith('/') ? apiBase + img.ImageUrl : img.ImageUrl;
+                        popoverHtml += `<img src="${fullUrl}" class="popover-img" alt="Gallery">`;
+                    });
+                    popoverHtml += `</div>`;
+                    galleryHtml += popoverHtml + `</div>`;
+                } else {
+                    galleryHtml = '<span class="text-muted small">No Image</span>';
+                }
+
+                const row = `
+                <tr class="align-middle">
+                    <td class="fw-bold text-muted">${slNo}</td>
+                    <td>${galleryHtml}</td>
+                    <td><div class="caption-preview-text" title="${plainDescription}">${plainDescription}</div></td>
+                    <td><span class="badge bg-light text-dark border">${displayOrder}</span></td>
+                    <td><span class="fw-semibold text-primary">${title}</span></td>
+                    <td><span class="fw-semibold text-primary">${item.SectionName}</span></td>
+                    <td>${isActive}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-primary btn-xs btnEditActivityDetails" data-id="${item.ActivitieDetailsId}" title="Edit"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-danger btn-xs btnDeleteActivityDetails" data-id="${item.ActivitieDetailsId}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+                $tbody.append(row);
+            });
+        }
+
+        function loadActivityDetailsById(id) {
+
+            const apiUrl = _BaseURL + "/Admin/GetActivityDetailsById?id=" + id;
+            showLoader();
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+
+                success: function (res) {
+                    if (res) {
+                        const data = res.Response || res;
+                        bindActivityDetailsToModal(data);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindActivityDetailsToModal(data) {
+            resetActivityDetailsModal(); // Start clean
+
+            $("#hdn_activitydetailsId").val(data.ActivitieDetailsId || 0);
+            $("#txtTitle").val(data.Title || "");
+            $("#numDisplayOrder").val(data.DisplayOrder || 0);
+            $("#chkIsActive").prop("checked", data.IsActive === true);
+            //$("#ddlSection option:selected").val(data.ActivityId);
+            $("#ddlSection").val(data.ActivityId).trigger("change");
+            startPicker.setDate(data.StartDate);
+            endPicker.setDate(data.EndDate);
+            $("#txtLocation").val(data.Location);
+            $("#txtDuration").val(data.Duration);
+            $("#txtFee").val(data.Fee);
+            $("#txtSubTitle").val(data.SubTitle);
+
+            //startPicker.set("minDate", "today");
+            //endPicker.set("minDate", data.StartDate || "today");
+
+            // Handle Quill HTML Injection
+            if (data.Description) {
+                if (quillInstance) {
+                    quillInstance.root.innerHTML = data.Description;
+                } else {
+                    // Store it to be applied once 'shown.bs.modal' triggers initQuill
+                    pendingQuillContent = data.Description;
+                }
+            }
+
+            // Bind Existing Images
+            const images = data.Images || [];
+            if (images.length > 0) {
+                images.forEach(img => {
+                    renderExistingImagePreview(img.ImagePath1, img.ImageName, img.ActivitieDetailsImageId);
+                });
+            }
+
+            $("#addModalTitle").html('<i class="fa fa-pencil"></i> Update Activity Details');
+            $("#btnSaveactivitydetails").addClass("d-none");
+            $("#btnUpdateactivitydetails").removeClass("d-none");
+            $("#addActivitydetailsModal").modal("show");
+        }
+
+        function renderExistingImagePreview(imageUrl, fileName, id) {
+            const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+            const fullUrl = imageUrl && imageUrl.startsWith('/') ? apiBase + imageUrl : imageUrl;
+
+            const html = `
+                <div class="col-4 col-md-3 col-lg-2 preview-item existing-image">
+                    <div class="preview-card" title="${fileName || 'Existing Image'}">
+                        <button type="button" class="remove-existing" data-id="${id}">
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <div class="preview-img-container">
+                            <img src="${fullUrl}" alt="Preview">
+                        </div>
+                        <div class="preview-info">
+                            <div class="preview-name">${fileName || 'Existing Image'}</div>
+                        </div>
+                    </div>
+                </div>`;
+            $("#imagePreviewContainer").append(html);
+        }
+
+        function validateActivityDetailsForm() {
+            const isUpdate = $("#hdn_activitydetailsId").val() !== "0";
+            const title = $("#txtTitle").val().trim();
+            const quillContent = quillInstance ? quillInstance.root.innerHTML.trim() : "";
+            const isQuillEmpty = quillContent === "<p><br></p>" || quillContent === "" || quillInstance.getText().trim().length === 0;
+            const StartDate = $("#txtSDate").val().trim();
+            const EndDate = $("#txtEDate").val().trim();
+            const location = $("#txtLocation").val().trim();
+            const duration = $("#txtDuration").val().trim();
+            const Fee = $("#txtFee").val().trim();
+
+            let errors = [];
+            if (!title) errors.push("Title is required.");
+            if (!StartDate) errors.push("Start Date is required.");
+            if (!EndDate) errors.push("End Date is required.")
+            if (!location) errors.push("Location is required.")
+            if (!duration) errors.push("Duration is required.")
+            if (!Fee) errors.push("Fee is required.")
+            if (isQuillEmpty) errors.push("Activity Details is required.");
+            if (!isUpdate && selectedFiles.length === 0) {
+                $("#imageError").removeClass("d-none");
+                errors.push("At least one image is required.");
+            } else {
+                $("#imageError").addClass("d-none");
+            }
+
+            if (errors.length > 0) {
+                toastr.warning(errors.join("<br/>"), "Validation Error");
+                return false;
+            }
+
+            $("#hdn_activitydetails_Description").val(isQuillEmpty ? "" : quillContent);
+            return true;
+        }
+
+        function submitActivityDetailsUpdate($btn) {
+            const isUpdate = $("#hdn_activitydetailsId").val() !== "0";
+
+            // 1. Environment-safe API URL Resolution
+            let rawUrl = $btn.data("url");
+            let url = rawUrl;
+
+            if (!url) {
+                // Fallback routing if data-url is missing
+                const basePath = typeof _BaseURL !== 'undefined' ? _BaseURL : window.location.origin;
+                url = basePath + (isUpdate ? "/Admin/UpdateActivityDetails" : "/Admin/CreateActivityDetails");
+                console.warn("[submitDescriptionUpdate] data-url missing on button. Falling back to:", url);
+            } else if (url.startsWith("/")) {
+                // Ensure absolute URL if it is a rooted relative path, avoiding tricky relative base tag issues in live env
+                const origin = window.location.origin;
+                url = origin + url;
+            }
+
+            // 2. Prevent duplicate submission
+            if ($btn.prop("disabled")) {
+                console.warn("[submitActivityDetailsUpdate] Duplicate submission prevented. Request is already in progress.");
+                return;
+            }
+
+            $btn.prop("disabled", true).find(".spinner-border").removeClass("d-none");
+            toastr.info(isUpdate ? "Updating..." : "Saving...", "Please wait");
+
+            // 3. Prepare FormData
+            const formData = new FormData();
+            const prefix = isUpdate ? "UpdateActivityDetailsDto." : "CreateActivityDetailsDto.";
+
+            if (isUpdate) {
+                formData.append(prefix + "ActivitieDetailsId", $("#hdn_activitydetailsId").val());
+            }
+
+            
+
+            formData.append(prefix + "Title", $("#txtTitle").val().trim());
+            formData.append(prefix + "Description", $("#hdn_activitydetails_Description").val());
+            formData.append(prefix + "DisplayOrder", $("#numDisplayOrder").val());
+            formData.append(prefix + "IsActive", $("#chkIsActive").is(":checked"));
+            formData.append(prefix + "StartDate", $("#txtSDate").val());
+            formData.append(prefix + "EndDate", $("#txtEDate").val());
+            formData.append(prefix + "Location", $("#txtLocation").val());
+            formData.append(prefix + "Duration", $("#txtDuration").val());
+            formData.append(prefix + "Fee", $("#txtFee").val());
+            formData.append(prefix + "ActivityId", $("#ddlSection option:selected").val());
+            formData.append(prefix + "SubTitle", $("#txtSubTitle").val());
+
+            if (isUpdate) {
+                // IDs of existing images to delete (Repeated Fields)
+                if (Array.isArray(deletedImageIds)) {
+                    deletedImageIds.forEach(id => {
+                        formData.append(prefix + "DeletedImageIds", id);
+                    });
+                }
+
+                // New images to add (List<IFormFile>)
+                if (Array.isArray(selectedFiles)) {
+                    selectedFiles.forEach(file => {
+                        formData.append(prefix + "NewImages", file);
+                    });
+                }
+            } else {
+                // For Create, DTO property is 'Files'
+                if (Array.isArray(selectedFiles)) {
+                    selectedFiles.forEach(file => {
+                        formData.append(prefix + "Images", file);
+                    });
+                }
+            }
+
+            if (isUpdate) {
+                console.log("Deleted Image IDs:", deletedImageIds);
+            }
+            console.log("FormData Keys:");
+            for (let pair of formData.entries()) {
+                if (pair[1] instanceof File) {
+                    console.log(`  ${pair[0]}: File [name=${pair[1].name}, size=${pair[1].size}, type=${pair[1].type}]`);
+                } else {
+                    console.log(`  ${pair[0]}: ${pair[1]}`);
+                }
+            }
+            console.groupEnd();
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
+            }
+
+            showLoader();
+
+            // 6. AJAX Call setup & robust handlers
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,  // REQUIRED for multipart/form-data
+                processData: false,  // REQUIRED for multipart/form-data
+                cache: false,
+                timeout: 300000,     // 5 minutes — matches server HttpClient timeout for large uploads
+                headers: {
+                    // Keep header for non-proxy environments
+                    "RequestVerificationToken": antiforgeryToken
+                },
+                success: function (data, textStatus, xhr) {
+                    console.log("[submitActivityDetailsUpdate] Success response status:", xhr.status);
+
+                    let res;
+                    if (typeof data === "string") {
+                        try {
+                            res = JSON.parse(data);
+                        } catch (e) {
+                            console.error("[submitActivityDetailsUpdate] JSON parse error in success callback:", e);
+                            toastr.error("Received malformed JSON from server.", "Parsing Error");
+                            return;
+                        }
+                    } else {
+                        res = data;
+                    }
+
+                    const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
+
+                    if (isSuccess) {
+                        toastr.success(res.Response || res.response || "Success!", "Success");
+                        setTimeout(() => location.reload(), 1500);
+                        $("#addActivitydetailsModal").modal('hide');
+                    } else {
+                        const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
+                        toastr.warning(errorMsg, "Warning");
+                        console.warn("[submitActivityDetailsUpdate] API returned success=false:", res);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("[submitActivityDetailsUpdate] AJAX Error Details:", {
+                        status: xhr.status,
+                        readyState: xhr.readyState,
+                        responseText: xhr.responseText,
+                        textStatus: status,
+                        errorThrown: error,
+                        finalUrl: url
+                    });
+
+                    let errorMessage = "An error occurred while uploading. Please try again.";
+
+                    if (status === 'timeout') {
+                        errorMessage = "Request timed out. The file might be too large or your connection is slow.";
+                    } else if (status === 'abort') {
+                        errorMessage = "Request was aborted.";
+                    } else if (xhr.status === 0) {
+                        errorMessage = "Network error: API unreachable, blocked by CORS, or connection dropped. URL: " + url;
+                    } else if (xhr.status === 400) {
+                        errorMessage = "Bad Request (400): Validation failed or invalid data.";
+                    } else if (xhr.status === 401) {
+                        errorMessage = "Unauthorized (401): Your session may have expired.";
+                    } else if (xhr.status === 403) {
+                        errorMessage = "Forbidden (403): You do not have permission.";
+                    } else if (xhr.status === 404) {
+                        errorMessage = "Not Found (404): The API endpoint could not be found. Checked URL: " + url;
+                    } else if (xhr.status === 405) {
+                        errorMessage = "Method Not Allowed (405): Server configuration rejected POST request.";
+                    } else if (xhr.status === 413) {
+                        errorMessage = "Payload Too Large (413): The uploaded files exceed the server limit.";
+                    } else if (xhr.status === 500) {
+                        errorMessage = "Server Error (500): Something went wrong on the server.";
+                    }
+
+                    // Attempt to parse validation errors or detailed messages from JSON response
+                    if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            const parsedMsg = errorData.message || errorData.title || errorData.Response || errorData.response || errorData.detail;
+
+                            if (parsedMsg) {
+                                errorMessage += "<br/><strong>Details:</strong> " + parsedMsg;
+                            }
+
+                            if (errorData.errors) {
+                                // Extract ASP.NET core validation errors dictionary
+                                const errorList = Object.values(errorData.errors).flat().join("<br/>");
+                                errorMessage += "<br/><strong>Validation:</strong><br/>" + errorList;
+                            }
+                        } catch (e) {
+                            console.warn("[submitActivityDetailsUpdate] Could not parse error response text as JSON.", e);
+                            if (xhr.status >= 400 && xhr.status < 500 && xhr.responseText.length < 150) {
+                                // Strip basic HTML to avoid massive HTML error screens and dump text snippet
+                                errorMessage += "<br/>" + xhr.responseText.replace(/<[^>]*>?/gm, '');
+                            }
+                        }
+                    }
+
+                    toastr.error(errorMessage, "Upload Failed");
+                },
+                complete: function () {
+                    // 10. Restore button state in cleanup logic
+                    $btn.prop("disabled", false).find(".spinner-border").addClass("d-none");
+                    hideLoader();
+                    console.log("[submitActivityDetailsUpdate] Request complete.");
+                }
+            });
+        }
+
+        function deleteActivityDetailsById(id) {
+            ccConfirmSetLoading(true);
+            $.ajax({
+                url: _BaseURL + "/Admin/DeleteActivityDetailsById",
+                type: 'GET',
+                data: { id: id },
+                dataType: 'json',
+                success: function (res) {
+                    const ok = res && (res.Success || res.Status || res.status === "True");
+                    if (ok) {
+                        ccConfirmClose();
+                        toastr.success("Description deleted successfully.");
+                        loadActivityDetails();
+                    } else {
+                        ccConfirmSetLoading(false);
+                        toastr.warning(res.Response || "Delete failed.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    ccConfirmSetLoading(false);
+                    handleAjaxError(xhr, status, error);
+                }
+            });
         }
     }
 });

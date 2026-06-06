@@ -9,6 +9,7 @@ using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Utility;
 using System.Net.Http.Headers;
+using ProjectWeb.Domain.DTO.ActivityDetails;
 
 namespace ProjectWeb.Infrastucture.Service
 {
@@ -305,5 +306,61 @@ namespace ProjectWeb.Infrastucture.Service
         }
 
         #endregion
+
+        #region:Activity Details
+
+        public async Task<T> ActivityDetailsCreate<T>(CreateActivityDetailsDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Create-activity-details",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityDetailsUpdate<T>(UpdateActivityDetailsDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Update-activity-details",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityDetailsDelete<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/remove-activity-details-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> ActivityDetailsGet<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Get-activity-details-by-id/" + id,
+            });
+        }
+
+        public async Task<T> ActivityDetailsGetAll<T>(string pageSize, string pageNumber, string Search)
+        {
+            string searchParam = !string.IsNullOrEmpty(Search) ? "?Search=" + Search : "";
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                // Assuming URL structure like: /api/.../get-all-activities/{PageSize}/{PageNumber}?Search=
+                Url = projectUrl.TrimEnd('/') + $"/api/content/Get-all-activity-details/{pageSize}/{pageNumber}{searchParam}",
+            });
+        }
+
+        #endregion
+
     }
 }
