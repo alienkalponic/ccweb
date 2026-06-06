@@ -155,7 +155,19 @@
 		<!-- Swiper -->
 		<div class="swiper-container mySwiper">
 			<div class="swiper-wrapper">
-				<div class="swiper-slide slide-card" style="background-image: url(../Assets/ActivityImg/Course.jpg)">
+				@if (Model.ClubActivityDtos != null)
+				{
+					foreach (var item in Model.ClubActivityDtos)
+					{
+						<div class="swiper-slide slide-card" style="background-image: url('@($"{projectApiUrl}{item.ImageUrl}")')">
+							<div>
+								<a href="@Url.Action("ActivityDetails", "Home", new { id = item.ActivityId })" class="know-more-btn">Know more</a>
+								<p class="card-title" style="color:ghostwhite">@item.Title</p>
+							</div>
+						</div>
+					}
+				}
+				@* <div class="swiper-slide slide-card" style="background-image: url(../Assets/ActivityImg/Course.jpg)">
 					<div>
 						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
 						<p class="card-title" style="color:ghostwhite">Annual training courses</p>
@@ -191,49 +203,8 @@
 						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
 						<p class="card-title" style="color:ghostwhite">Low-altitude treks</p>
 					</div>
-				</div>
-				@* <div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/1021/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/1024/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/1025/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/1006/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/1038/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/990/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
-				</div>
-				<div class="swiper-slide slide-card" style="background-image: url(https://picsum.photos/id/991/300/300)">
-					<div>
-						<a href="@Url.Action("ActivityDetails", "Home")" class="know-more-btn">Know more</a>
-						<p class="card-title" style="color:ghostwhite">-X-</p>
-					</div>
 				</div> *@
+				
 			</div>
 
 			<!-- Add Pagination -->

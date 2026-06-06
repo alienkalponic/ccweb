@@ -51,6 +51,7 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> ActivityDetailsDelete<T>(int id);
         Task<T> ActivityDetailsGet<T>(int id);
         Task<T> ActivityDetailsGetAll<T>(string pageSize, string pageNumber, string Search);
+        Task<T> ActivityDetailsGetByActivityId<T>(int id);
         #endregion
     }
 }

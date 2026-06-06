@@ -360,6 +360,15 @@ namespace ProjectWeb.Infrastucture.Service
             });
         }
 
+        public async Task<T> ActivityDetailsGetByActivityId<T>(int id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Get-activity-details-by-activitie-id/" + id,
+            });
+        }
+
         #endregion
 
     }
