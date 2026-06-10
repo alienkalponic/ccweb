@@ -59,6 +59,23 @@ $(document).ready(function () {
         return text.replace(/\s+/g, ' ').trim();
     }
 
+
+    const myBtn = document.getElementById('myBtn');
+    function clickHandler() {
+        const toggler = document.getElementById('toggler');
+        console.log(toggler.style.display)
+        if (toggler.style.display === "block") {
+            toggler.style.display = "none";
+        }
+        else {
+            toggler.style.display = "block";
+        }
+    }
+    myBtn.addEventListener('click', clickHandler);
+
+
+
+
     if (action_name === "bannercontent") {
 
         loadBanners();

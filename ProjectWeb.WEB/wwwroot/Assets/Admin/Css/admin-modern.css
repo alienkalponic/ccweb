@@ -193,6 +193,9 @@ body.admin-modern {
     background: #ffffff !important;
     z-index: 1200 !important;
     border: 1px solid var(--admin-border-color) !important;
+    display: block !important;
+    position: absolute;
+    right: 0;
 }
 
 /* Trigger animation only when dropdown is open */
