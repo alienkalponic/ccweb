@@ -16,9 +16,9 @@
         <!--  notification start -->
         <!--  notification end -->
     </div>
-    <div class="top-nav clearfix">
+    <!--<div class="top-nav clearfix">-->
         <!--search & user info start-->
-        <ul class="nav pull-right top-menu">
+        <!--<ul class="nav pull-right top-menu">
 
             <li class="dropdown">
                 <a data-toggle="dropdown" class="dropdown-toggle user-trigger" href="javascript:void(0);">
@@ -29,29 +29,37 @@
                         @User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value
                     </span>
                     <i class="fa fa-angle-down"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-right header-dropdown">
+                </a>-->
+        <div>
+        <button id="myBtn">
+            A
+        </button>
+        <h3 id="toggler">
+           Log Out 
+        </h3>
+        <!--<ul class="dropdown-menu dropdown-menu-right header-dropdown">
                     <li class="dropdown-header">Account Settings</li>
                     <li>
                         <a href="@Url.Content("~/Admin/AdminProfile")">
                             <i class="fa fa-user"></i> <span>Profile</span>
                         </a>
                     </li>
-                    <li class="divider"></li>
+            <li class="divider"></li>
                     <li>
                         <a href="@Url.Content("~/Admin/Logout")" class="text-danger">
                             <i class="fa fa-sign-out"></i> <span>Log Out</span>
                         </a>
                     </li>
-                </ul>
-            </li>
+                </ul>-->
+        </div>
+            <!--</li>-->
             <!-- user login dropdown end -->
             @*<li>
                 <div class="toggle-right-box">
                     <div class="fa fa-bars"></div>
                 </div>
             </li>*@
-        </ul>
+        <!--</ul>-->
         <!--search & user info end-->
     </div>
 </header>
