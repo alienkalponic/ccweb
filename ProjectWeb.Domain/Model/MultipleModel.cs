@@ -1,3 +1,4 @@
+using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
@@ -36,6 +37,10 @@ namespace ProjectWeb.Domain.Model
         public UpdateActivityDetailsDto? UpdateActivityDetailsDto { get; set; }
         public ActivityDetailsDto? ActivityDetailsDto { get; set; }
         public List<ActivityDetailsDto>? ActivityDetailsDtos { get; set; }
+        public AchievementDetailsCreateDto? AchievementDetailsCreateDto { get; set; }
+        public AchievementDetailsUpdateDto? AchievementDetailsUpdateDto { get; set; }
+        public AchievementDetailsDto? AchievementDetailsDto { get; set; }
+        public List<AchievementDetailsDto>? AchievementDetailsDtos { get; set; }
 
     }
 }

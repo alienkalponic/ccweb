@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
@@ -594,6 +595,79 @@ namespace ProjectWeb.WEB.Controllers
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
 
+        #endregion
+
+        #region::Achievement Details
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> AchievementDetails()
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .GalleryGetAll<APIResponse>("50","1","");
+
+            var stringResponse = Convert.ToString(response.Response);
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                mmm.GalleryDtos = JsonConvert.DeserializeObject<List<GalleryDto>>(stringResponse);
+            }
+            return View(mmm);
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateAchievementDetails(MultipleModel mmm)
+        {
+            _logger.LogInformation("[CreateAchievementDetails] Action hit. DTO null={IsNull}",
+                mmm.AchievementDetailsCreateDto == null);
+            
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsCreate<APIResponse>(mmm.AchievementDetailsCreateDto!);
+
+            _logger.LogInformation("[CreateAchievementDetails] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateAchievementDetails(MultipleModel mmm)
+        {
+            _logger.LogInformation("[UpdateAchievementDetails] Action hit. DTO null={IsNull}",
+                mmm.AchievementDetailsUpdateDto == null);
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsUpdate<APIResponse>(mmm.AchievementDetailsUpdateDto!);
+
+            _logger.LogInformation("[UpdateAchievementDetails] Response Success={S} Status={Code}",
+                response?.Success, response?.StatusCode);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAchievementDetailsList()
+        {
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGetAll<APIResponse>("50", "1", "");
+
+            mmm.AchievementDetailsDtos = JsonConvert.DeserializeObject<List<AchievementDetailsDto>>(Convert.ToString(response.Response)!);
+            return Content(JsonConvert.SerializeObject(mmm.AchievementDetailsDtos), "application/json");
+        }
         #endregion
 
     }

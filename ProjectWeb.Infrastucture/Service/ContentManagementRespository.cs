@@ -10,6 +10,7 @@ using ProjectWeb.Domain.DTO.LoginDto;
 using ProjectWeb.Domain.Utility;
 using System.Net.Http.Headers;
 using ProjectWeb.Domain.DTO.ActivityDetails;
+using ProjectWeb.Domain.DTO.AchievementDetails;
 
 namespace ProjectWeb.Infrastucture.Service
 {
@@ -369,6 +370,41 @@ namespace ProjectWeb.Infrastucture.Service
             });
         }
 
+        #endregion
+
+        #region::Achievement Details
+        public async Task<T> AchievementDetailsCreate<T>(AchievementDetailsCreateDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Create-achievement",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsUpdate<T>(AchievementDetailsUpdateDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/Update-achievement",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGetAll<T>(string pageSize, string pageNumber, string Search)
+        {
+            string searchParam = !string.IsNullOrEmpty(Search) ? "?Search=" + Search : "";
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                // Assuming URL structure like: /api/.../get-all-activities/{PageSize}/{PageNumber}?Search=
+                Url = projectUrl.TrimEnd('/') + $"/api/content/get-all-achievement/{pageSize}/{pageNumber}{searchParam}",
+            });
+        }
         #endregion
 
     }

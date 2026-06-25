@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "AchievementDetails";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+@section Styles {
+    <!-- Quill.js Snow Theme -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <section class="panel mb-4 animate-fade-in">
+                <header class="panel-heading border-none bg-transparent" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
+                    <h2 class="mb-0">Achievement Details</h2>
+                    <button type="button" class="btn btn-primary" id="btnAddNew">
+                        <i class="fa fa-plus"></i> Add New AchievementDetails
+                    </button>
+                </header>
+            </section>
+
+            <div id="Achievementdetailstable" class="table-responsive animate-fade-in">
+
+                <table id="tab_Achievementdetails" class="table" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th width="50"></th>
+                            <th>SL.No</th>
+                            <th>Title</th>
+                            <th>Sub Title</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+            </div>
+
+            <div class="pagination_oputer" style="text-align: right!important;">
+                <ul class="pagination"></ul>
+            </div>
+            <div id="prtProfile">
+            </div>
+        </section>
+    </section>
+    <button class="link_add hide" style="display:none;" data-bs-toggle="modal" data-bs-target="#addAchievementDetailsModal" role="button" id="hdnOpenModel">Open Model</button>
+    <div class="modal fade" id="addAchievementDetailsModal" tabindex="-1" role="dialog" aria-labelledby="addModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-file-text-o fs-4" style="color: var(--admin-primary);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="addModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main);">Add Club Description</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        @* <button type="button" class="btn-close btn-close-white btnModalClose" data-bs-dismiss="modal" aria-label="Close"></button> *@
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="addAchievementDetailsForm" novalidate onsubmit="return false;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="hdn_achievementdetailsId" name="@Model.AchievementDetailsUpdateDto?.AchievementDetailsId" />
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Achievement Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0" style="border-radius: var(--admin-radius-sm) 0 0 var(--admin-radius-sm);"><i class="fa fa-sort"></i></span>
+                                    <select class="form-select border-start-0" id="ddlSection" name="@Model.AchievementDetailsCreateDto?.GalleryItemsId" style="border-radius: 0 var(--admin-radius-sm) var(--admin-radius-sm) 0;">
+                                        @if (Model.GalleryDtos == null || !Model.GalleryDtos.Any())
+                                        {
+                                            <option value="">No Sections Available</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="">-- Select Section --</option>
+                                            @foreach (var item in Model.GalleryDtos)
+                                            {
+
+                                                
+                                                    <option value="@item.GalleryItemsId">@item.Title @item.ExpeditionYear</option>
+                                                
+
+                                            }
+                                        }
+
+
+                                    </select>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtTitle" name="@Model.AchievementDetailsCreateDto?.Title" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a title.</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold mb-2">Sub Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtSubTitle" name="@Model.AchievementDetailsCreateDto?.SubTitle" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a sub title.</div>
+                            </div>
+                        </div>
+
+                   </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 mr-2 btnCancel" data-bs-dismiss="modal" style="border-radius: var(--admin-radius-sm); font-weight: 600;">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveachievementdetails" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("CreateAchievementDetails", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Save Changes</span>
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center d-none" id="btnUpdateachievementdetails" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("UpdateAchievementDetails", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Update Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

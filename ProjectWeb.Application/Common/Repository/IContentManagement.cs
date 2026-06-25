@@ -1,3 +1,4 @@
+using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubDescription;
@@ -52,6 +53,14 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> ActivityDetailsGet<T>(int id);
         Task<T> ActivityDetailsGetAll<T>(string pageSize, string pageNumber, string Search);
         Task<T> ActivityDetailsGetByActivityId<T>(int id);
+        #endregion
+
+        #region::AchievementDetails
+        Task<T> AchievementDetailsCreate<T>(AchievementDetailsCreateDto model);
+        Task<T> AchievementDetailsUpdate<T>(AchievementDetailsUpdateDto model);
+        //Task<T> AchievementDetailsDelete<T>(int id);
+        //Task<T> AchievementDetailsGet<T>(int id);
+        Task<T> AchievementDetailsGetAll<T>(string pageSize, string pageNumber, string Search);
         #endregion
     }
 }

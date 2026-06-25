@@ -2446,4 +2446,337 @@ $(document).ready(function () {
             });
         }
     }
+
+    if (action_name === "achievementdetails") {
+
+        let quillInstance = null;
+        let selectedFiles = [];
+        let deletedImageIds = []; // Track IDs of images to be deleted
+        let pendingQuillContent = "";
+
+        loadAchievementDetails();
+
+        $("#btnAddNew").on("click", function () {
+            //resetAchievementDetailsModal();
+            $("#addAchievementDetailsModal").modal("show");
+            $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Achievement Details');
+            $("#btnSaveDescription").removeClass("d-none");
+            $("#btnUpdateDescription").addClass("d-none");
+        });
+
+        $(".btnModalClose, .btnCancel").on("click", function () {
+            $("#addAchievementDetailsModal").modal("hide");
+        });
+
+        $(document).on("click", "#btnSaveachievementdetails, #btnUpdateachievementdetails", function (e) {
+            e.preventDefault();
+            if (validateAchievementDetailsForm()) {
+                submitAchievementDetailsUpdate($(this));
+            }
+        });
+
+        $(document).on("click", ".btnToggleChild", function () {
+
+            const id = $(this).data("id");
+
+            const childRow = $("#child_" + id);
+
+            childRow.toggleClass("d-none");
+
+            const icon = $(this).find("i");
+
+            if (childRow.hasClass("d-none")) {
+
+                icon.removeClass("fa-minus")
+                    .addClass("fa-plus");
+
+            } else {
+
+                icon.removeClass("fa-plus")
+                    .addClass("fa-minus");
+
+            }
+        });
+
+        function validateAchievementDetailsForm() {
+            const hdnVal = $("#hdn_achievementdetailsId").val() || "";
+            const isUpdate = hdnVal !== "0" && hdnVal !== "";
+            const title = ($("#txtTitle").val() || "").trim();
+            const Subtitle = ($("#txtSubTitle").val() || "").trim();
+            const AName = ($("#ddlSection option:selected").val() || "").trim();
+            let errors = [];
+            if (!AName) errors.push("Achievement Name is required.");
+            if (!title) errors.push("Title is required.");
+            if (!Subtitle) errors.push("Sub Title is required.");
+
+            if (errors.length > 0) {
+                toastr.warning(errors.join("<br/>"), "Validation Error");
+                return false;
+            }
+            return true;
+        }
+
+        function submitAchievementDetailsUpdate($btn) {
+            const hdnVal = $("#hdn_achievementdetailsId").val() || "";
+            const isUpdate = hdnVal !== "0" && hdnVal !== "";
+
+            let rawUrl = $btn.data("url");
+            let url = rawUrl;
+
+            if (!url) {
+                // Fallback routing if data-url is missing
+                const basePath = typeof _BaseURL !== 'undefined' ? _BaseURL : window.location.origin;
+                url = basePath + (isUpdate ? "/Admin/UpdateAchievementDetails" : "/Admin/CreateAchievementDetails");
+                console.warn("[submitAchievementDetailsUpdate] data-url missing on button. Falling back to:", url);
+            } else if (url.startsWith("/")) {
+                // Ensure absolute URL if it is a rooted relative path, avoiding tricky relative base tag issues in live env
+                const origin = window.location.origin;
+                url = origin + url;
+            }
+            // 2. Prevent duplicate submission
+            if ($btn.prop("disabled")) {
+                console.warn("[submitAchievementDetailsUpdate] Duplicate submission prevented. Request is already in progress.");
+                return;
+            }
+
+            $btn.prop("disabled", true).find(".spinner-border").removeClass("d-none");
+            toastr.info(isUpdate ? "Updating..." : "Saving...", "Please wait");
+
+            // 3. Prepare FormData
+            const formData = new FormData();
+            const prefix = isUpdate ? "AchievementDetailsUpdateDto." : "AchievementDetailsCreateDto.";
+
+            if (isUpdate) {
+                formData.append(prefix + "AchievementDetailsId", hdnVal);
+            }
+
+            formData.append(prefix + "GalleryItemsId", ($("#ddlSection option:selected").val() || "").trim());
+            formData.append(prefix + "Title", ($("#txtTitle").val() || "").trim());
+            formData.append(prefix + "SubTitle", ($("#txtSubTitle").val() || "").trim());
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
+            }
+
+            showLoader();
+
+            // 6. AJAX Call setup & robust handlers
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,   // REQUIRED: Prevent jQuery from setting default Content-Type header to allow browser boundary generation
+                processData: false,   // REQUIRED: Prevent jQuery from attempting to serialize FormData object into a query string
+                cache: false,
+                timeout: 300000,      // 5 minutes — matches server HttpClient timeout for large uploads
+                headers: {
+                    // Keep header for non-proxy environments
+                    "RequestVerificationToken": antiforgeryToken
+                },
+                success: function (data, textStatus, xhr) {
+                    console.log("[submitAchievementDetailsUpdate] Success response status:", xhr.status);
+
+                    let res;
+                    if (typeof data === "string") {
+                        try {
+                            res = JSON.parse(data);
+                        } catch (e) {
+                            console.error("[submitAchievementDetailsUpdate] JSON parse error in success callback:", e);
+                            toastr.error("Received malformed JSON from server.", "Parsing Error");
+                            return;
+                        }
+                    } else {
+                        res = data;
+                    }
+
+                    const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
+
+                    if (isSuccess) {
+                        toastr.success(res.Response || res.response || "Success!", "Success");
+                        setTimeout(() => location.reload(), 1500);
+                        $("#addAchievementDetailsModal").modal('hide');
+                    } else {
+                        const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
+                        toastr.warning(errorMsg, "Warning");
+                        console.warn("[submitAchievementDetailsUpdate] API returned success=false:", res);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("[submitAchievementDetailsUpdate] AJAX Error Details:", {
+                        status: xhr.status,
+                        readyState: xhr.readyState,
+                        responseText: xhr.responseText,
+                        textStatus: status,
+                        errorThrown: error,
+                        finalUrl: url
+                    });
+
+                    let errorMessage = "An error occurred while uploading. Please try again.";
+
+                    if (status === 'timeout') {
+                        errorMessage = "Request timed out. The file might be too large or your connection is slow.";
+                    } else if (status === 'abort') {
+                        errorMessage = "Request was aborted.";
+                    } else if (xhr.status === 0) {
+                        errorMessage = "Network error: API unreachable, blocked by CORS, or connection dropped. URL: " + url;
+                    } else if (xhr.status === 400) {
+                        errorMessage = "Bad Request (400): Validation failed or invalid data.";
+                    } else if (xhr.status === 401) {
+                        errorMessage = "Unauthorized (401): Your session may have expired.";
+                    } else if (xhr.status === 403) {
+                        errorMessage = "Forbidden (403): You do not have permission.";
+                    } else if (xhr.status === 404) {
+                        errorMessage = "Not Found (404): The API endpoint could not be found. Checked URL: " + url;
+                    } else if (xhr.status === 405) {
+                        errorMessage = "Method Not Allowed (405): Server configuration rejected POST request.";
+                    } else if (xhr.status === 413) {
+                        errorMessage = "Payload Too Large (413): The uploaded files exceed the server limit.";
+                    } else if (xhr.status === 500) {
+                        errorMessage = "Server Error (500): Something went wrong on the server.";
+                    }
+
+                    // Attempt to parse validation errors or detailed messages from JSON response
+                    if (xhr.responseText) {
+                        try {
+                            const errorData = JSON.parse(xhr.responseText);
+                            const parsedMsg = errorData.message || errorData.title || errorData.Response || errorData.response || errorData.detail;
+
+                            if (parsedMsg) {
+                                errorMessage += "<br/><strong>Details:</strong> " + parsedMsg;
+                            }
+
+                            if (errorData.errors) {
+                                // Extract ASP.NET core validation errors dictionary
+                                const errorList = Object.values(errorData.errors).flat().join("<br/>");
+                                errorMessage += "<br/><strong>Validation:</strong><br/>" + errorList;
+                            }
+                        } catch (e) {
+                            console.warn("[submitAchievementDetailsUpdate] Could not parse error response text as JSON.", e);
+                            if (xhr.status >= 400 && xhr.status < 500 && xhr.responseText.length < 150) {
+                                // Strip basic HTML to avoid massive HTML error screens and dump text snippet
+                                errorMessage += "<br/>" + xhr.responseText.replace(/<[^>]*>?/gm, '');
+                            }
+                        }
+                    }
+
+                    toastr.error(errorMessage, "Upload Failed");
+                },
+                complete: function () {
+                    // 10. Restore button state in cleanup logic
+                    $btn.prop("disabled", false).find(".spinner-border").addClass("d-none");
+                    hideLoader();
+                    console.log("[submitAchievementDetailsUpdate] Request complete.");
+                }
+            });
+        }
+
+        function loadAchievementDetails() {
+            const apiUrl = _BaseURL + "/Admin/GetAchievementDetailsList";
+            showLoader();
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data != null) {
+                        const res = typeof data === "string" ? JSON.parse(data) : data;
+                        const finalData = res.Response || res;
+
+                        if (Array.isArray(finalData)) {
+                            bindAchievementDetailsTable(finalData);
+                        } else {
+                            console.error("Expected array but got:", finalData);
+                            bindAchievementDetailsTable([]);
+                        }
+                    }
+                    else {
+                        bindAchievementDetailsTable([]);
+                    }
+
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                    bindAchievementDetailsTable([]);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindAchievementDetailsTable(data) {
+            const $tbody = $("#tab_Achievementdetails tbody");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">No Activity Details found</td></tr>');
+                return;
+            }
+
+            const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+
+            $.each(data, function (index, item) {
+                const slNo = index + 1;
+                const title = item.Title || "N/A";
+                const displayOrder = item.DisplayOrder || 0;
+
+                // Scrub HTML for table preview
+                const plainDescription = stripHtml(item.Description);
+
+                const isActive = item.IsActive ?
+                    '<span class="label label-success">Active</span>' :
+                    '<span class="label label-danger">Inactive</span>';
+
+                
+
+                const row = `
+                <tr class="align-middleparent-row" data-id="${item.AchievementDetailsId}">
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary btnToggleChild"
+                                data-id="${item.AchievementDetailsId}">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </td>
+                    <td class="fw-bold text-muted">${slNo}</td>
+                    <td><span class="fw-semibold text-primary">${title}</span></td>
+                    <td><span class="fw-semibold text-primary">${item.subtitle}</span></td>
+                    <td>${isActive}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-primary btn-xs btnEditActivityDetails" data-id="${item.ActivitieDetailsId}" title="Edit"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-danger btn-xs btnDeleteActivityDetails" data-id="${item.ActivitieDetailsId}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="child-row d-none"
+                    id="child_${item.AchievementDetailsId}">
+                    <td colspan="9">
+                        <div class="p-3 bg-light rounded">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    Child Achievement Details
+                                </h6>
+
+                                <button class="btn btn-success btn-sm btnAddChild"
+                                        data-id="${item.AchievementDetailsId}">
+                                    <i class="fa fa-plus"></i> Add
+                                </button>
+                            </div>
+
+                            <hr>
+
+                            <div class="text-muted">
+                                No child data found.
+                            </div>
+
+                        </div>
+                    </td>
+                </tr>
+                `;
+                $tbody.append(row);
+            });
+        }
+    }
 });
