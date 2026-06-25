@@ -58,9 +58,13 @@ namespace ProjectWeb.Application.Common.Repository
         #region::AchievementDetails
         Task<T> AchievementDetailsCreate<T>(AchievementDetailsCreateDto model);
         Task<T> AchievementDetailsUpdate<T>(AchievementDetailsUpdateDto model);
-        //Task<T> AchievementDetailsDelete<T>(int id);
-        //Task<T> AchievementDetailsGet<T>(int id);
+        Task<T> AchievementDetailsDelete<T>(long id);
+        Task<T> AchievementDetailsGet<T>(long id);
         Task<T> AchievementDetailsGetAll<T>(string pageSize, string pageNumber, string Search);
+        Task<T> AchievementDetailsGalleryCreate<T>(AchievementDetailsGalleryCreateDto model);
+        Task<T> AchievementDetailsGalleryUpdate<T>(AchievementDetailsGalleryUpdateDto model);
+        Task<T> AchievementDetailsGalleryDelete<T>(long id);
+        Task<T> AchievementDetailsGalleryGetByAchievementId<T>(long id);
         #endregion
     }
 }

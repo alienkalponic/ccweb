@@ -2450,23 +2450,58 @@ $(document).ready(function () {
     if (action_name === "achievementdetails") {
 
         let quillInstance = null;
+        let quillGallery = null;
         let selectedFiles = [];
         let deletedImageIds = []; // Track IDs of images to be deleted
         let pendingQuillContent = "";
 
         loadAchievementDetails();
 
+        // Initialize Quill for gallery
+        if ($("#quillGalleryEditorContainer").length > 0) {
+            quillGallery = new Quill('#quillGalleryEditorContainer', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['link', 'blockquote', 'code-block'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+                    ]
+                }
+            });
+        }
+
+        // Image file preview helper
+        $("#fileGalleryImage").on("change", function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#imgGalleryPreview").attr("src", e.target.result);
+                    $("#galleryImagePreviewContainer").removeClass("d-none");
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $("#imgGalleryPreview").attr("src", "");
+                $("#galleryImagePreviewContainer").addClass("d-none");
+            }
+        });
+
         $("#btnAddNew").on("click", function () {
-            //resetAchievementDetailsModal();
+            resetAchievementDetailsModal();
             $("#addAchievementDetailsModal").modal("show");
             $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Achievement Details');
-            $("#btnSaveDescription").removeClass("d-none");
-            $("#btnUpdateDescription").addClass("d-none");
+            $("#btnSaveachievementdetails").removeClass("d-none");
+            $("#btnUpdateachievementdetails").addClass("d-none");
         });
 
         $(".btnModalClose, .btnCancel").on("click", function () {
             $("#addAchievementDetailsModal").modal("hide");
+            $("#addAchievementDetailsGalleryModal").modal("hide");
         });
+
+        
 
         $(document).on("click", "#btnSaveachievementdetails, #btnUpdateachievementdetails", function (e) {
             e.preventDefault();
@@ -2495,8 +2530,364 @@ $(document).ready(function () {
                 icon.removeClass("fa-plus")
                     .addClass("fa-minus");
 
+                loadGalleryItems(id);
             }
         });
+
+        $(document).on("click", ".btnAddChild", function () {
+            const parentId = $(this).data("id");
+            resetAchievementDetailsGalleryModal();
+            $("#hdn_gallery_achievementdetailsId").val(parentId);
+            $("#addAchievementDetailsGalleryModal").modal("show");
+            $("#addGalleryModalTitle").html('<i class="fa fa-plus"></i> Add Achievement Gallery Details');
+            $("#btnSaveachievementdetailsgallery").removeClass("d-none");
+            $("#btnUpdateachievementdetailsgallery").addClass("d-none");
+        });
+
+
+
+        $(document).on("click", "#btnSaveachievementdetailsgallery, #btnUpdateachievementdetailsgallery", function (e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const isUpdate = $btn.attr("id") === "btnUpdateachievementdetailsgallery";
+
+            const title = ($("#txtGalleryTitle").val() || "").trim();
+            if (!title) {
+                toastr.warning("Title is required.", "Validation Error");
+                return;
+            }
+            if (!isUpdate && !$("#fileGalleryImage")[0].files[0]) {
+                toastr.warning("Image is required.", "Validation Error");
+                return;
+            }
+
+            if ($btn.prop("disabled")) return;
+            $btn.prop("disabled", true).find(".spinner-border").removeClass("d-none");
+            toastr.info(isUpdate ? "Updating..." : "Saving...", "Please wait");
+
+            const formData = new FormData();
+            const prefix = isUpdate ? "achievementDetailsGalleryUpdateDto." : "achievementDetailsGalleryCreateDto.";
+
+            if (isUpdate) {
+                formData.append(prefix + "AchievementDetailsGalleryId", $("#hdn_achievementdetailsgalleryId").val());
+            }
+            formData.append(prefix + "AchievementDetailsId", $("#hdn_gallery_achievementdetailsId").val());
+            formData.append(prefix + "Title", title);
+            formData.append(prefix + "DisplayOrder", $("#txtGalleryDisplayOrder").val() || "0");
+            formData.append(prefix + "IsActive", $("#chkGalleryIsActive").is(":checked"));
+
+            let desc = "";
+            if (quillGallery) {
+                desc = quillGallery.root.innerHTML;
+                if (desc === "<p><br></p>") desc = "";
+            }
+            formData.append(prefix + "Description", desc);
+
+            const fileInput = $("#fileGalleryImage")[0];
+            if (fileInput && fileInput.files[0]) {
+                formData.append(prefix + "Image", fileInput.files[0]);
+            }
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
+            }
+
+            showLoader();
+
+            let url = $btn.data("url");
+            if (!url) {
+                const basePath = window.location.origin;
+                url = basePath + (isUpdate ? "/Admin/UpdateAchievementDetailsGallery" : "/Admin/CreateAchievementDetailsGallery");
+            } else if (url.startsWith("/")) {
+                url = window.location.origin + url;
+            }
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                success: function (data) {
+                    let res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
+
+                    if (isSuccess) {
+                        toastr.success(res.Response || "Success!", "Success");
+                        $("#addAchievementDetailsGalleryModal").modal('hide');
+                        loadGalleryItems($("#hdn_gallery_achievementdetailsId").val());
+                    } else {
+                        toastr.warning(res.Response || "Operation failed.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    toastr.error("An error occurred during submission.", "Error");
+                    console.error(xhr.responseText);
+                },
+                complete: function () {
+                    $btn.prop("disabled", false).find(".spinner-border").addClass("d-none");
+                    hideLoader();
+                }
+            });
+        });
+
+        $(document).on("click", ".btnEditGalleryItem", function () {
+            const id = $(this).data("id");
+            const parentId = $(this).data("parent-id");
+            const title = $(this).data("title");
+            const displayOrder = $(this).data("displayorder");
+            const isActive = $(this).data("isactive") === true || $(this).data("isactive") === "true";
+            const image = $(this).data("image");
+            const desc = $(this).data("description");
+
+            resetAchievementDetailsGalleryModal();
+
+            $("#hdn_achievementdetailsgalleryId").val(id);
+            $("#hdn_gallery_achievementdetailsId").val(parentId);
+            $("#txtGalleryTitle").val(title);
+            $("#txtGalleryDisplayOrder").val(displayOrder);
+            $("#chkGalleryIsActive").prop("checked", isActive);
+
+            $("#fileGalleryImage").prop("required", false);
+
+            if (image) {
+                const apiBase = typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : window.location.origin;
+                const previewUrl = image.startsWith('http') ? image : apiBase + image;
+                $("#imgGalleryPreview").attr("src", previewUrl);
+                $("#galleryImagePreviewContainer").removeClass("d-none");
+            }
+
+            if (quillGallery && desc) {
+                quillGallery.root.innerHTML = desc;
+            }
+
+            $("#addAchievementDetailsGalleryModal").modal("show");
+            $("#addGalleryModalTitle").html('<i class="fa fa-pencil"></i> Edit Achievement Gallery Details');
+            $("#btnSaveachievementdetailsgallery").addClass("d-none");
+            $("#btnUpdateachievementdetailsgallery").removeClass("d-none");
+        });
+
+        $(document).on("click", ".btnDeleteGalleryItem", function () {
+            const id = $(this).data("id");
+            const parentId = $(this).data("parent-id");
+
+            showConfirmDialog({
+                title: 'Delete Gallery Details',
+                message: 'Are you sure you want to delete this gallery item?',
+                onYes: function () { DeleteAchievementDetailsGallery(id, parentId); }
+            });
+
+           
+        });
+
+        // Edit parent Achievement Details
+        $(document).on("click", ".btnEditAchievementDetails", function () {
+            const id = $(this).data("id");
+            const title = $(this).data("title");
+            const subtitle = $(this).data("subtitle");
+            const galleryItemsId = $(this).data("galleryitemsid");
+
+            resetAchievementDetailsModal();
+
+            $("#hdn_achievementdetailsId").val(id);
+            $("#txtTitle").val(title);
+            $("#txtSubTitle").val(subtitle);
+            if (galleryItemsId) {
+                $("#ddlSection").val(galleryItemsId);
+            }
+
+            $("#addAchievementDetailsModal").modal("show");
+            $("#addModalTitle").html('<i class="fa fa-pencil"></i> Edit Achievement Details');
+            $("#btnSaveachievementdetails").addClass("d-none");
+            $("#btnUpdateachievementdetails").removeClass("d-none");
+        });
+
+        // Delete parent Achievement Details
+        $(document).on("click", ".btnDeleteAchievementDetails", function () {
+            const id = $(this).data("id");
+
+            if (confirm("Are you sure you want to delete this Achievement Detail? This will also delete all child gallery items.")) {
+                const url = window.location.origin + "/Admin/DeleteAchievementDetails";
+                const token = $('input[name="__RequestVerificationToken"]').val() || "";
+
+                showLoader();
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (data) {
+                        let res = typeof data === "string" ? JSON.parse(data) : data;
+                        const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
+                        if (isSuccess) {
+                            toastr.success(res.Response || "Deleted successfully.", "Success");
+                            loadAchievementDetails();
+                        } else {
+                            toastr.warning(res.Response || "Failed to delete.", "Warning");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        toastr.error("An error occurred while deleting.", "Error");
+                    },
+                    complete: function () {
+                        hideLoader();
+                    }
+                });
+            }
+        });
+
+
+        function DeleteAchievementDetailsGallery(id, parentId) {
+            ccConfirmSetLoading(true);
+            const url = window.location.origin + "/Admin/DeleteAchievementDetailsGallery";
+            const token = $('input[name="__RequestVerificationToken"]').val() || "";
+
+            showLoader();
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    id: id,
+                    __RequestVerificationToken: token
+                },
+                success: function (data) {
+                    let res = typeof data === "string" ? JSON.parse(data) : data;
+                    const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
+                    if (isSuccess) {
+                        ccConfirmClose();
+                        toastr.success(res.Response || "Deleted successfully.", "Success");
+                        loadGalleryItems(parentId);
+                    } else {
+                        ccConfirmSetLoading(false);
+                        toastr.warning(res.Response || "Failed to delete.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    ccConfirmSetLoading(false);
+                    toastr.error("An error occurred.", "Error");
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function loadGalleryItems(achievementId) {
+            // Guard: only check if the child accordion row itself exists,
+            // NOT .text-muted (that placeholder gets removed after the first load)
+            const childRow = $("#child_" + achievementId);
+            if (childRow.length === 0) return;
+
+            const url = _BaseURL + "/Admin/GetAchievementDetailsGalleryList?id=" + achievementId;
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    if (data && data.length > 0) {
+                        let tableHtml = `
+                        <table class="table table-bordered table-striped table-sm bg-white m-0">
+                            <thead>
+                                <tr>
+                                    <th width="60">Sl. No</th>
+                                    <th width="100">Image</th>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th width="120">Display Order</th>
+                                    <th width="100">Status</th>
+                                    <th width="100">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                        `;
+                        
+                        $.each(data, function (i, item) {
+                            const sl = i + 1;
+                            const imagePath = item.ImagePath1 || '';
+                            const previewUrl = imagePath.startsWith('http') ? imagePath : (_ProjectAPI || _BaseURL) + imagePath;
+                            const isActiveLabel = item.IsActive ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Inactive</span>';
+                            const rawDesc = item.Description || '';
+                            
+                            tableHtml += `
+                            <tr class="align-middle">
+                                <td>${sl}</td>
+                                <td>
+                                    ${imagePath ? `<img src="${previewUrl}" style="max-height: 40px; border-radius: 4px; border: 1px solid #ddd;" />` : 'N/A'}
+                                </td>
+                                <td><strong>${item.Title || 'N/A'}</strong></td>
+                                <td>${rawDesc}</td>
+                                <td>${item.DisplayOrder || 0}</td>
+                                <td>${isActiveLabel}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-primary btn-xs btnEditGalleryItem" 
+                                                data-id="${item.AchievementDetailsGalleryId}" 
+                                                data-parent-id="${achievementId}"
+                                                data-title="${escapeHtml(item.Title || '')}"
+                                                data-displayorder="${item.DisplayOrder || 0}"
+                                                data-isactive="${item.IsActive}"
+                                                data-image="${item.ImagePath1 || ''}"
+                                                data-description="${escapeHtml(rawDesc)}"
+                                                title="Edit">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-xs btnDeleteGalleryItem" 
+                                                data-id="${item.AchievementDetailsGalleryId}" 
+                                                data-parent-id="${achievementId}"
+                                                title="Delete">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            `;
+                        });
+                        
+                        tableHtml += `
+                            </tbody>
+                        </table>
+                        `;
+                        
+                        $("#child_" + achievementId + " .p-3").find(".table-responsive-child, .text-muted, table").remove();
+                        $("#child_" + achievementId + " hr").after(`<div class="table-responsive-child mt-3">${tableHtml}</div>`);
+                    } else {
+                        $("#child_" + achievementId + " .p-3").find(".table-responsive-child, .text-muted, table").remove();
+                        $("#child_" + achievementId + " hr").after('<div class="text-muted mt-3">No child data found.</div>');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading gallery items:", error);
+                }
+            });
+        }
+
+        function resetAchievementDetailsGalleryModal() {
+            $("#hdn_achievementdetailsgalleryId").val("0");
+            $("#hdn_gallery_achievementdetailsId").val("0");
+            $("#txtGalleryTitle").val("");
+            $("#txtGalleryDisplayOrder").val("0");
+            $("#chkGalleryIsActive").prop("checked", true);
+            $("#fileGalleryImage").val("").prop("required", true);
+            $("#galleryImagePreviewContainer").addClass("d-none");
+            $("#imgGalleryPreview").attr("src", "");
+            if (quillGallery) {
+                quillGallery.setContents([]);
+            }
+        }
 
         function validateAchievementDetailsForm() {
             const hdnVal = $("#hdn_achievementdetailsId").val() || "";
@@ -2740,12 +3131,19 @@ $(document).ready(function () {
                     </td>
                     <td class="fw-bold text-muted">${slNo}</td>
                     <td><span class="fw-semibold text-primary">${title}</span></td>
-                    <td><span class="fw-semibold text-primary">${item.subtitle}</span></td>
+                    <td><span class="fw-semibold text-primary">${item.SubTitle || item.subtitle || 'N/A'}</span></td>
                     <td>${isActive}</td>
                     <td>
                         <div class="btn-group">
-                            <button class="btn btn-primary btn-xs btnEditActivityDetails" data-id="${item.ActivitieDetailsId}" title="Edit"><i class="fa fa-pencil"></i></button>
-                            <button class="btn btn-danger btn-xs btnDeleteActivityDetails" data-id="${item.ActivitieDetailsId}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                            <button class="btn btn-primary btn-xs btnEditAchievementDetails"
+                                    data-id="${item.AchievementDetailsId}"
+                                    data-title="${escapeHtml(item.Title || '')}"
+                                    data-subtitle="${escapeHtml(item.SubTitle || item.subtitle || '')}"
+                                    data-galleryitemsid="${item.GalleryItemsId || ''}"
+                                    title="Edit"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-danger btn-xs btnDeleteAchievementDetails"
+                                    data-id="${item.AchievementDetailsId}"
+                                    title="Delete"><i class="fa fa-trash-o"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -2778,5 +3176,14 @@ $(document).ready(function () {
                 $tbody.append(row);
             });
         }
+
+        function resetAchievementDetailsModal() {
+            $("#hdn_achievementdetailsId").val("0");
+            $("#txtTitle").val("");
+            $("#txtSubTitle").val("");
+            $("#ddlSection").val("");
+        }
+
+        
     }
 });

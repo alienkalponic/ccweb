@@ -405,6 +405,64 @@ namespace ProjectWeb.Infrastucture.Service
                 Url = projectUrl.TrimEnd('/') + $"/api/content/get-all-achievement/{pageSize}/{pageNumber}{searchParam}",
             });
         }
+
+        public async Task<T> AchievementDetailsDelete<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/delete-achievement-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGet<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/get-achievement-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGalleryCreate<T>(AchievementDetailsGalleryCreateDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/create-achievement-gallery",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGalleryUpdate<T>(AchievementDetailsGalleryUpdateDto model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/content/update-achievement-gallery",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGalleryDelete<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/content/delete-achievement-gallery-by-id/" + id,
+            }, withBearer: true);
+        }
+
+        public async Task<T> AchievementDetailsGalleryGetByAchievementId<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/get-achievement-gallery-by-achievement-id/" + id,
+            }, withBearer: true);
+        }
         #endregion
 
     }

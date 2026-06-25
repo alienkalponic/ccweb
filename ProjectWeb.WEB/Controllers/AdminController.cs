@@ -439,11 +439,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> CreateGallery(MultipleModel mmm)
         {
-            if (mmm.CreateGalleryDto?.File != null)
-            {
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
-                FileUploadHelper.UploadFile(mmm.CreateGalleryDto.File, folderPath);
-            }
+            //if (mmm.CreateGalleryDto?.File != null)
+            //{
+            //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+            //    FileUploadHelper.UploadFile(mmm.CreateGalleryDto.File, folderPath);
+            //}
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -459,11 +459,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> UpdateGallery(MultipleModel mmm)
         {
-            if (mmm.UpdateGalleryDto?.File != null)
-            {
-                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
-                FileUploadHelper.UploadFile(mmm.UpdateGalleryDto.File, folderPath);
-            }
+            //if (mmm.UpdateGalleryDto?.File != null)
+            //{
+            //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+            //    FileUploadHelper.UploadFile(mmm.UpdateGalleryDto.File, folderPath);
+            //}
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -667,6 +667,104 @@ namespace ProjectWeb.WEB.Controllers
 
             mmm.AchievementDetailsDtos = JsonConvert.DeserializeObject<List<AchievementDetailsDto>>(Convert.ToString(response.Response)!);
             return Content(JsonConvert.SerializeObject(mmm.AchievementDetailsDtos), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAchievementDetails(long id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Achievement ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAchievementDetailsById(long id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Achievement ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGet<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateAchievementDetailsGallery(MultipleModel mmm)
+        {
+            _logger.LogInformation("[CreateAchievementDetailsGallery] Action hit. DTO null={IsNull}",
+                mmm.achievementDetailsGalleryCreateDto == null);
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryCreate<APIResponse>(mmm.achievementDetailsGalleryCreateDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateAchievementDetailsGallery(MultipleModel mmm)
+        {
+            _logger.LogInformation("[UpdateAchievementDetailsGallery] Action hit. DTO null={IsNull}",
+                mmm.achievementDetailsGalleryUpdateDto == null);
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryUpdate<APIResponse>(mmm.achievementDetailsGalleryUpdateDto!);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAchievementDetailsGallery(long id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Gallery ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryDelete<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAchievementDetailsGalleryList(long id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new List<object>()), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryGetByAchievementId<APIResponse>(id);
+
+            var stringResponse = Convert.ToString(response.Response);
+            List<AchievementDetailsGalleryUpdateDto> list = new List<AchievementDetailsGalleryUpdateDto>();
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                list = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryUpdateDto>>(stringResponse) ?? new List<AchievementDetailsGalleryUpdateDto>();
+            }
+            return Content(JsonConvert.SerializeObject(list), "application/json");
         }
         #endregion
 

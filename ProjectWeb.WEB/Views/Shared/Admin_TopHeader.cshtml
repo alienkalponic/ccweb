@@ -32,11 +32,28 @@
                 </a>-->
         <div>
         <button id="myBtn">
-            A
+            Admin
         </button>
         <h3 id="toggler">
-           Log Out 
+            <ul class="dropdown-menu dropdown-menu-right header-dropdown">
+                <li class="dropdown-header">Account Settings</li>
+                <li>
+                    <a href="@Url.Content("~/Admin/AdminProfile")">
+                        <i class="fa fa-user"></i> <span>Profile</span>
+                    </a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <a href="@Url.Content("~/Admin/Logout")" class="text-danger">
+                        <i class="fa fa-sign-out"></i> <span>Log Out</span>
+                    </a>
+                </li>
+            </ul>
         </h3>
+        
+        @* <a href="@Url.Content("~/Admin/Logout")" class="text-danger" >
+            <i class="fa fa-sign-out"></i> <span>Log Out</span>
+        </a> *@
         <!--<ul class="dropdown-menu dropdown-menu-right header-dropdown">
                     <li class="dropdown-header">Account Settings</li>
                     <li>

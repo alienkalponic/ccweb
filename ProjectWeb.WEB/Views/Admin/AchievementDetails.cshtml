@@ -138,4 +138,88 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="addAchievementDetailsGalleryModal" tabindex="-1" role="dialog" aria-labelledby="addGalleryModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-file-text-o fs-4" style="color: var(--admin-primary);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="addGalleryModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main);">Add Achievement Gallery Details</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="addAchievementDetailsGalleryForm" novalidate onsubmit="return false;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="hdn_gallery_achievementdetailsId" name="achievementDetailsGalleryCreateDto.AchievementDetailsId" />
+                        <input type="hidden" id="hdn_achievementdetailsgalleryId" name="achievementDetailsGalleryUpdateDto.AchievementDetailsGalleryId" />
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txtGalleryTitle" name="Title" placeholder="Enter impressive title..." required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please provide a title.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Image <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" id="fileGalleryImage" name="Image" accept="image/*" required style="border-radius: var(--admin-radius-sm);">
+                                <div class="invalid-feedback">Please select an image.</div>
+                                <div id="galleryImagePreviewContainer" class="mt-2 d-none">
+                                    <img id="imgGalleryPreview" src="" alt="Preview" style="max-height: 100px; border-radius: var(--admin-radius-sm); border: 1px solid #ddd;" />
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold mb-2">Display Order</label>
+                                <input type="number" class="form-control" id="txtGalleryDisplayOrder" name="DisplayOrder" placeholder="Enter display order..." value="0" style="border-radius: var(--admin-radius-sm);">
+                            </div>
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="chkGalleryIsActive" name="IsActive" checked value="true">
+                                    <label class="form-check-label fw-semibold" for="chkGalleryIsActive">
+                                        Is Active
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label fw-semibold mb-2">Description</label>
+                                <div id="quillGalleryEditorContainer" style="height: 200px; border-radius: 0 0 var(--admin-radius-sm) var(--admin-radius-sm);"></div>
+                                <input type="hidden" id="hdnGalleryDescription" name="Description">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 mr-2 btnCancel" data-bs-dismiss="modal" style="border-radius: var(--admin-radius-sm); font-weight: 600;">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveachievementdetailsgallery" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("CreateAchievementDetailsGallery", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Save Changes</span>
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center d-none" id="btnUpdateachievementdetailsgallery" style="border-radius: var(--admin-radius-sm); font-weight: 600; background-color: var(--admin-primary) !important;" data-url="@Url.Action("UpdateAchievementDetailsGallery", "Admin")">
+                        <span id="btnSpin" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span id="btnText"><i class="fa fa-save mr-2"></i> Update Changes</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Essential Scripts -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    @section Scripts {
+        <script>
+            var _ProjectAPI = '@projectApiUrl';
+        </script>
+    }
 }
