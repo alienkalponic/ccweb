@@ -171,15 +171,15 @@ namespace ProjectWeb.WEB.Controllers
 
         [Authorize(Roles = "2")]
         [HttpGet]
-        public async Task<IActionResult> GetBannerList()
+        public async Task<IActionResult> GetBannerList(int pageNumber = 1, int pageSize = 10, string search = "")
         {
             MultipleModel mmm=new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .BannerGetAll<APIResponse>("10","1","");
+                .BannerGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
 
             mmm.BannerDtos = JsonConvert.DeserializeObject<List<BannerDto>>(Convert.ToString(response.Response)!);
-            return Content(JsonConvert.SerializeObject(mmm.BannerDtos), "application/json");
+            return Content(JsonConvert.SerializeObject(new { data = mmm.BannerDtos ?? new List<BannerDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]
@@ -241,15 +241,15 @@ namespace ProjectWeb.WEB.Controllers
 
         [Authorize(Roles = "2")]
         [HttpGet]
-        public async Task<IActionResult> GetDescriptionList()
+        public async Task<IActionResult> GetDescriptionList(int pageNumber = 1, int pageSize = 10, string search = "")
         {
             MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .DescriptionGetAll<APIResponse>("10", "1", "");
+                .DescriptionGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
 
             mmm.ClubDescriptionDtos = JsonConvert.DeserializeObject<List<GetClubDescriptionDto>>(Convert.ToString(response.Response)!);
-            return Content(JsonConvert.SerializeObject(mmm.ClubDescriptionDtos), "application/json");
+            return Content(JsonConvert.SerializeObject(new { data = mmm.ClubDescriptionDtos ?? new List<GetClubDescriptionDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]
@@ -326,7 +326,7 @@ namespace ProjectWeb.WEB.Controllers
             {
                 mmm.ClubActivityDtos = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>>(stringResponse);
             }
-            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(mmm.ClubActivityDtos ?? new List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>()), "application/json");
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(new { data = mmm.ClubActivityDtos ?? new List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]
@@ -412,7 +412,7 @@ namespace ProjectWeb.WEB.Controllers
             {
                 mmm.GalleryDtos = JsonConvert.DeserializeObject<List<GalleryDto>>(stringResponse);
             }
-            return Content(JsonConvert.SerializeObject(mmm.GalleryDtos ?? new List<GalleryDto>()), "application/json");
+            return Content(JsonConvert.SerializeObject(new { data = mmm.GalleryDtos ?? new List<GalleryDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]
@@ -439,11 +439,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> CreateGallery(MultipleModel mmm)
         {
-            //if (mmm.CreateGalleryDto?.File != null)
-            //{
-            //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
-            //    FileUploadHelper.UploadFile(mmm.CreateGalleryDto.File, folderPath);
-            //}
+            if (mmm.CreateGalleryDto?.File != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+                FileUploadHelper.UploadFile(mmm.CreateGalleryDto.File, folderPath);
+            }
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -459,11 +459,11 @@ namespace ProjectWeb.WEB.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         public async Task<IActionResult> UpdateGallery(MultipleModel mmm)
         {
-            //if (mmm.UpdateGalleryDto?.File != null)
-            //{
-            //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
-            //    FileUploadHelper.UploadFile(mmm.UpdateGalleryDto.File, folderPath);
-            //}
+            if (mmm.UpdateGalleryDto?.File != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "gallery");
+                FileUploadHelper.UploadFile(mmm.UpdateGalleryDto.File, folderPath);
+            }
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -512,15 +512,15 @@ namespace ProjectWeb.WEB.Controllers
 
         [Authorize(Roles = "2")]
         [HttpGet]
-        public async Task<IActionResult> GetActivityDetailsList()
+        public async Task<IActionResult> GetActivityDetailsList(int pageNumber = 1, int pageSize = 10, string search = "")
         {
             MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .ActivityDetailsGetAll<APIResponse>("10", "1", "");
+                .ActivityDetailsGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
 
             mmm.ActivityDetailsDtos = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(response.Response)!);
-            return Content(JsonConvert.SerializeObject(mmm.ActivityDetailsDtos), "application/json");
+            return Content(JsonConvert.SerializeObject(new { data = mmm.ActivityDetailsDtos ?? new List<ActivityDetailsDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]
@@ -658,15 +658,15 @@ namespace ProjectWeb.WEB.Controllers
 
         [Authorize(Roles = "2")]
         [HttpGet]
-        public async Task<IActionResult> GetAchievementDetailsList()
+        public async Task<IActionResult> GetAchievementDetailsList(int pageNumber = 1, int pageSize = 10, string search = "")
         {
             MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .AchievementDetailsGetAll<APIResponse>("50", "1", "");
+                .AchievementDetailsGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
 
             mmm.AchievementDetailsDtos = JsonConvert.DeserializeObject<List<AchievementDetailsDto>>(Convert.ToString(response.Response)!);
-            return Content(JsonConvert.SerializeObject(mmm.AchievementDetailsDtos), "application/json");
+            return Content(JsonConvert.SerializeObject(new { data = mmm.AchievementDetailsDtos ?? new List<AchievementDetailsDto>(), totalRecords = response.TotalItem }), "application/json");
         }
 
         [Authorize(Roles = "2")]

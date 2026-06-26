@@ -59,6 +59,54 @@ $(document).ready(function () {
         return text.replace(/\s+/g, ' ').trim();
     }
 
+    function renderPagination(containerSelector, currentPage, totalRecords, pageSize, onPageClick) {
+        const $container = $(containerSelector);
+        $container.empty();
+
+        if (totalRecords <= 0 || pageSize <= 0) {
+            return;
+        }
+
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        if (totalPages <= 1) {
+            return;
+        }
+
+        const prevDisabled = currentPage === 1 ? "disabled" : "";
+        let html = `<li class="page-item ${prevDisabled}"><a class="page-link prev-page" href="#" data-page="${currentPage - 1}">Previous</a></li>`;
+
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+        let endPage = startPage + maxPagesToShow - 1;
+
+        if (endPage > totalPages) {
+            endPage = totalPages;
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const activeClass = i === currentPage ? "active" : "";
+            html += `<li class="page-item ${activeClass}"><a class="page-link page-number" href="#" data-page="${i}">${i}</a></li>`;
+        }
+
+        const nextDisabled = currentPage === totalPages ? "disabled" : "";
+        html += `<li class="page-item ${nextDisabled}"><a class="page-link next-page" href="#" data-page="${currentPage + 1}">Next</a></li>`;
+
+        $container.html(html);
+
+        $container.off("click", "a.page-link").on("click", "a.page-link", function (e) {
+            e.preventDefault();
+            const $parent = $(this).parent();
+            if ($parent.hasClass("disabled") || $parent.hasClass("active")) {
+                return;
+            }
+            const targetPage = parseInt($(this).data("page"));
+            if (targetPage >= 1 && targetPage <= totalPages) {
+                onPageClick(targetPage);
+            }
+        });
+    }
+
 
     const myBtn = document.getElementById('myBtn');
     function clickHandler() {
@@ -77,8 +125,10 @@ $(document).ready(function () {
 
 
     if (action_name === "bannercontent") {
+        let currentPage = 1;
+        const pageSize = 10;
 
-        loadBanners();
+        loadBanners(currentPage);
 
         $("#btnAddNew").on("click", function () {
             resetModal();
@@ -369,7 +419,7 @@ $(document).ready(function () {
                     if (ok) {
                         ccConfirmClose();
                         toastr.success(res.Response || res.response || 'Banner deleted successfully.', 'Deleted');
-                        loadBanners();
+                        loadBanners(currentPage);
                     } else {
                         ccConfirmSetLoading(false);
                         toastr.warning(res.Response || res.response || 'Delete operation failed.', 'Failed');
@@ -387,8 +437,9 @@ $(document).ready(function () {
 
         /* ---------- BANNER DATA OPERATIONS ---------- */
 
-        function loadBanners() {
-            const apiUrl = _BaseURL + "/Admin/GetBannerList";
+        function loadBanners(pageNumber = 1) {
+            currentPage = pageNumber;
+            const apiUrl = _BaseURL + `/Admin/GetBannerList?pageNumber=${pageNumber}&pageSize=${pageSize}`;
 
             showLoader();
             $.ajax({
@@ -396,11 +447,17 @@ $(document).ready(function () {
                 type: 'GET',
                 dataType: 'json',
                 success: function (res) {
-                    bindBannerTable(res);
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
+                    bindBannerTable(data);
+                    renderPagination("#bannerPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadBanners(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindBannerTable([]);
+                    renderPagination("#bannerPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -419,7 +476,7 @@ $(document).ready(function () {
             }
 
             $.each(data, function (index, item) {
-                const slNo = index + 1;
+                const slNo = (currentPage - 1) * pageSize + (index + 1);
                 const imageUrl = item.ImageUrl || "";
                 const title = item.Title || "N/A";
                 const displayOrder = item.DisplayOrder || 0;
@@ -447,11 +504,13 @@ $(document).ready(function () {
     }
 
     if (action_name === "clubdescription") {
+        let currentPage = 1;
+        const pageSize = 10;
         let quillInstance = null;
         let selectedFiles = [];
         let deletedImageIds = []; // Track IDs of images to be deleted
         let pendingQuillContent = "";
-        loadDescription();
+        loadDescription(currentPage);
 
         /* ---------- INITIALIZATION ---------- */
         initModalEvents();
@@ -865,33 +924,26 @@ $(document).ready(function () {
             $("#btnUpdateDescription").addClass("d-none");
         }
 
-        function loadDescription() {
-            const apiUrl = _BaseURL + "/Admin/GetDescriptionList";
+        function loadDescription(pageNumber = 1) {
+            currentPage = pageNumber;
+            const apiUrl = _BaseURL + `/Admin/GetDescriptionList?pageNumber=${pageNumber}&pageSize=${pageSize}`;
             showLoader();
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
-                success: function (data) {
-                    if (data != null) {
-                        const res = typeof data === "string" ? JSON.parse(data) : data;
-                        const finalData = res.Response || res;
-
-                        if (Array.isArray(finalData)) {
-                            bindDescriptionTable(finalData);
-                        } else {
-                            console.error("Expected array but got:", finalData);
-                            bindDescriptionTable([]);
-                        }
-                    }
-                    else {
-                        bindDescriptionTable([]);
-                    }
-
+                success: function (res) {
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
+                    bindDescriptionTable(data);
+                    renderPagination("#descriptionPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadDescription(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindDescriptionTable([]);
+                    renderPagination("#descriptionPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -911,7 +963,7 @@ $(document).ready(function () {
             const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
 
             $.each(data, function (index, item) {
-                const slNo = index + 1;
+                const slNo = (currentPage - 1) * pageSize + (index + 1);
                 const title = item.Title || "N/A";
                 const displayOrder = item.DisplayOrder || 0;
 
@@ -1056,7 +1108,7 @@ $(document).ready(function () {
                     if (ok) {
                         ccConfirmClose();
                         toastr.success("Description deleted successfully.");
-                        loadDescription();
+                        loadDescription(currentPage);
                     } else {
                         ccConfirmSetLoading(false);
                         toastr.warning(res.Response || "Delete failed.");
@@ -1179,13 +1231,17 @@ $(document).ready(function () {
                 type: 'GET',
                 dataType: 'json',
                 success: function (res) {
-                    // Assuming res contains data array and Pagination info
-                    const data = res ? (res.Data || res.data || res) : [];
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
                     bindActivityTable(data);
+                    renderPagination("#activityPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadActivities(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindActivityTable([]);
+                    renderPagination("#activityPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -1542,12 +1598,17 @@ $(document).ready(function () {
                 type: 'GET',
                 dataType: 'json',
                 success: function (res) {
-                    const data = res ? (res.Data || res.data || res) : [];
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
                     bindGalleryTable(data);
+                    renderPagination("#galleryPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadGallery(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindGalleryTable([]);
+                    renderPagination("#galleryPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -1800,6 +1861,8 @@ $(document).ready(function () {
     }
 
     if (action_name === "activitydetails") {
+        let currentPage = 1;
+        const pageSize = 10;
         let quillInstance = null;
         let selectedFiles = [];
         let deletedImageIds = []; // Track IDs of images to be deleted
@@ -1816,7 +1879,7 @@ $(document).ready(function () {
 
         initModalEvents();
 
-        loadActivityDetails();
+        loadActivityDetails(currentPage);
 
         $(document).on('focusin', function (e) {
             if ($(e.target).closest(".ql-container, .ql-toolbar, .ql-tooltip").length) {
@@ -1989,33 +2052,26 @@ $(document).ready(function () {
             $("#btnUpdateDescription").addClass("d-none");
         }
 
-        function loadActivityDetails() {
-            const apiUrl = _BaseURL + "/Admin/GetActivityDetailsList";
+        function loadActivityDetails(pageNumber = 1) {
+            currentPage = pageNumber;
+            const apiUrl = _BaseURL + `/Admin/GetActivityDetailsList?pageNumber=${pageNumber}&pageSize=${pageSize}`;
             showLoader();
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
-                success: function (data) {
-                    if (data != null) {
-                        const res = typeof data === "string" ? JSON.parse(data) : data;
-                        const finalData = res.Response || res;
-
-                        if (Array.isArray(finalData)) {
-                            bindActivityDetailsTable(finalData);
-                        } else {
-                            console.error("Expected array but got:", finalData);
-                            bindActivityDetailsTable([]);
-                        }
-                    }
-                    else {
-                        bindActivityDetailsTable([]);
-                    }
-
+                success: function (res) {
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
+                    bindActivityDetailsTable(data);
+                    renderPagination("#activityDetailsPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadActivityDetails(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindActivityDetailsTable([]);
+                    renderPagination("#activityDetailsPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -2028,14 +2084,14 @@ $(document).ready(function () {
             $tbody.empty();
 
             if (!data || data.length === 0) {
-                $tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">No Activity Details found</td></tr>');
+                $tbody.append('<tr><td colspan="8" class="text-center text-muted py-4">No Activity Details found</td></tr>');
                 return;
             }
 
             const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
 
             $.each(data, function (index, item) {
-                const slNo = index + 1;
+                const slNo = (currentPage - 1) * pageSize + (index + 1);
                 const title = item.Title || "N/A";
                 const displayOrder = item.DisplayOrder || 0;
 
@@ -2433,7 +2489,7 @@ $(document).ready(function () {
                     if (ok) {
                         ccConfirmClose();
                         toastr.success("Description deleted successfully.");
-                        loadActivityDetails();
+                        loadActivityDetails(currentPage);
                     } else {
                         ccConfirmSetLoading(false);
                         toastr.warning(res.Response || "Delete failed.");
@@ -2448,6 +2504,8 @@ $(document).ready(function () {
     }
 
     if (action_name === "achievementdetails") {
+        let currentPage = 1;
+        const pageSize = 10;
 
         let quillInstance = null;
         let quillGallery = null;
@@ -2455,7 +2513,7 @@ $(document).ready(function () {
         let deletedImageIds = []; // Track IDs of images to be deleted
         let pendingQuillContent = "";
 
-        loadAchievementDetails();
+        loadAchievementDetails(currentPage);
 
         // Initialize Quill for gallery
         if ($("#quillGalleryEditorContainer").length > 0) {
@@ -2725,7 +2783,7 @@ $(document).ready(function () {
                         const isSuccess = res && (res.Success === true || res.Status === true || res.status === "True" || res.success === true);
                         if (isSuccess) {
                             toastr.success(res.Response || "Deleted successfully.", "Success");
-                            loadAchievementDetails();
+                            loadAchievementDetails(currentPage);
                         } else {
                             toastr.warning(res.Response || "Failed to delete.", "Warning");
                         }
@@ -3062,33 +3120,26 @@ $(document).ready(function () {
             });
         }
 
-        function loadAchievementDetails() {
-            const apiUrl = _BaseURL + "/Admin/GetAchievementDetailsList";
+        function loadAchievementDetails(pageNumber = 1) {
+            currentPage = pageNumber;
+            const apiUrl = _BaseURL + `/Admin/GetAchievementDetailsList?pageNumber=${pageNumber}&pageSize=${pageSize}`;
             showLoader();
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
-                success: function (data) {
-                    if (data != null) {
-                        const res = typeof data === "string" ? JSON.parse(data) : data;
-                        const finalData = res.Response || res;
-
-                        if (Array.isArray(finalData)) {
-                            bindAchievementDetailsTable(finalData);
-                        } else {
-                            console.error("Expected array but got:", finalData);
-                            bindAchievementDetailsTable([]);
-                        }
-                    }
-                    else {
-                        bindAchievementDetailsTable([]);
-                    }
-
+                success: function (res) {
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
+                    bindAchievementDetailsTable(data);
+                    renderPagination("#achievementDetailsPagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadAchievementDetails(targetPage);
+                    });
                 },
                 error: function (xhr, status, error) {
                     handleAjaxError(xhr, status, error);
                     bindAchievementDetailsTable([]);
+                    renderPagination("#achievementDetailsPagination", 1, 0, pageSize, function() {});
                 },
                 complete: function () {
                     hideLoader();
@@ -3108,7 +3159,7 @@ $(document).ready(function () {
             const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
 
             $.each(data, function (index, item) {
-                const slNo = index + 1;
+                const slNo = (currentPage - 1) * pageSize + (index + 1);
                 const title = item.Title || "N/A";
                 const displayOrder = item.DisplayOrder || 0;
 

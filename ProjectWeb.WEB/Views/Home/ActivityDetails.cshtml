@@ -10,62 +10,64 @@
 <link rel="stylesheet" href="~/Assets/Css/activity-details.css" asp-append-version="true" />
 
 
-@if (Model.ActivityDetailsDto != null)
-{
+
     <div class="activity-details-page">
         <div class="container-limit">
+            @if (Model.ActivityDetailsDto != null)
+            {
+                <!-- Hero Section -->
+                <header class="activity-hero">
+                    <h1>@Model.ActivityDetailsDto.Title</h1>
+                    <p>@Model.ActivityDetailsDto.SubTitle</p>
+                </header>
 
-
-            <!-- Hero Section -->
-            <header class="activity-hero">
-                <h1>@Model.ActivityDetailsDto.Title</h1>
-                <p>@Model.ActivityDetailsDto.SubTitle</p>
-            </header>
-
-            <!-- Image Showcase -->
-            <div class="activity-showcase">
-                @foreach (var item in @Model.ActivityDetailsDto.Images!)
-                {
-                    <div class="showcase-image">
-                        <img src="@projectApiUrl@item.ImagePath1" alt="Expedition Base Camp">
-                    </div>
-                }
-                @* <div class="showcase-image">
+                <!-- Image Showcase -->
+                <div class="activity-showcase">
+                    @foreach (var item in @Model.ActivityDetailsDto.Images!)
+                    {
+                        <div class="showcase-image">
+                            <img src="@projectApiUrl@item.ImagePath1" alt="Expedition Base Camp">
+                        </div>
+                    }
+                    @* <div class="showcase-image">
                     <img src="~/Assets/ActivityImg/expedetion.jpg" alt="Expedition Base Camp">
                 </div>
                 <div class="showcase-image">
                     <img src="~/Assets/ActivityImg/hat.jpg" alt="Climbers at Dawn">
                 </div> *@
-            </div>
+                </div>
 
-            <!-- Info Grid -->
-            <div class="activity-info-grid">
-                <div class="info-card">
-                    <h3>Date</h3>
-                <p>
-                        @Convert.ToDateTime(Model.ActivityDetailsDto!.StartDate).ToString("MMM dd, yyyy") - @Convert.ToDateTime(Model.ActivityDetailsDto!.EndDate).ToString("MMM dd, yyyy")
-                </p>
+                <!-- Info Grid -->
+                <div class="activity-info-grid">
+                    <div class="info-card">
+                        <h3>Date</h3>
+                        <p>
+                            @Convert.ToDateTime(Model.ActivityDetailsDto!.StartDate).ToString("MMM dd, yyyy") - @Convert.ToDateTime(Model.ActivityDetailsDto!.EndDate).ToString("MMM dd, yyyy")
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Location</h3>
+                        <p>@Model.ActivityDetailsDto.Location</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Duration</h3>
+                        <p>@Model.ActivityDetailsDto.Duration Days</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Participation Fee</h3>
+                        <p>₹@Model.ActivityDetailsDto.Fee / Person</p>
+                    </div>
                 </div>
-                <div class="info-card">
-                    <h3>Location</h3>
-                    <p>@Model.ActivityDetailsDto.Location</p>
-                </div>
-                <div class="info-card">
-                    <h3>Duration</h3>
-                    <p>@Model.ActivityDetailsDto.Duration Days</p>
-                </div>
-                <div class="info-card">
-                    <h3>Participation Fee</h3>
-                    <p>₹@Model.ActivityDetailsDto.Fee / Person</p>
-                </div>
-            </div>
 
-            <!-- Description Section -->
-            <section class="activity-description">
-                <h2>The Journey</h2>
-                <p>@Html.Raw(Model.ActivityDetailsDto.Description)</p>
-                
-            </section>
+                <!-- Description Section -->
+                <section class="activity-description">
+                    <h2>The Journey</h2>
+                    <p>@Html.Raw(Model.ActivityDetailsDto.Description)</p>
+
+                </section>
+            }
+
+            
 
             <!-- Registration Section -->
             <section class="registration-section">
@@ -97,5 +99,5 @@
 
         </div>
     </div>
-}
+
 

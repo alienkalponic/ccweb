@@ -65,7 +65,16 @@ namespace ProjectWeb.WEB.Controllers
             MultipleModel mmm = new MultipleModel();
             APIResponse ActivityDetailsResponse = await _unitOfWork.ContentManagement.ActivityDetailsGetByActivityId<APIResponse>(id);
 
-            mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(ActivityDetailsResponse.Response)!)!.FirstOrDefault();
+            if(ActivityDetailsResponse.Success == true)
+            {
+                mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(ActivityDetailsResponse.Response)!)!.FirstOrDefault();
+            }
+            else
+            {
+                mmm.ActivityDetailsDto = null;
+            }
+
+
             return View(mmm);
         }
 

@@ -216,7 +216,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest()
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = model,
                 Url = projectUrl.TrimEnd('/') + "/api/content/update-activity",
                 ContentType = StaticDetails.ContentType.MultipartFormData
@@ -271,7 +271,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest()
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = model,
                 Url = projectUrl.TrimEnd('/') + "/api/content/update-gallery",
                 ContentType = StaticDetails.ContentType.MultipartFormData
