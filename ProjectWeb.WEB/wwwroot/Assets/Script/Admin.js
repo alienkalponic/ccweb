@@ -189,6 +189,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
                 success: function (res) {
                     if (res) {
                         const data = res.Response || res;
@@ -340,8 +341,8 @@ $(document).ready(function () {
 
                     if (isSuccess) {
                         toastr.success(res.Response || res.response || "Success!", "Success");
-                        setTimeout(() => location.reload(), 1500);
                         $("#addBannerModal").modal('hide');
+                        loadBanners(currentPage); // Reload table data via AJAX — no page reload needed
                     } else {
                         const errorMsg = res.Response || res.response || "Operation failed.";
                         toastr.warning(errorMsg, "API Error");
@@ -412,6 +413,7 @@ $(document).ready(function () {
                 type: 'GET',
                 data: { id: id },
                 dataType: 'json',
+                cache: false,
                 success: function (res) {
                     var ok = res && (res.Success === true || res.success === true ||
                         res.Status === true || res.status === true ||
@@ -446,6 +448,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;
@@ -932,6 +935,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;
@@ -1048,6 +1052,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
                 
                 success: function (res) {
                     if (res) {
@@ -1103,6 +1108,7 @@ $(document).ready(function () {
                 type: 'GET',
                 data: { id: id },
                 dataType: 'json',
+                cache: false,
                 success: function (res) {
                     const ok = res && (res.Success || res.Status || res.status === "True");
                     if (ok) {
@@ -1230,6 +1236,7 @@ $(document).ready(function () {
                 url: url,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;
@@ -1398,6 +1405,7 @@ $(document).ready(function () {
                 url: _BaseURL + "/Admin/GetActivityById?id=" + id,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
                 success: function (res) {
                     const data = res.Data || res.data || res.Response || res;
                     const actualData = typeof data === "string" ? JSON.parse(data) : data;
@@ -1597,6 +1605,7 @@ $(document).ready(function () {
                 url: url,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;
@@ -1766,6 +1775,7 @@ $(document).ready(function () {
                 url: _BaseURL + "/Admin/GetGalleryById?id=" + id,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
                 success: function (res) {
                     const data = res.Data || res.data || res.Response || res;
                     const actualData = typeof data === "string" ? JSON.parse(data) : data;
@@ -2060,6 +2070,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;
@@ -2161,6 +2172,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
 
                 success: function (res) {
                     if (res) {
@@ -2400,8 +2412,8 @@ $(document).ready(function () {
 
                     if (isSuccess) {
                         toastr.success(res.Response || res.response || "Success!", "Success");
-                        setTimeout(() => location.reload(), 1500);
                         $("#addActivitydetailsModal").modal('hide');
+                        loadActivityDetails(currentPage); // Reload table data via AJAX — no page reload needed
                     } else {
                         const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
                         toastr.warning(errorMsg, "Warning");
@@ -2484,6 +2496,7 @@ $(document).ready(function () {
                 type: 'GET',
                 data: { id: id },
                 dataType: 'json',
+                cache: false,
                 success: function (res) {
                     const ok = res && (res.Success || res.Status || res.status === "True");
                     if (ok) {
@@ -2855,6 +2868,7 @@ $(document).ready(function () {
                 url: url,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Always fetch fresh child data
                 success: function (data) {
                     if (data && data.length > 0) {
                         let tableHtml = `
@@ -3043,8 +3057,8 @@ $(document).ready(function () {
 
                     if (isSuccess) {
                         toastr.success(res.Response || res.response || "Success!", "Success");
-                        setTimeout(() => location.reload(), 1500);
                         $("#addAchievementDetailsModal").modal('hide');
+                        loadAchievementDetails(currentPage); // Reload table data via AJAX — no page reload needed
                     } else {
                         const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
                         toastr.warning(errorMsg, "Warning");
@@ -3128,6 +3142,7 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
+                cache: false,  // Prevent browser/proxy caching of list data
                 success: function (res) {
                     const data = res ? (res.data || res.Data || []) : [];
                     const totalRecords = res ? (res.totalRecords || 0) : 0;

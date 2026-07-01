@@ -60,12 +60,12 @@ namespace ProjectWeb.WEB.Controllers
             return View();
         }
 
-        public async Task<IActionResult> ActivityDetails(int id)
+        public async Task<IActionResult> ActivityInfoDetails(int id)
         {
             MultipleModel mmm = new MultipleModel();
             APIResponse ActivityDetailsResponse = await _unitOfWork.ContentManagement.ActivityDetailsGetByActivityId<APIResponse>(id);
 
-            if(ActivityDetailsResponse.Success == true)
+            if (ActivityDetailsResponse.Success == true)
             {
                 mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(ActivityDetailsResponse.Response)!)!.FirstOrDefault();
             }
@@ -77,7 +77,6 @@ namespace ProjectWeb.WEB.Controllers
 
             return View(mmm);
         }
-
 
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

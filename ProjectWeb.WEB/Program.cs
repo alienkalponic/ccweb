@@ -17,7 +17,17 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(1);
 });
 
-builder.Services.AddControllersWithViews();
+// ── Global no-cache filter for all MVC/API actions ──────────────────────────
+// Prevents browsers and proxies from caching any JSON data responses.
+// This is a defensive best-practice for an admin panel.
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.ResponseCacheAttribute
+    {
+        NoStore  = true,
+        Location = Microsoft.AspNetCore.Mvc.ResponseCacheLocation.None
+    });
+});
 builder.Services.AddInfrastructureService();
 builder.Services.AddDistributedMemoryCache();
 
@@ -121,15 +131,51 @@ app.UseHttpsRedirection();
 // Use Response Compression
 app.UseResponseCompression();
 
-// Configure Static Files with Caching
+// Configure Static Files — Split Caching Strategy
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT CAUSE FIX: The original config set 365-day "immutable" for ALL static
+// files. This caused browsers to cache Admin.js for a year and NEVER check for
+// updates, resulting in stale data behavior on all admin pages.
+//
+// New strategy:
+//   • JS / CSS  → 1 hour + must-revalidate (browser must check server on each visit)
+//   • Images / Fonts → 30 days (these change rarely and at different URLs)
+//   • Everything else → no-cache (force revalidation every time)
+// ─────────────────────────────────────────────────────────────────────────────
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        const int durationInSeconds = 60 * 60 * 24 * 365; // 365 days
-        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=" + durationInSeconds + ",immutable";
+        var path = ctx.File.Name.ToLowerInvariant();
+        var headers = ctx.Context.Response.Headers;
+
+        if (path.EndsWith(".js") || path.EndsWith(".css"))
+        {
+            // 1 hour + must-revalidate: browser caches for performance but MUST
+            // check server (via ETag/Last-Modified) before using cached copy.
+            // This means a normal F5 refresh will always get fresh JS/CSS.
+            headers["Cache-Control"] = "public, max-age=3600, must-revalidate";
+        }
+        else if (path.EndsWith(".jpg")  || path.EndsWith(".jpeg") ||
+                 path.EndsWith(".png")  || path.EndsWith(".webp") ||
+                 path.EndsWith(".gif")  || path.EndsWith(".ico")  ||
+                 path.EndsWith(".svg")  || path.EndsWith(".woff") ||
+                 path.EndsWith(".woff2"))
+        {
+            // Images and fonts: 30 days. These are typically served from
+            // the API server (different origin) and are safe to cache.
+            headers["Cache-Control"] = "public, max-age=2592000";
+        }
+        else
+        {
+            // Everything else (HTML, JSON, etc.): no caching
+            headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            headers["Pragma"]        = "no-cache";
+            headers["Expires"]       = "0";
+        }
     }
 });
+
 
 app.UseRouting();
 app.UseSession();

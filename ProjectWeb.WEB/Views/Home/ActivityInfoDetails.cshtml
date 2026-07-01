@@ -1,0 +1,103 @@
+﻿@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Activity Details | Climbers' Circle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string imagePath = Url.Content("~/");
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+
+<link rel="stylesheet" href="~/Assets/Css/activity-details.css" asp-append-version="true" />
+
+
+
+<div class="activity-details-page">
+    <div class="container-limit">
+        @if (Model.ActivityDetailsDto != null)
+        {
+            <!-- Hero Section -->
+            <header class="activity-hero">
+                <h1>@Model.ActivityDetailsDto.Title</h1>
+                <p>@Model.ActivityDetailsDto.SubTitle</p>
+            </header>
+
+            <!-- Image Showcase -->
+            <div class="activity-showcase">
+                @foreach (var item in @Model.ActivityDetailsDto.Images!)
+                {
+                    <div class="showcase-image">
+                        <img src="@projectApiUrl@item.ImagePath1" alt="Expedition Base Camp">
+                    </div>
+                }
+                @* <div class="showcase-image">
+                    <img src="~/Assets/ActivityImg/expedetion.jpg" alt="Expedition Base Camp">
+                </div>
+                <div class="showcase-image">
+                    <img src="~/Assets/ActivityImg/hat.jpg" alt="Climbers at Dawn">
+                </div> *@
+            </div>
+
+            <!-- Info Grid -->
+            <div class="activity-info-grid">
+                <div class="info-card">
+                    <h3>Date</h3>
+                    <p>
+                        @Convert.ToDateTime(Model.ActivityDetailsDto!.StartDate).ToString("MMM dd, yyyy") - @Convert.ToDateTime(Model.ActivityDetailsDto!.EndDate).ToString("MMM dd, yyyy")
+                    </p>
+                </div>
+                <div class="info-card">
+                    <h3>Location</h3>
+                    <p>@Model.ActivityDetailsDto.Location</p>
+                </div>
+                <div class="info-card">
+                    <h3>Duration</h3>
+                    <p>@Model.ActivityDetailsDto.Duration Days</p>
+                </div>
+                <div class="info-card">
+                    <h3>Participation Fee</h3>
+                    <p>₹@Model.ActivityDetailsDto.Fee / Person</p>
+                </div>
+            </div>
+
+            <!-- Description Section -->
+            <section class="activity-description">
+                <h2>The Journey</h2>
+                <p>@Html.Raw(Model.ActivityDetailsDto.Description)</p>
+
+            </section>
+        }
+
+
+
+        <!-- Registration Section -->
+        <section class="registration-section">
+            <h2>Register Your Interest</h2>
+            <form class="registration-form" action="#" method="post">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Activity</label>
+                    <input type="text" id="subject" name="subject" value="Himalayan Base Camp Expedition" readonly>
+                </div>
+                <div class="form-group full-width">
+                    <label for="message">Message / Notes</label>
+                    <textarea id="message" name="message" rows="4" placeholder="Mention any previous climbing experience..."></textarea>
+                </div>
+                <button type="submit" class="submit-btn" onclick="event.preventDefault(); alert('Registration Mock Successful! Our team will contact you soon.');">Submit Application</button>
+            </form>
+        </section>
+
+    </div>
+</div>
+
+
