@@ -463,6 +463,15 @@ namespace ProjectWeb.Infrastucture.Service
                 Url = projectUrl.TrimEnd('/') + "/api/content/get-achievement-gallery-by-achievement-id/" + id,
             }, withBearer: true);
         }
+
+        public async Task<T> AchievementDetailsGalleryItemsId<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/content/get-achievement-by-gallery-item-id/" + id,
+            }, withBearer: true);
+        }
         #endregion
 
     }

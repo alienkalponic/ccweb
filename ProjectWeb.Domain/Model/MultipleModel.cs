@@ -44,6 +44,9 @@ namespace ProjectWeb.Domain.Model
 
         public AchievementDetailsGalleryCreateDto? achievementDetailsGalleryCreateDto { get; set; }
         public AchievementDetailsGalleryUpdateDto? achievementDetailsGalleryUpdateDto { get; set; }
+        public List<GalleryDto>?galleryDtos{ get; set; }
+        //public List<AchievementDetailsGalleryDtos>? AchievementDetailsGalleryDtos { get; set; }
+        public AchievementDetailsGalleryDtos? AchievementDetailsGalleryDtos { get; set; }
 
     }
 }

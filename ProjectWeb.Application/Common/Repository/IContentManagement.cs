@@ -65,6 +65,7 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> AchievementDetailsGalleryUpdate<T>(AchievementDetailsGalleryUpdateDto model);
         Task<T> AchievementDetailsGalleryDelete<T>(long id);
         Task<T> AchievementDetailsGalleryGetByAchievementId<T>(long id);
+        Task<T> AchievementDetailsGalleryItemsId<T>(long id);
         #endregion
     }
 }

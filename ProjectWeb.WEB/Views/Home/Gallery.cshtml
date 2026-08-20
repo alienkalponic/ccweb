@@ -1,6 +1,11 @@
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "The Gallery | Climbers' Circle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string imagePath = Url.Content("~/");
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+    var isFirst = true;
 }
 
 <link rel="stylesheet" href="~/Assets/Css/gallery-editorial.css" asp-append-version="true" />
@@ -10,11 +15,25 @@
         
         <!-- Hero Section -->
         <header class="gallery-hero">
-            <h1>The Gallery</h1>
-            <p>Capturing fifty years of dedication, exploration, and the vertical world through our lenses.</p>
+            <h1>@Model.AchievementDetailsGalleryDtos!.Title</h1>
+            <p>@Model.AchievementDetailsGalleryDtos.SubTitle</p>
         </header>
 
-        <!-- Section 1: Text Left, Image Right -->
+        @foreach (var item in Model.AchievementDetailsGalleryDtos.AchievementDetailsGalleryDetailsList!)
+        {
+            <section class="gallery-section scroll-reveal">
+                <div class="gallery-content">
+                    <h2>@item.Title</h2>
+                    <p>@Html.Raw(item.Description)</p>
+                    <a href="#" class="gallery-btn">Explore Peaks</a>
+                </div>
+                <div class="gallery-image-box">
+                    <img src="@projectApiUrl@item.ImagePath1" alt="Alpine Peaks">
+                </div>
+            </section>
+        }
+
+       @*  <!-- Section 1: Text Left, Image Right -->
         <section class="gallery-section scroll-reveal">
             <div class="gallery-content">
                 <h2>Alpine Blueprints</h2>
@@ -60,7 +79,7 @@
             <div class="gallery-image-box">
                 <img src="~/Assets/gallerySection/Exp2003BhagirathiII.jpg" alt="Bhagirathi Expedition">
             </div>
-        </section>
+        </section> *@
 
     </div>
 </div>

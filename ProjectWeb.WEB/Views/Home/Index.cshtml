@@ -130,7 +130,7 @@
 							<!-- Second Image Section -->
 							<div class="w-full md:w-1/4 image_2">
 								<img src="../Assets/images/images.jpeg" alt="About Us Image 2" class="w-full h-auto object-cover" loading="lazy" decoding="async">
-								
+									
 							</div> *@
 						</div>
 
@@ -268,8 +268,39 @@
 		<h2 class="text-3xl font-bold text_team">The Gallery</h2>
 		<div class="ag-container-shops">
 			<div class="js-flickity-slider">
+				@if (Model.galleryDtos!.Count>0)
+				{
+					@foreach (var item in Model.galleryDtos!)
+					{
+						var imageUrl = !string.IsNullOrEmpty(item.ImageUrl)
+        ? (item.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? item.ImageUrl
+            : $"{projectApiUrl.TrimEnd('/')}/{item.ImageUrl.TrimStart('/')}")
+        : Url.Content("~/assets/images/placeholder.png");
 
-				<div class="js-carousel-cell">
+						<div class="js-carousel-cell">
+							<div class="ag-shop-card_box-wrap">
+								<div class="ag-shop-card_box">
+									<div class="ag-shop-card_body">
+										<div class="js-card-bg ag-card-bg" style="background-image: url('@imageUrl');"></div>
+										<a href="#" class="ag-shop-card-body_link">
+											<img src=@imageUrl alt="Falu" class="ag-shop-card-body_img" loading="lazy" decoding="async">
+										</a>
+									</div>
+									<div class="ag-shop-card_footer">
+										<a href="@Url.Action("Gallery", "Home", new { id = item.GalleryItemsId })" class="ag-shop-card-footer_link">
+                        <img src="https://rawcdn.githack.com/SochavaAG/example-mycode/master/pens/parallax-swipe/images/arrow.svg" class="ag-shop-card-footer_arrow">
+                    </a>
+                    <span class="ag-shop-card-footer_title">@item.Title</span>
+                    <span class="ag-shop-card-footer_products">@item.SubTitle @item.ExpeditionYear</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				}
+				
+				@* <div class="js-carousel-cell">
 					<div class="ag-shop-card_box-wrap">
 						<div class="ag-shop-card_box">
 							<div class="ag-shop-card_body">
@@ -604,7 +635,7 @@
 							</div>
 						</div>
 					</div>
-				</div>
+				</div> *@
 
 
 			</div>

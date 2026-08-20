@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.ClubActivity;
 using ProjectWeb.Domain.DTO.ClubDescription;
+using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.Model;
 using ProjectWeb.Domain.Utility;
 using ProjectWeb.WEB.Models;
@@ -42,6 +44,12 @@ namespace ProjectWeb.WEB.Controllers
             APIResponse ClubActivityResponse = await _unitOfWork.ContentManagement.ActivityGetAll<APIResponse>("100", "1", "");
 
             mmm.ClubActivityDtos = JsonConvert.DeserializeObject<List<GetClubActivityDto>>(Convert.ToString(ClubActivityResponse.Response)!);
+
+            APIResponse AchievementDetailsGallery = await _unitOfWork
+                .ContentManagement
+                .GalleryGetAll<APIResponse>("100", "1", "");
+            mmm.galleryDtos = JsonConvert.DeserializeObject<List<GalleryDto>>(Convert.ToString(AchievementDetailsGallery.Response)!);
+
             return View(mmm);
         }
 
@@ -55,9 +63,56 @@ namespace ProjectWeb.WEB.Controllers
             return View();
         }
 
-        public IActionResult Gallery()
+        public async Task<IActionResult> Gallery(int id)
         {
-            return View();
+            MultipleModel mmm = new MultipleModel();
+            APIResponse apiResponse = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryItemsId<APIResponse>(id);
+
+            var responseString = Convert.ToString(apiResponse.Response) ?? string.Empty;
+            AchievementDetailsGalleryDtos? parent = null;
+
+            try
+            {
+                // If API returns an array, take first item; if it returns an object, deserialize directly.
+                var trimmed = responseString.TrimStart();
+                if (trimmed.StartsWith("["))
+                {
+                    var list = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryDtos>>(responseString);
+                    parent = list?.Count > 0 ? list[0] : null;
+                }
+                else
+                {
+                    parent = JsonConvert.DeserializeObject<AchievementDetailsGalleryDtos>(responseString);
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize parent AchievementDetailsGalleryDtos for id {Id}", id);
+            }
+
+            // Parse inner JSON (string) to strongly-typed child list
+            if (parent != null && !string.IsNullOrWhiteSpace(parent.AchievementDetailsGalleryDetails))
+            {
+                try
+                {
+                    parent.AchievementDetailsGalleryDetailsList =
+                        JsonConvert.DeserializeObject<List<AchievementDetailsGalleryDetailDto>>(parent.AchievementDetailsGalleryDetails);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Failed to parse AchievementDetailsGalleryDetails for GalleryItemsId {GalleryItemsId}", parent.GalleryItemsId);
+                    parent.AchievementDetailsGalleryDetailsList = new List<AchievementDetailsGalleryDetailDto>();
+                }
+            }
+            else if (parent != null)
+            {
+                parent.AchievementDetailsGalleryDetailsList = new List<AchievementDetailsGalleryDetailDto>();
+            }
+
+            mmm.AchievementDetailsGalleryDtos = parent;
+            return View(mmm);
         }
 
         public async Task<IActionResult> ActivityInfoDetails(int id)
