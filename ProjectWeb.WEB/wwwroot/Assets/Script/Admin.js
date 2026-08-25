@@ -119,7 +119,10 @@ $(document).ready(function () {
             toggler.style.display = "block";
         }
     }
-    myBtn.addEventListener('click', clickHandler);
+    if (myBtn != null) {
+        myBtn.addEventListener('click', clickHandler);
+    }
+    
 
 
 

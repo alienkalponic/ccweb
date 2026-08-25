@@ -1,4 +1,4 @@
-﻿@model ProjectWeb.Domain.Model.MultipleModel
+@model ProjectWeb.Domain.Model.MultipleModel
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Activity Details | Climbers' Circle";
@@ -72,7 +72,8 @@
         <!-- Registration Section -->
         <section class="registration-section">
             <h2>Register Your Interest</h2>
-            <form class="registration-form" action="#" method="post">
+            <form class="registration-form" id="activityInterestForm" action="#" method="post">
+                <input type="hidden" id="clubActivityId" name="clubActivityId" value="@Model.ActivityDetailsDto?.ActivityId" />
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" placeholder="John Doe" required>
@@ -87,13 +88,13 @@
                 </div>
                 <div class="form-group">
                     <label for="subject">Activity</label>
-                    <input type="text" id="subject" name="subject" value="Himalayan Base Camp Expedition" readonly>
+                    <input type="text" id="subject" name="subject" value="@(Model.ActivityDetailsDto?.Title ?? "Himalayan Base Camp Expedition")" readonly>
                 </div>
                 <div class="form-group full-width">
                     <label for="message">Message / Notes</label>
                     <textarea id="message" name="message" rows="4" placeholder="Mention any previous climbing experience..."></textarea>
                 </div>
-                <button type="submit" class="submit-btn" onclick="event.preventDefault(); alert('Registration Mock Successful! Our team will contact you soon.');">Submit Application</button>
+                <button type="submit" class="submit-btn" id="btnSubmitInterest">Submit Application</button>
             </form>
         </section>
 

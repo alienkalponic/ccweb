@@ -133,6 +133,27 @@ namespace ProjectWeb.WEB.Controllers
             return View(mmm);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateActivityInterest([FromBody] CreateActivityInterestRegistrationDto dto)
+        {
+            try
+            {
+                APIResponse response = await _unitOfWork
+                    .ContentManagement
+                    .CreateActivityInterest<APIResponse>(dto);
+
+                return Json(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating activity interest");
+                return Json(new APIResponse
+                {
+                    Success = false,
+                    ErrorMassage = new List<string> { ex.Message }
+                });
+            }
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

@@ -11,6 +11,7 @@ using ProjectWeb.Domain.Utility;
 using System.Net.Http.Headers;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.AchievementDetails;
+using ProjectWeb.Domain.DTO.ClubActivity;
 
 namespace ProjectWeb.Infrastucture.Service
 {
@@ -471,6 +472,19 @@ namespace ProjectWeb.Infrastucture.Service
                 ApiType = StaticDetails.ApiType.GET,
                 Url = projectUrl.TrimEnd('/') + "/api/content/get-achievement-by-gallery-item-id/" + id,
             }, withBearer: true);
+        }
+        #endregion
+
+        #region::ActivityInterest
+        public async Task<T> CreateActivityInterest<T>(CreateActivityInterestRegistrationDto dto)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = dto,
+                Url = projectUrl.TrimEnd('/') + "/api/ActivityInterestRegistration/Create-activity-interest",
+                ContentType = StaticDetails.ContentType.Json
+            }, withBearer: false);
         }
         #endregion
 

@@ -161,7 +161,7 @@
 					{
 						<div class="swiper-slide slide-card" style="background-image: url('@($"{projectApiUrl}{item.ImageUrl}")')">
 							<div>
-								<a href="@Url.Action("ActivityDetails", "Home", new { id = item.ActivityId })" class="know-more-btn">Know more</a>
+								<a href="@Url.Action("ActivityInfoDetails", "Home", new { id = item.ActivityId })" class="know-more-btn">Know more</a>
 								<p class="card-title" style="color:ghostwhite">@item.Title</p>
 							</div>
 						</div>

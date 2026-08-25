@@ -1,6 +1,7 @@
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.ClubActivity;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.DTO.LoginDto;
@@ -66,6 +67,10 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> AchievementDetailsGalleryDelete<T>(long id);
         Task<T> AchievementDetailsGalleryGetByAchievementId<T>(long id);
         Task<T> AchievementDetailsGalleryItemsId<T>(long id);
+        #endregion
+
+        #region::ActivityInterest
+        Task<T> CreateActivityInterest<T>(CreateActivityInterestRegistrationDto dto);
         #endregion
     }
 }
