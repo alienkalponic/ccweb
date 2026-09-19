@@ -56,6 +56,10 @@ builder.Services.AddHttpClient("NewProjectAPI", client =>
     client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) ProjectWeb/1.0");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    })
     .AddHttpMessageHandler<HttpClientLoggingHandler>();
 
 // Enable Response Compression

@@ -72,5 +72,13 @@ namespace ProjectWeb.Application.Common.Repository
         #region::ActivityInterest
         Task<T> CreateActivityInterest<T>(CreateActivityInterestRegistrationDto dto);
         #endregion
+
+        #region::AboutPage
+        Task<T> AboutPageCreate<T>(object model);
+        Task<T> AboutPageUpdate<T>(object model);
+        Task<T> AboutPageDelete<T>(long id, string? deletedBy = null);
+        Task<T> AboutPageGet<T>(long id);
+        Task<T> AboutPageGetAll<T>(string pageSize, string pageNumber, string search);
+        #endregion
     }
 }

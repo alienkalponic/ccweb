@@ -1,0 +1,320 @@
+@{
+    ViewData["Title"] = "About Page Management";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+<script>
+    var _ProjectAPI = '@projectApiUrl';
+</script>
+@section Styles {
+    <!-- Quill.js Snow Theme -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .repeater-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .repeater-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .repeater-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .repeater-header h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #334155;
+        }
+        .preview-box {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            border-bottom: 2px solid var(--admin-primary, #a01c2b);
+            color: var(--admin-primary, #a01c2b);
+        }
+    </style>
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <!-- Header Panel -->
+            <section class="panel mb-4 animate-fade-in">
+                <header class="panel-heading border-none bg-transparent" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
+                    <h2 class="mb-0">About Page Management</h2>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="input-group" style="width: 250px;">
+                            <input type="text" id="txtSearchAboutPage" class="form-control" placeholder="Search pages..." />
+                            <button class="btn btn-outline-secondary" type="button" id="btnSearchAboutPage"><i class="fa fa-search"></i></button>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary ml-2" id="btnRefreshAboutPage" title="Refresh">
+                            <i class="fa fa-refresh"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary ml-2" id="btnAddNew">
+                            <i class="fa fa-plus"></i> Add About Page
+                        </button>
+                    </div>
+                </header>
+            </section>
+
+            <!-- Table Section -->
+            <div id="aboutpagetableimg" class="table-responsive animate-fade-in">
+                <table id="tab_aboutpage" class="table table-striped table-hover" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th>SL.No</th>
+                            <th>Page Title</th>
+                            <th>Slug</th>
+                            <th>Hero Title</th>
+                            <th>Banner</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="8" class="text-center"><i class="fa fa-spinner fa-spin"></i> Loading about pages...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination_oputer mt-3" style="text-align: right!important;">
+                <ul class="pagination" id="aboutPagePagination"></ul>
+            </div>
+        </section>
+    </section>
+
+    <!-- Create / Edit Modal -->
+    <div class="modal fade" id="addAboutPageModal" tabindex="-1" role="dialog" aria-labelledby="addModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg, 12px);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-info-circle fs-4" style="color: var(--admin-primary, #a01c2b);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="addAboutPageTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main, #1e293b);">Add About Page</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="addAboutPageForm" novalidate onsubmit="return false;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="hdn_AboutPageId" name="AboutPageId" value="0" />
+
+                        <!-- Form Navigation Tabs -->
+                        <ul class="nav nav-tabs mb-4" id="aboutPageFormTabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="basic-tab" data-bs-toggle="tab" href="#tab-basic" role="tab"><i class="fa fa-file-text-o mr-1"></i> Basic Info</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="hero-tab" data-bs-toggle="tab" href="#tab-hero" role="tab"><i class="fa fa-image mr-1"></i> Hero Banner</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="history-tab" data-bs-toggle="tab" href="#tab-history" role="tab"><i class="fa fa-history mr-1"></i> History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="map-tab" data-bs-toggle="tab" href="#tab-map" role="tab"><i class="fa fa-map-marker mr-1"></i> Location</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="sections-tab" data-bs-toggle="tab" href="#tab-sections" role="tab"><i class="fa fa-list-alt mr-1"></i> Sections (<span id="sectionCountBadge">0</span>)</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="details-tab" data-bs-toggle="tab" href="#tab-details" role="tab"><i class="fa fa-th-list mr-1"></i> Details Repeater (<span id="detailsCountBadge">0</span>)</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="people-tab" data-bs-toggle="tab" href="#tab-people" role="tab"><i class="fa fa-users mr-1"></i> People Repeater (<span id="peopleCountBadge">0</span>)</a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="aboutPageFormTabContent">
+                            <!-- Section 1 — Basic Page Information -->
+                            <div class="tab-pane fade show active" id="tab-basic" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Page Title <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="txtPageTitle" name="PageTitle" placeholder="e.g., About Climbers Circle" required />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Page Slug <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="txtPageSlug" name="PageSlug" placeholder="e.g., about-us" required />
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <div class="form-check form-switch pt-2">
+                                            <input class="form-check-input" type="checkbox" id="chkAboutPageActive" name="IsActive" checked />
+                                            <label class="form-check-label fw-semibold" for="chkAboutPageActive">Is Active</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 2 — Hero Section -->
+                            <div class="tab-pane fade" id="tab-hero" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Hero Title</label>
+                                        <input type="text" class="form-control" id="txtHeroTitle" name="HeroTitle" placeholder="e.g., Discover Our Story" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Hero Subtitle</label>
+                                        <input type="text" class="form-control" id="txtHeroSubtitle" name="HeroSubtitle" placeholder="e.g., Scaling heights since 1990" />
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label fw-semibold">Banner Image</label>
+                                        <input type="file" class="form-control" id="fileBannerImage" name="BannerFile" accept="image/*" />
+                                        <input type="hidden" id="hdnBannerImageUrl" name="BannerImageUrl" />
+                                        <div class="mt-3" id="bannerImagePreviewContainer" style="display: none;">
+                                            <label class="small text-muted d-block mb-1">Banner Preview:</label>
+                                            <img id="imgBannerPreview" src="" alt="Banner Preview" style="max-height: 150px; border-radius: 8px; border: 1px solid #cbd5e1;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 3 — History -->
+                            <div class="tab-pane fade" id="tab-history" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label fw-semibold">History Title</label>
+                                        <input type="text" class="form-control" id="txtHistoryTitle" name="HistoryTitle" placeholder="e.g., Our Journey & Legacy" />
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label fw-semibold">History Description</label>
+                                        <div id="quillHistoryEditor" style="height: 220px; border-radius: 0 0 8px 8px;"></div>
+                                        <input type="hidden" id="hdnHistoryDescription" name="HistoryDescription" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 4 — Map / Location -->
+                            <div class="tab-pane fade" id="tab-map" role="tabpanel">
+                                <div class="row g-3">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Map Title</label>
+                                        <input type="text" class="form-control" id="txtMapTitle" name="MapTitle" placeholder="e.g., Our Location" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Map Address</label>
+                                        <input type="text" class="form-control" id="txtMapAddress" name="MapAddress" placeholder="e.g., Kolkata, West Bengal" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Latitude</label>
+                                        <input type="number" step="any" class="form-control" id="txtLatitude" name="Latitude" placeholder="e.g., 22.5726" />
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-semibold">Longitude</label>
+                                        <input type="number" step="any" class="form-control" id="txtLongitude" name="Longitude" placeholder="e.g., 88.3639" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 5 — About Page Sections (Dynamic Repeater) -->
+                            <div class="tab-pane fade" id="tab-sections" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 fw-bold">Dynamic Sections</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddSectionRow">
+                                        <i class="fa fa-plus"></i> Add Section
+                                    </button>
+                                </div>
+                                <div id="sectionRepeaterContainer">
+                                    <!-- Dynamic section rows go here -->
+                                </div>
+                            </div>
+
+                            <!-- Section 6 — About Details (Dynamic Repeater) -->
+                            <div class="tab-pane fade" id="tab-details" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 fw-bold">About Details Repeater</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddDetailsRow">
+                                        <i class="fa fa-plus"></i> Add Detail Item
+                                    </button>
+                                </div>
+                                <div id="detailsRepeaterContainer">
+                                    <!-- Dynamic details rows go here -->
+                                </div>
+                            </div>
+
+                            <!-- Section 7 — About People (Dynamic Repeater) -->
+                            <div class="tab-pane fade" id="tab-people" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 fw-bold">About People Repeater</h5>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddPersonRow">
+                                        <i class="fa fa-plus"></i> Add Person
+                                    </button>
+                                </div>
+                                <div id="peopleRepeaterContainer">
+                                    <!-- Dynamic person rows go here -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 mr-2 btnCancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveAboutPage" data-url="@Url.Action("CreateAboutPage", "Admin")">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <i class="fa fa-save mr-2"></i> Save Page
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center d-none" id="btnUpdateAboutPage" data-url="@Url.Action("UpdateAboutPage", "Admin")">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <i class="fa fa-refresh mr-2"></i> Update Page
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div class="modal fade" id="viewAboutPageModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h4 class="modal-title fw-bold"><i class="fa fa-eye mr-2"></i> View About Page</h4>
+                    <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted" data-bs-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body p-4" id="viewAboutPageContent">
+                    <!-- Dynamic view details go here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Essential Scripts -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+}

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.AboutPage;
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
@@ -20,8 +21,8 @@ using System.Security.Claims;
 
 namespace ProjectWeb.WEB.Controllers
 {
-	public class AdminController : Controller
-	{
+    public class AdminController : Controller
+    {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private IHttpContextAccessor _httpContextAccessor;
@@ -42,11 +43,11 @@ namespace ProjectWeb.WEB.Controllers
             _logger = logger;
         }
         public IActionResult Index()
-		{
-			return View();
-		}
+        {
+            return View();
+        }
 
-		public async Task<IActionResult> AdminLogin()
+        public async Task<IActionResult> AdminLogin()
         {
             var userId = Convert.ToInt64(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value);
 
@@ -59,13 +60,13 @@ namespace ProjectWeb.WEB.Controllers
                 await GenerateMainToken(model);
 
                 _tokenProvider.SetToken(model.AccessToken);
-                if(model.AccessToken!=null)
+                if (model.AccessToken != null)
                 {
                     return Redirect("~/Dashboard/Dashboard"); ;
                 }
             }
-                return View(); 
-		}
+            return View();
+        }
 
         private async Task GenerateMainToken(LoginResponseDTO model)
         {
@@ -82,17 +83,17 @@ namespace ProjectWeb.WEB.Controllers
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
-                
+
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(6)
             };
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
-            
+
         }
 
         [HttpPost]
         public async Task<string> Login(LoginRequestDTO obj)
         {
-            
+
             //await HttpContext.SignOutAsync();
             _tokenProvider.ClearToken();
 
@@ -123,7 +124,7 @@ namespace ProjectWeb.WEB.Controllers
         {
             await HttpContext.SignOutAsync();
 
-            
+
             HttpContext.Session.Clear();
             return RedirectToAction("AdminLogin");
         }
@@ -173,7 +174,7 @@ namespace ProjectWeb.WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBannerList(int pageNumber = 1, int pageSize = 10, string search = "")
         {
-            MultipleModel mmm=new MultipleModel();
+            MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
                 .BannerGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
@@ -605,7 +606,7 @@ namespace ProjectWeb.WEB.Controllers
             MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .GalleryGetAll<APIResponse>("50","1","");
+                .GalleryGetAll<APIResponse>("50", "1", "");
 
             var stringResponse = Convert.ToString(response.Response);
             if (!string.IsNullOrEmpty(stringResponse))
@@ -624,7 +625,7 @@ namespace ProjectWeb.WEB.Controllers
         {
             _logger.LogInformation("[CreateAchievementDetails] Action hit. DTO null={IsNull}",
                 mmm.AchievementDetailsCreateDto == null);
-            
+
 
             APIResponse response = await _unitOfWork
                 .ContentManagement
@@ -766,6 +767,152 @@ namespace ProjectWeb.WEB.Controllers
             }
             return Content(JsonConvert.SerializeObject(list), "application/json");
         }
+        #endregion
+
+        #region::AboutUs
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> AboutUs()
+        {
+            MultipleModel mmm = new MultipleModel();
+            return View(mmm);
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllAboutPages(int pageNumber = 1, int pageSize = 10, string search = "")
+        {
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageGetAll<APIResponse>(pageSize.ToString(), pageNumber.ToString(), search ?? "");
+
+            var stringResponse = Convert.ToString(response.Response);
+            List<AboutPageDto> list = new List<AboutPageDto>();
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                try
+                {
+                    list = JsonConvert.DeserializeObject<List<AboutPageDto>>(stringResponse) ?? new List<AboutPageDto>();
+                }
+                catch
+                {
+                    var single = JsonConvert.DeserializeObject<AboutPageDto>(stringResponse);
+                    if (single != null) list.Add(single);
+                }
+            }
+            return Content(JsonConvert.SerializeObject(new { data = list, totalRecords = response.TotalItem }), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAboutPageById(long id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid About Page ID." }), "application/json");
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageGet<APIResponse>(id);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> CreateAboutPage(MultipleModel mmm)
+        {
+            _logger.LogInformation("[CreateAboutPage] Action hit. CreateAboutPageDto null={IsNull}", mmm.CreateAboutPageDto == null);
+
+            var dto = mmm.CreateAboutPageDto ?? new CreateAboutPageDto();
+            dto.AboutPage ??= new AboutPageDto();
+
+            if (string.IsNullOrEmpty(dto.AboutPage.PageTitle) && Request.HasFormContentType)
+            {
+                dto.AboutPage.PageTitle = Request.Form["PageTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.PageTitle"].FirstOrDefault() ?? Request.Form["AboutPage.PageTitle"].FirstOrDefault();
+                dto.AboutPage.PageSlug = Request.Form["PageSlug"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.PageSlug"].FirstOrDefault() ?? Request.Form["AboutPage.PageSlug"].FirstOrDefault();
+                dto.AboutPage.HeroTitle = Request.Form["HeroTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HeroTitle"].FirstOrDefault();
+                dto.AboutPage.HeroSubtitle = Request.Form["HeroSubtitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HeroSubtitle"].FirstOrDefault();
+                dto.AboutPage.HistoryTitle = Request.Form["HistoryTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HistoryTitle"].FirstOrDefault();
+                dto.AboutPage.HistoryDescription = Request.Form["HistoryDescription"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HistoryDescription"].FirstOrDefault();
+                dto.AboutPage.MapTitle = Request.Form["MapTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.MapTitle"].FirstOrDefault();
+                dto.AboutPage.MapAddress = Request.Form["MapAddress"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.MapAddress"].FirstOrDefault();
+                if (decimal.TryParse(Request.Form["Latitude"].FirstOrDefault(), out var lat)) dto.AboutPage.Latitude = lat;
+                if (decimal.TryParse(Request.Form["Longitude"].FirstOrDefault(), out var lng)) dto.AboutPage.Longitude = lng;
+                dto.BannerFile = Request.Form.Files["BannerFile"] ?? Request.Form.Files["CreateAboutPageDto.BannerFile"] ?? Request.Form.Files["AboutPage.BannerFile"];
+            }
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageCreate<APIResponse>(dto);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "2")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(long.MaxValue)]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        public async Task<IActionResult> UpdateAboutPage(MultipleModel mmm)
+        {
+            _logger.LogInformation("[UpdateAboutPage] Action hit. UpdateAboutPageDto null={IsNull}", mmm.UpdateAboutPageDto == null);
+
+            var dto = mmm.UpdateAboutPageDto ?? new UpdateAboutPageDto();
+            dto.AboutPage ??= new AboutPageDto();
+
+            if (dto.AboutPageId <= 0 && Request.HasFormContentType)
+            {
+                if (long.TryParse(Request.Form["AboutPageId"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.AboutPageId"].FirstOrDefault(), out var id))
+                {
+                    dto.AboutPageId = id;
+                    dto.AboutPage.AboutPageId = id;
+                }
+                dto.AboutPage.PageTitle = Request.Form["PageTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.PageTitle"].FirstOrDefault() ?? Request.Form["AboutPage.PageTitle"].FirstOrDefault();
+                dto.AboutPage.PageSlug = Request.Form["PageSlug"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.PageSlug"].FirstOrDefault() ?? Request.Form["AboutPage.PageSlug"].FirstOrDefault();
+                dto.AboutPage.HeroTitle = Request.Form["HeroTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HeroTitle"].FirstOrDefault();
+                dto.AboutPage.HeroSubtitle = Request.Form["HeroSubtitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HeroSubtitle"].FirstOrDefault();
+                dto.AboutPage.HistoryTitle = Request.Form["HistoryTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HistoryTitle"].FirstOrDefault();
+                dto.AboutPage.HistoryDescription = Request.Form["HistoryDescription"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HistoryDescription"].FirstOrDefault();
+                dto.AboutPage.MapTitle = Request.Form["MapTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.MapTitle"].FirstOrDefault();
+                dto.AboutPage.MapAddress = Request.Form["MapAddress"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.MapAddress"].FirstOrDefault();
+                if (decimal.TryParse(Request.Form["Latitude"].FirstOrDefault(), out var lat)) dto.AboutPage.Latitude = lat;
+                if (decimal.TryParse(Request.Form["Longitude"].FirstOrDefault(), out var lng)) dto.AboutPage.Longitude = lng;
+                dto.BannerFile = Request.Form.Files["BannerFile"] ?? Request.Form.Files["UpdateAboutPageDto.BannerFile"] ?? Request.Form.Files["AboutPage.BannerFile"];
+            }
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageUpdate<APIResponse>(dto);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [Authorize(Roles = "Developer,Administrator,2")]
+        [HttpPost, HttpGet]
+        public async Task<IActionResult> DeleteAboutPageById(long id)
+        {
+            _logger.LogInformation("[DeleteAboutPageById] Hit with id={Id}", id);
+
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid About Page ID." }), "application/json");
+
+            string? deletedBy = null;
+            if (long.TryParse(User.Identity?.Name, out var numId))
+            {
+                deletedBy = numId.ToString();
+            }
+
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageDelete<APIResponse>(id, deletedBy);
+
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
         #endregion
 
     }

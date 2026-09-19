@@ -488,5 +488,62 @@ namespace ProjectWeb.Infrastucture.Service
         }
         #endregion
 
+        #region::AboutPage
+        public async Task<T> AboutPageCreate<T>(object model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/about-page/Create-about-page",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AboutPageUpdate<T>(object model)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Data = model,
+                Url = projectUrl.TrimEnd('/') + "/api/about-page/Update-about-page",
+                ContentType = StaticDetails.ContentType.MultipartFormData
+            }, withBearer: true);
+        }
+
+        public async Task<T> AboutPageDelete<T>(long id, string? deletedBy = null)
+        {
+            string url = projectUrl.TrimEnd('/') + "/api/about-page/Remove-about-page-by-id/" + id;
+            if (!string.IsNullOrEmpty(deletedBy))
+            {
+                url += "?DeletedBy=" + Uri.EscapeDataString(deletedBy);
+            }
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.POST,
+                Url = url
+            }, withBearer: true);
+        }
+
+        public async Task<T> AboutPageGet<T>(long id)
+        {
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/about-page/Get-about-page-by-id/" + id
+            }, withBearer: true);
+        }
+
+        public async Task<T> AboutPageGetAll<T>(string pageSize, string pageNumber, string search)
+        {
+            string searchParam = !string.IsNullOrEmpty(search) ? "?Search=" + Uri.EscapeDataString(search) : "";
+            return await _baseService.SendAsync<T>(new APIRequest()
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + $"/api/about-page/Get-all-about-page/{pageSize}/{pageNumber}{searchParam}"
+            }, withBearer: true);
+        }
+        #endregion
+
     }
 }

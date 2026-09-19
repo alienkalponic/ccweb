@@ -1,3 +1,4 @@
+using ProjectWeb.Domain.DTO.AboutPage;
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
@@ -48,5 +49,10 @@ namespace ProjectWeb.Domain.Model
         //public List<AchievementDetailsGalleryDtos>? AchievementDetailsGalleryDtos { get; set; }
         public AchievementDetailsGalleryDtos? AchievementDetailsGalleryDtos { get; set; }
 
+        // About Page
+        public CreateAboutPageDto? CreateAboutPageDto { get; set; }
+        public UpdateAboutPageDto? UpdateAboutPageDto { get; set; }
+        public AboutPageDto? AboutPageDto { get; set; }
+        public List<AboutPageDto>? AboutPageDtos { get; set; }
     }
 }

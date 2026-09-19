@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ProjectWeb.Application;
@@ -17,7 +17,11 @@ namespace ProjectWeb.Infrastucture
         public static IServiceCollection AddInfrastructureService(this IServiceCollection services)
         {
             services.AddApplicationService();//Application Layer Configure Service register
-            services.AddHttpClient("NewProjectAPI");
+            services.AddHttpClient("NewProjectAPI")
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                });
             services.AddHttpClient<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IBaseService, BaseService>();

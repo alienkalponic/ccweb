@@ -59,6 +59,16 @@ $(document).ready(function () {
         return text.replace(/\s+/g, ' ').trim();
     }
 
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function renderPagination(containerSelector, currentPage, totalRecords, pageSize, onPageClick) {
         const $container = $(containerSelector);
         $container.empty();
@@ -3252,7 +3262,967 @@ $(document).ready(function () {
             $("#txtSubTitle").val("");
             $("#ddlSection").val("");
         }
+    }
 
-        
+    if (action_name === "aboutus" || action_name === "about" || window.location.pathname.toLowerCase().indexOf("about") !== -1) {
+        let currentPage = 1;
+        const pageSize = 10;
+        let currentSearch = "";
+        let quillHistoryInstance = null;
+
+        loadAboutPages(currentPage);
+
+        /* ---------- EVENT HANDLERS & SEARCH ---------- */
+        $("#btnAddNew").on("click", function () {
+            resetAboutPageForm();
+            $("#addAboutPageModal").modal("show");
+            $("#addAboutPageTitle").html('<i class="fa fa-plus"></i> Add About Page');
+            $("#btnSaveAboutPage").removeClass("d-none");
+            $("#btnUpdateAboutPage").addClass("d-none");
+        });
+
+        $(".btnModalClose, .btnCancel").on("click", function () {
+            $("#addAboutPageModal").modal("hide");
+        });
+
+        $("#btnSearchAboutPage").on("click", function () {
+            currentSearch = $("#txtSearchAboutPage").val() ? $("#txtSearchAboutPage").val().trim() : "";
+            loadAboutPages(1);
+        });
+
+        $("#txtSearchAboutPage").on("keypress", function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                currentSearch = $(this).val() ? $(this).val().trim() : "";
+                loadAboutPages(1);
+            }
+        });
+
+        $("#btnRefreshAboutPage").on("click", function () {
+            $("#txtSearchAboutPage").val("");
+            currentSearch = "";
+            loadAboutPages(1);
+        });
+
+        /* ---------- QUILL INITIALIZATION ---------- */
+        function initQuillHistory() {
+            const container = document.getElementById('quillHistoryEditor');
+            if (container && !quillHistoryInstance) {
+                quillHistoryInstance = new Quill('#quillHistoryEditor', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            ['bold', 'italic', 'underline'],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['link'],
+                            ['clean']
+                        ]
+                    },
+                    placeholder: 'Write history & legacy details...'
+                });
+            }
+        }
+
+        $('#addAboutPageModal').on('shown.bs.modal', function () {
+            initQuillHistory();
+        }).on('hidden.bs.modal', function () {
+            resetAboutPageForm();
+        });
+
+        /* ---------- BANNER PREVIEW ---------- */
+        $("#fileBannerImage").on("change", function () {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#imgBannerPreview").attr("src", e.target.result);
+                    $("#bannerImagePreviewContainer").show();
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        /* ---------- REPEATER ROW ADDITIONS ---------- */
+        $("#btnAddSectionRow").on("click", function () {
+            addSectionRow();
+        });
+
+        $("#btnAddDetailsRow").on("click", function () {
+            addDetailsRow();
+        });
+
+        $("#btnAddPersonRow").on("click", function () {
+            addPersonRow();
+        });
+
+        $(document).on("click", ".btnRemoveRepeaterItem", function () {
+            $(this).closest(".repeater-card").remove();
+            updateCountBadges();
+        });
+
+        function updateCountBadges() {
+            $("#sectionCountBadge").text($("#sectionRepeaterContainer .repeater-card").length);
+            $("#detailsCountBadge").text($("#detailsRepeaterContainer .repeater-card").length);
+            $("#peopleCountBadge").text($("#peopleRepeaterContainer .repeater-card").length);
+        }
+
+        function addSectionRow(data = null) {
+            const id = data ? (data.AboutPageSectionId || data.aboutPageSectionId || 0) : 0;
+            const title = data ? (data.SectionTitle || data.sectionTitle || "") : "";
+            const subtitle = data ? (data.SectionSubtitle || data.sectionSubtitle || "") : "";
+            const content = data ? (data.Content || data.content || "") : "";
+            const order = data ? (data.DisplayOrder || data.displayOrder || 0) : 0;
+            const isActive = data ? (data.IsActive === true || data.isActive === true) : true;
+
+            const html = `
+                <div class="repeater-card">
+                    <div class="repeater-header">
+                        <h6><i class="fa fa-list-alt mr-1"></i> Section Item</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger btnRemoveRepeaterItem"><i class="fa fa-trash"></i> Remove</button>
+                    </div>
+                    <input type="hidden" class="sec-id" value="${id}" />
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Section Title</label>
+                            <input type="text" class="form-control form-control-sm sec-title" value="${escapeHtml(title)}" placeholder="Title..." />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Section Subtitle</label>
+                            <input type="text" class="form-control form-control-sm sec-subtitle" value="${escapeHtml(subtitle)}" placeholder="Subtitle..." />
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label small font-weight-bold">Content</label>
+                            <textarea class="form-control form-control-sm sec-content" rows="2" placeholder="Section content...">${escapeHtml(content)}</textarea>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Display Order</label>
+                            <input type="number" class="form-control form-control-sm sec-order" value="${order}" min="0" />
+                        </div>
+                        <div class="col-md-6 mb-2 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input sec-active" type="checkbox" ${isActive ? 'checked' : ''} />
+                                <label class="form-check-label small font-weight-bold">Is Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            $("#sectionRepeaterContainer").append(html);
+            updateCountBadges();
+        }
+
+        function addDetailsRow(data = null) {
+            const id = data ? (data.AboutDetailsId || data.aboutDetailsId || 0) : 0;
+            const title = data ? (data.Title || data.title || "") : "";
+            const description = data ? (data.Description || data.description || "") : "";
+            const imageUrl = data ? (data.ImageUrl || data.imageUrl || "") : "";
+            const order = data ? (data.DisplayOrder || data.displayOrder || 0) : 0;
+            const isActive = data ? (data.IsActive === true || data.isActive === true) : true;
+
+            let fullUrl = imageUrl;
+            if (fullUrl && fullUrl.startsWith('/')) {
+                fullUrl = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + fullUrl;
+            }
+
+            const html = `
+                <div class="repeater-card">
+                    <div class="repeater-header">
+                        <h6><i class="fa fa-th-list mr-1"></i> Detail Item</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger btnRemoveRepeaterItem"><i class="fa fa-trash"></i> Remove</button>
+                    </div>
+                    <input type="hidden" class="det-id" value="${id}" />
+                    <input type="hidden" class="det-imageurl" value="${escapeHtml(imageUrl)}" />
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Title</label>
+                            <input type="text" class="form-control form-control-sm det-title" value="${escapeHtml(title)}" placeholder="Title..." />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Display Order</label>
+                            <input type="number" class="form-control form-control-sm det-order" value="${order}" min="0" />
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label small font-weight-bold">Description</label>
+                            <textarea class="form-control form-control-sm det-desc" rows="2" placeholder="Description...">${escapeHtml(description)}</textarea>
+                        </div>
+                        <div class="col-md-8 mb-2">
+                            <label class="form-label small font-weight-bold">Image File</label>
+                            <input type="file" class="form-control form-control-sm det-file" accept="image/*" />
+                        </div>
+                        <div class="col-md-4 mb-2 d-flex align-items-center">
+                            <div class="det-preview-container">
+                                ${fullUrl ? `<img src="${fullUrl}" class="preview-box det-preview-img" alt="Preview" />` : '<div class="preview-box bg-light text-muted d-flex align-items-center justify-content-center det-preview-img" style="font-size:10px;">No Image</div>'}
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input det-active" type="checkbox" ${isActive ? 'checked' : ''} />
+                                <label class="form-check-label small font-weight-bold">Is Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const $row = $(html);
+            $row.find(".det-file").on("change", function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        $row.find(".det-preview-container").html(`<img src="${e.target.result}" class="preview-box det-preview-img" alt="Preview" />`);
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            $("#detailsRepeaterContainer").append($row);
+            updateCountBadges();
+        }
+
+        function addPersonRow(data = null) {
+            const id = data ? (data.PersonId || data.personId || 0) : 0;
+            const name = data ? (data.PersonName || data.personName || "") : "";
+            const fullDesc = data ? (data.FullDescription || data.fullDescription || "") : "";
+            const imageUrl = data ? (data.ImageUrl || data.imageUrl || "") : "";
+            const order = data ? (data.DisplayOrder || data.displayOrder || 0) : 0;
+            const isActive = data ? (data.IsActive === true || data.isActive === true) : true;
+
+            let fullUrl = imageUrl;
+            if (fullUrl && fullUrl.startsWith('/')) {
+                fullUrl = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + fullUrl;
+            }
+
+            const html = `
+                <div class="repeater-card">
+                    <div class="repeater-header">
+                        <h6><i class="fa fa-user mr-1"></i> Person Item</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger btnRemoveRepeaterItem"><i class="fa fa-trash"></i> Remove</button>
+                    </div>
+                    <input type="hidden" class="per-id" value="${id}" />
+                    <input type="hidden" class="per-imageurl" value="${escapeHtml(imageUrl)}" />
+                    <div class="row g-2">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Person Name</label>
+                            <input type="text" class="form-control form-control-sm per-name" value="${escapeHtml(name)}" placeholder="Person Name..." />
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small font-weight-bold">Display Order</label>
+                            <input type="number" class="form-control form-control-sm per-order" value="${order}" min="0" />
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label class="form-label small font-weight-bold">Full Description</label>
+                            <textarea class="form-control form-control-sm per-desc" rows="2" placeholder="Full Description...">${escapeHtml(fullDesc)}</textarea>
+                        </div>
+                        <div class="col-md-8 mb-2">
+                            <label class="form-label small font-weight-bold">Image File</label>
+                            <input type="file" class="form-control form-control-sm per-file" accept="image/*" />
+                        </div>
+                        <div class="col-md-4 mb-2 d-flex align-items-center">
+                            <div class="per-preview-container">
+                                ${fullUrl ? `<img src="${fullUrl}" class="preview-box per-preview-img" alt="Preview" />` : '<div class="preview-box bg-light text-muted d-flex align-items-center justify-content-center per-preview-img" style="font-size:10px;">No Image</div>'}
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input per-active" type="checkbox" ${isActive ? 'checked' : ''} />
+                                <label class="form-check-label small font-weight-bold">Is Active</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const $row = $(html);
+            $row.find(".per-file").on("change", function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        $row.find(".per-preview-container").html(`<img src="${e.target.result}" class="preview-box per-preview-img" alt="Preview" />`);
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            $("#peopleRepeaterContainer").append($row);
+            updateCountBadges();
+        }
+
+        /* ---------- DYNAMIC FORM DATA BUILDER ---------- */
+        function buildAboutPageFormData() {
+            const formData = new FormData();
+            const aboutPageId = $("#hdn_AboutPageId").val() || "0";
+            const isUpdate = aboutPageId && aboutPageId !== "0";
+            const modelPrefix = isUpdate ? "UpdateAboutPageDto" : "CreateAboutPageDto";
+
+            if (isUpdate) {
+                formData.append("AboutPageId", aboutPageId);
+                formData.append(`${modelPrefix}.AboutPageId`, aboutPageId);
+                formData.append("AboutPage.AboutPageId", aboutPageId);
+                formData.append(`${modelPrefix}.AboutPage.AboutPageId`, aboutPageId);
+            }
+
+            const pageTitle = ($("#txtPageTitle").val() || "").trim();
+            const pageSlug = ($("#txtPageSlug").val() || "").trim();
+            const heroTitle = ($("#txtHeroTitle").val() || "").trim();
+            const heroSubtitle = ($("#txtHeroSubtitle").val() || "").trim();
+            const historyTitle = ($("#txtHistoryTitle").val() || "").trim();
+            
+            let historyContent = "";
+            if (typeof quillHistoryInstance !== 'undefined' && quillHistoryInstance && quillHistoryInstance.root) {
+                historyContent = quillHistoryInstance.root.innerHTML;
+            } else {
+                historyContent = ($("#hdnHistoryDescription").val() || "").trim();
+            }
+
+            const mapTitle = ($("#txtMapTitle").val() || "").trim();
+            const mapAddress = ($("#txtMapAddress").val() || "").trim();
+            const latitude = $("#txtLatitude").val() || "";
+            const longitude = $("#txtLongitude").val() || "";
+            const isActive = $("#chkAboutPageActive").is(":checked");
+            const bannerImageUrl = $("#hdnBannerImageUrl").val() || "";
+
+            // 1. Model prefix keys for MultipleModel model binding
+            formData.append(`${modelPrefix}.PageTitle`, pageTitle);
+            formData.append(`${modelPrefix}.PageSlug`, pageSlug);
+            formData.append(`${modelPrefix}.HeroTitle`, heroTitle);
+            formData.append(`${modelPrefix}.HeroSubtitle`, heroSubtitle);
+            formData.append(`${modelPrefix}.HistoryTitle`, historyTitle);
+            formData.append(`${modelPrefix}.HistoryDescription`, historyContent);
+            formData.append(`${modelPrefix}.MapTitle`, mapTitle);
+            formData.append(`${modelPrefix}.MapAddress`, mapAddress);
+            formData.append(`${modelPrefix}.Latitude`, latitude);
+            formData.append(`${modelPrefix}.Longitude`, longitude);
+            formData.append(`${modelPrefix}.IsActive`, isActive);
+            formData.append(`${modelPrefix}.BannerImageUrl`, bannerImageUrl);
+
+            // 2. Model prefix + Nested AboutPage object properties
+            formData.append(`${modelPrefix}.AboutPage.PageTitle`, pageTitle);
+            formData.append(`${modelPrefix}.AboutPage.PageSlug`, pageSlug);
+            formData.append(`${modelPrefix}.AboutPage.HeroTitle`, heroTitle);
+            formData.append(`${modelPrefix}.AboutPage.HeroSubtitle`, heroSubtitle);
+            formData.append(`${modelPrefix}.AboutPage.HistoryTitle`, historyTitle);
+            formData.append(`${modelPrefix}.AboutPage.HistoryDescription`, historyContent);
+            formData.append(`${modelPrefix}.AboutPage.MapTitle`, mapTitle);
+            formData.append(`${modelPrefix}.AboutPage.MapAddress`, mapAddress);
+            formData.append(`${modelPrefix}.AboutPage.Latitude`, latitude);
+            formData.append(`${modelPrefix}.AboutPage.Longitude`, longitude);
+            formData.append(`${modelPrefix}.AboutPage.BannerImageUrl`, bannerImageUrl);
+
+            // 3. Nested AboutPage object properties for API_ai
+            formData.append("AboutPage.PageTitle", pageTitle);
+            formData.append("AboutPage.PageSlug", pageSlug);
+            formData.append("AboutPage.HeroTitle", heroTitle);
+            formData.append("AboutPage.HeroSubtitle", heroSubtitle);
+            formData.append("AboutPage.HistoryTitle", historyTitle);
+            formData.append("AboutPage.HistoryDescription", historyContent);
+            formData.append("AboutPage.MapTitle", mapTitle);
+            formData.append("AboutPage.MapAddress", mapAddress);
+            formData.append("AboutPage.Latitude", latitude);
+            formData.append("AboutPage.Longitude", longitude);
+            formData.append("AboutPage.BannerImageUrl", bannerImageUrl);
+            formData.append("AboutPage.IsActive", isActive);
+
+            // 4. Flat properties for fallback
+            formData.append("PageTitle", pageTitle);
+            formData.append("PageSlug", pageSlug);
+            formData.append("HeroTitle", heroTitle);
+            formData.append("HeroSubtitle", heroSubtitle);
+            formData.append("HistoryTitle", historyTitle);
+            formData.append("HistoryDescription", historyContent);
+            formData.append("MapTitle", mapTitle);
+            formData.append("MapAddress", mapAddress);
+            formData.append("Latitude", latitude);
+            formData.append("Longitude", longitude);
+            formData.append("IsActive", isActive);
+            formData.append("BannerImageUrl", bannerImageUrl);
+
+            // Antiforgery token
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() ||
+                                     $('meta[name="__RequestVerificationToken"]').attr('content') || '';
+            if (antiforgeryToken) {
+                formData.append("__RequestVerificationToken", antiforgeryToken);
+            }
+
+            // Banner File (Single append)
+            const bannerFileInput = $("#fileBannerImage")[0];
+            if (bannerFileInput && bannerFileInput.files && bannerFileInput.files[0]) {
+                const bFile = bannerFileInput.files[0];
+                formData.append(`${modelPrefix}.BannerFile`, bFile);
+            }
+
+            // 5. Serialize AboutPageSection
+            $("#sectionRepeaterContainer .repeater-card").each(function (i) {
+                const secId = $(this).find(".sec-id").val();
+                const secTitle = ($(this).find(".sec-title").val() || "").trim();
+                const secSubtitle = ($(this).find(".sec-subtitle").val() || "").trim();
+                const secContent = ($(this).find(".sec-content").val() || "").trim();
+                const secOrder = $(this).find(".sec-order").val() || 0;
+                const secActive = $(this).find(".sec-active").is(":checked");
+
+                if (secId && secId !== "0") {
+                    formData.append(`${modelPrefix}.AboutPageSection[${i}].AboutPageSectionId`, secId);
+                    formData.append(`AboutPageSection[${i}].AboutPageSectionId`, secId);
+                }
+
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].SectionTitle`, secTitle);
+                formData.append(`AboutPageSection[${i}].SectionTitle`, secTitle);
+
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].SectionSubtitle`, secSubtitle);
+                formData.append(`AboutPageSection[${i}].SectionSubtitle`, secSubtitle);
+
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].SectionDescription`, secContent);
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].Content`, secContent);
+                formData.append(`AboutPageSection[${i}].SectionDescription`, secContent);
+                formData.append(`AboutPageSection[${i}].Content`, secContent);
+
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].DisplayOrder`, secOrder);
+                formData.append(`AboutPageSection[${i}].DisplayOrder`, secOrder);
+
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].IsVisible`, secActive);
+                formData.append(`${modelPrefix}.AboutPageSection[${i}].IsActive`, secActive);
+                formData.append(`AboutPageSection[${i}].IsVisible`, secActive);
+                formData.append(`AboutPageSection[${i}].IsActive`, secActive);
+            });
+
+            // 6. Serialize AboutDetails
+            $("#detailsRepeaterContainer .repeater-card").each(function (i) {
+                const detId = $(this).find(".det-id").val();
+                const detTitle = ($(this).find(".det-title").val() || "").trim();
+                const detDesc = ($(this).find(".det-desc").val() || "").trim();
+                const detOrder = $(this).find(".det-order").val() || 0;
+                const detActive = $(this).find(".det-active").is(":checked");
+                const detImgUrl = $(this).find(".det-imageurl").val() || "";
+
+                if (detId && detId !== "0") {
+                    formData.append(`${modelPrefix}.AboutDetails[${i}].AboutDetailsId`, detId);
+                    formData.append(`AboutDetails[${i}].AboutDetailsId`, detId);
+                }
+                formData.append(`${modelPrefix}.AboutDetails[${i}].Title`, detTitle);
+                formData.append(`AboutDetails[${i}].Title`, detTitle);
+
+                formData.append(`${modelPrefix}.AboutDetails[${i}].Description`, detDesc);
+                formData.append(`AboutDetails[${i}].Description`, detDesc);
+
+                formData.append(`${modelPrefix}.AboutDetails[${i}].DisplayOrder`, detOrder);
+                formData.append(`AboutDetails[${i}].DisplayOrder`, detOrder);
+
+                formData.append(`${modelPrefix}.AboutDetails[${i}].IsActive`, detActive);
+                formData.append(`AboutDetails[${i}].IsActive`, detActive);
+
+                formData.append(`${modelPrefix}.AboutDetails[${i}].ImageUrl`, detImgUrl);
+                formData.append(`AboutDetails[${i}].ImageUrl`, detImgUrl);
+
+                const fileInput = $(this).find(".det-file")[0];
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const dFile = fileInput.files[0];
+                    formData.append(`${modelPrefix}.AboutDetails[${i}].ImageFile`, dFile);
+                }
+            });
+
+            // 7. Serialize AboutPerson
+            $("#peopleRepeaterContainer .repeater-card").each(function (i) {
+                const perId = $(this).find(".per-id").val();
+                const perName = ($(this).find(".per-name").val() || "").trim();
+                const perDesc = ($(this).find(".per-desc").val() || "").trim();
+                const perOrder = $(this).find(".per-order").val() || 0;
+                const perActive = $(this).find(".per-active").is(":checked");
+                const perImgUrl = $(this).find(".per-imageurl").val() || "";
+
+                if (perId && perId !== "0") {
+                    formData.append(`${modelPrefix}.AboutPerson[${i}].PersonId`, perId);
+                    formData.append(`AboutPerson[${i}].PersonId`, perId);
+                }
+                formData.append(`${modelPrefix}.AboutPerson[${i}].PersonName`, perName);
+                formData.append(`AboutPerson[${i}].PersonName`, perName);
+
+                formData.append(`${modelPrefix}.AboutPerson[${i}].FullDescription`, perDesc);
+                formData.append(`AboutPerson[${i}].FullDescription`, perDesc);
+
+                formData.append(`${modelPrefix}.AboutPerson[${i}].DisplayOrder`, perOrder);
+                formData.append(`AboutPerson[${i}].DisplayOrder`, perOrder);
+
+                formData.append(`${modelPrefix}.AboutPerson[${i}].IsActive`, perActive);
+                formData.append(`AboutPerson[${i}].IsActive`, perActive);
+
+                formData.append(`${modelPrefix}.AboutPerson[${i}].ImageUrl`, perImgUrl);
+                formData.append(`AboutPerson[${i}].ImageUrl`, perImgUrl);
+
+                const fileInput = $(this).find(".per-file")[0];
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const pFile = fileInput.files[0];
+                    formData.append(`${modelPrefix}.AboutPerson[${i}].ImageFile`, pFile);
+                }
+            });
+
+            return formData;
+        }
+
+        /* ---------- VALIDATION ---------- */
+        function validateAboutPageForm() {
+            const title = ($("#txtPageTitle").val() || "").trim();
+            const slug = ($("#txtPageSlug").val() || "").trim();
+
+            let errors = [];
+            if (!title) errors.push("Page title is required.");
+            if (!slug) errors.push("Page slug is required.");
+
+            // 1. Validate Duplicate Display Order in Dynamic Sections
+            const secOrders = new Set();
+            $("#sectionRepeaterContainer .repeater-card").each(function (i) {
+                const val = ($(this).find(".sec-order").val() || "").trim();
+                if (val !== "") {
+                    const order = parseInt(val, 10);
+                    if (!isNaN(order)) {
+                        if (secOrders.has(order)) {
+                            errors.push(`Duplicate Display Order (${order}) in Dynamic Sections (Row ${i + 1}).`);
+                        } else {
+                            secOrders.add(order);
+                        }
+                    }
+                }
+            });
+
+            // 2. Validate Duplicate Display Order in About Details Repeater
+            const detOrders = new Set();
+            $("#detailsRepeaterContainer .repeater-card").each(function (i) {
+                const val = ($(this).find(".det-order").val() || "").trim();
+                if (val !== "") {
+                    const order = parseInt(val, 10);
+                    if (!isNaN(order)) {
+                        if (detOrders.has(order)) {
+                            errors.push(`Duplicate Display Order (${order}) in About Details Repeater (Row ${i + 1}).`);
+                        } else {
+                            detOrders.add(order);
+                        }
+                    }
+                }
+            });
+
+            // 3. Validate Duplicate Display Order in About People Repeater
+            const perOrders = new Set();
+            $("#peopleRepeaterContainer .repeater-card").each(function (i) {
+                const val = ($(this).find(".per-order").val() || "").trim();
+                if (val !== "") {
+                    const order = parseInt(val, 10);
+                    if (!isNaN(order)) {
+                        if (perOrders.has(order)) {
+                            errors.push(`Duplicate Display Order (${order}) in About People Repeater (Row ${i + 1}).`);
+                        } else {
+                            perOrders.add(order);
+                        }
+                    }
+                }
+            });
+
+            if (errors.length > 0) {
+                toastr.warning(errors.join("<br/>"), "Validation Error");
+                return false;
+            }
+            return true;
+        }
+
+        /* ---------- SUBMIT FORM ---------- */
+        $(document).on("click", "#btnSaveAboutPage, #btnUpdateAboutPage", function (e) {
+            e.preventDefault();
+            if (validateAboutPageForm()) {
+                submitAboutPageForm($(this));
+            }
+        });
+
+        function submitAboutPageForm($btn) {
+            const isUpdate = $("#hdn_AboutPageId").val() !== "0";
+            let rawUrl = $btn.data("url");
+            let url = rawUrl;
+            if (!url) {
+                url = _BaseURL + (isUpdate ? "/Admin/UpdateAboutPage" : "/Admin/CreateAboutPage");
+            } else if (url.startsWith("/")) {
+                url = window.location.origin + url;
+            }
+
+            if ($btn.prop("disabled")) return;
+
+            $btn.prop("disabled", true).find(".spinner-border").removeClass("d-none");
+            toastr.info(isUpdate ? "Updating About Page..." : "Saving About Page...", "Please wait");
+
+            const formData = buildAboutPageFormData();
+            showLoader();
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || '';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                cache: false,
+                headers: {
+                    '__RequestVerificationToken': antiforgeryToken
+                },
+                success: function (data) {
+                    let res;
+                    try {
+                        res = typeof data === "string" ? JSON.parse(data) : data;
+                    } catch (e) {
+                        toastr.error("Invalid server response.", "Error");
+                        return;
+                    }
+
+                    const isSuccess = res && (res.Success === true || res.success === true || res.Status === true || res.status === true || res.Status === "True" || res.status === "True");
+
+                    if (isSuccess) {
+                        toastr.success(res.Response || res.response || "About Page saved successfully!", "Success");
+                        $("#addAboutPageModal").modal("hide");
+                        loadAboutPages(currentPage);
+                    } else {
+                        const errorMsg = res.Response || res.response || "Operation failed.";
+                        toastr.warning(errorMsg, "API Error");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    $btn.prop("disabled", false).find(".spinner-border").addClass("d-none");
+                    hideLoader();
+                }
+            });
+        }
+
+        function resetAboutPageForm() {
+            $("#addAboutPageForm")[0].reset();
+            $("#hdn_AboutPageId").val("0");
+            $("#hdnBannerImageUrl").val("");
+            $("#imgBannerPreview").attr("src", "");
+            $("#bannerImagePreviewContainer").hide();
+
+            if (quillHistoryInstance) {
+                quillHistoryInstance.setText("");
+            }
+
+            $("#sectionRepeaterContainer").empty();
+            $("#detailsRepeaterContainer").empty();
+            $("#peopleRepeaterContainer").empty();
+            updateCountBadges();
+
+            $("#addAboutPageTitle").html('<i class="fa fa-info-circle"></i> Add About Page');
+            $("#btnSaveAboutPage").removeClass("d-none");
+            $("#btnUpdateAboutPage").addClass("d-none");
+            $("#chkAboutPageActive").prop("checked", true);
+        }
+
+        /* ---------- GET ALL / TABLE BINDING ---------- */
+        function loadAboutPages(pageNumber = 1) {
+            currentPage = pageNumber;
+            const url = _BaseURL + `/Admin/GetAllAboutPages?pageNumber=${pageNumber}&pageSize=${pageSize}&search=${encodeURIComponent(currentSearch)}`;
+
+            showLoader();
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                cache: false,
+                success: function (res) {
+                    const data = res ? (res.data || res.Data || []) : [];
+                    const totalRecords = res ? (res.totalRecords || 0) : 0;
+                    bindAboutPageTable(data);
+                    renderPagination("#aboutPagePagination", currentPage, totalRecords, pageSize, function (targetPage) {
+                        loadAboutPages(targetPage);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                    bindAboutPageTable([]);
+                    renderPagination("#aboutPagePagination", 1, 0, pageSize, function () { });
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function bindAboutPageTable(data) {
+            const $tbody = $("#tab_aboutpage tbody");
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                $tbody.append('<tr><td colspan="8" class="text-center text-muted py-4">No About Pages found</td></tr>');
+                return;
+            }
+
+            const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+
+            $.each(data, function (index, item) {
+                const slNo = (currentPage - 1) * pageSize + (index + 1);
+                const id = item.AboutPageId || item.aboutPageId || 0;
+                const pageTitle = item.PageTitle || item.pageTitle || "N/A";
+                const pageSlug = item.PageSlug || item.pageSlug || "N/A";
+                const heroTitle = item.HeroTitle || item.heroTitle || "N/A";
+                const bannerUrl = item.BannerImageUrl || item.bannerImageUrl || "";
+                const fullBannerUrl = bannerUrl && bannerUrl.startsWith('/') ? apiBase + bannerUrl : bannerUrl;
+                const isActive = (item.IsActive === true || item.isActive === true) ?
+                    '<span class="label label-success">Active</span>' :
+                    '<span class="label label-danger">Inactive</span>';
+                const createdDate = item.CreatedDate || item.createdDate ? new Date(item.CreatedDate || item.createdDate).toLocaleDateString() : "N/A";
+
+                const row = `
+                <tr>
+                    <td>${slNo}</td>
+                    <td class="fw-bold">${escapeHtml(pageTitle)}</td>
+                    <td><code>${escapeHtml(pageSlug)}</code></td>
+                    <td>${escapeHtml(heroTitle)}</td>
+                    <td>
+                        ${fullBannerUrl ? `<img src="${fullBannerUrl}" alt="Banner" style="height:40px; border-radius:4px; border:1px solid #ddd;" />` : '<span class="text-muted small">No Image</span>'}
+                    </td>
+                    <td>${isActive}</td>
+                    <td>${createdDate}</td>
+                    <td>
+                        <button class="btn btn-info btn-xs btnViewAboutPage" data-id="${id}" title="View"><i class="fa fa-eye"></i></button>
+                        <button class="btn btn-primary btn-xs btnEditAboutPage" data-id="${id}" title="Edit"><i class="fa fa-pencil"></i></button>
+                        <button class="btn btn-danger btn-xs btnDeleteAboutPage" data-id="${id}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                    </td>
+                </tr>`;
+                $tbody.append(row);
+            });
+        }
+
+        /* ---------- EDIT FLOW ---------- */
+        $(document).on("click", ".btnEditAboutPage", function () {
+            const id = $(this).data("id");
+            if (id) {
+                loadAboutPageById(id);
+            }
+        });
+
+        function loadAboutPageById(id) {
+            toastr.info("Fetching about page details...", "Please wait");
+            showLoader();
+
+            $.ajax({
+                url: _BaseURL + "/Admin/GetAboutPageById?id=" + id,
+                type: 'GET',
+                dataType: 'json',
+                cache: false,
+                success: function (res) {
+                    let data = res ? (res.Response || res.response || res) : null;
+                    if (typeof data === "string") {
+                        try { data = JSON.parse(data); } catch (e) { }
+                    }
+                    if (data) {
+                        populateAboutPageForm(data);
+                    } else {
+                        toastr.warning("Could not retrieve about page details.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        function populateAboutPageForm(data) {
+            resetAboutPageForm();
+
+            const page = data.AboutPage || data.aboutPage || data;
+
+            $("#hdn_AboutPageId").val(page.AboutPageId || page.aboutPageId || 0);
+            $("#txtPageTitle").val(page.PageTitle || page.pageTitle || "");
+            $("#txtPageSlug").val(page.PageSlug || page.pageSlug || "");
+            $("#txtHeroTitle").val(page.HeroTitle || page.heroTitle || "");
+            $("#txtHeroSubtitle").val(page.HeroSubtitle || page.heroSubtitle || "");
+
+            $("#txtHistoryTitle").val(page.HistoryTitle || page.historyTitle || "");
+            const historyText = page.HistoryDescription || page.historyDescription || "";
+            if (quillHistoryInstance) {
+                quillHistoryInstance.root.innerHTML = historyText;
+            }
+
+            $("#txtMapTitle").val(page.MapTitle || page.mapTitle || "");
+            $("#txtMapAddress").val(page.MapAddress || page.mapAddress || "");
+            $("#txtLatitude").val(page.Latitude || page.latitude || "");
+            $("#txtLongitude").val(page.Longitude || page.longitude || "");
+            $("#chkAboutPageActive").prop("checked", page.IsActive === true || page.isActive === true);
+
+            // Banner image
+            const bannerUrl = page.BannerImageUrl || page.bannerImageUrl || "";
+            $("#hdnBannerImageUrl").val(bannerUrl);
+            if (bannerUrl) {
+                const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+                const fullBannerUrl = bannerUrl.startsWith('/') ? apiBase + bannerUrl : bannerUrl;
+                $("#imgBannerPreview").attr("src", fullBannerUrl);
+                $("#bannerImagePreviewContainer").show();
+            }
+
+            // Populate Sections
+            const sections = data.AboutPageSection || data.aboutPageSection || data.AboutPageSections || data.aboutPageSections || page.AboutPageSection || page.AboutPageSections || [];
+            sections.forEach(sec => addSectionRow(sec));
+
+            // Populate Details
+            const details = data.AboutDetails || data.aboutDetails || page.AboutDetails || [];
+            details.forEach(det => addDetailsRow(det));
+
+            // Populate People
+            const people = data.AboutPerson || data.aboutPerson || page.AboutPerson || [];
+            people.forEach(per => addPersonRow(per));
+
+            $("#addAboutPageTitle").html('<i class="fa fa-pencil"></i> Update About Page');
+            $("#btnSaveAboutPage").addClass("d-none");
+            $("#btnUpdateAboutPage").removeClass("d-none");
+            $("#addAboutPageModal").modal("show");
+            toastr.clear();
+        }
+
+        /* ---------- VIEW FLOW ---------- */
+        $(document).on("click", ".btnViewAboutPage", function () {
+            const id = $(this).data("id");
+            if (id) {
+                viewAboutPageById(id);
+            }
+        });
+
+        function viewAboutPageById(id) {
+            showLoader();
+            $.ajax({
+                url: _BaseURL + "/Admin/GetAboutPageById?id=" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    let data = res ? (res.Response || res.response || res) : null;
+                    if (typeof data === "string") {
+                        try { data = JSON.parse(data); } catch (e) { }
+                    }
+                    if (!data) return;
+
+                    const page = data.AboutPage || data.aboutPage || data;
+
+                    const apiBase = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL);
+                    const bannerUrl = page.BannerImageUrl || page.bannerImageUrl || "";
+                    const fullBannerUrl = bannerUrl ? (bannerUrl.startsWith('/') ? apiBase + bannerUrl : bannerUrl) : "";
+                    const historyDesc = page.HistoryDescription || page.historyDescription || "";
+
+                    const sections = data.AboutPageSection || data.aboutPageSection || data.AboutPageSections || data.aboutPageSections || page.AboutPageSection || page.AboutPageSections || [];
+                    const details = data.AboutDetails || data.aboutDetails || page.AboutDetails || [];
+                    const people = data.AboutPerson || data.aboutPerson || page.AboutPerson || [];
+
+                    let html = `
+                        <h4>${escapeHtml(page.PageTitle || page.pageTitle || '')} <small class="text-muted">(${escapeHtml(page.PageSlug || page.pageSlug || '')})</small></h4>
+                        <hr/>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Hero Title:</strong> ${escapeHtml(page.HeroTitle || page.heroTitle || 'N/A')}</p>
+                                <p><strong>Hero Subtitle:</strong> ${escapeHtml(page.HeroSubtitle || page.heroSubtitle || 'N/A')}</p>
+                                <p><strong>History Title:</strong> ${escapeHtml(page.HistoryTitle || page.historyTitle || 'N/A')}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Map Title:</strong> ${escapeHtml(page.MapTitle || page.mapTitle || 'N/A')}</p>
+                                <p><strong>Map Address:</strong> ${escapeHtml(page.MapAddress || page.mapAddress || 'N/A')}</p>
+                                <p><strong>Latitude / Longitude:</strong> ${page.Latitude || page.latitude || '0'}, ${page.Longitude || page.longitude || '0'}</p>
+                                <p><strong>Status:</strong> ${(page.IsActive === true || page.isActive === true) ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Inactive</span>'}</p>
+                            </div>
+                        </div>
+                        ${fullBannerUrl ? `<div class="mb-3"><strong>Banner Image:</strong><br/><img src="${fullBannerUrl}" style="max-height:150px; border-radius:6px;" /></div>` : ''}
+                        ${historyDesc ? `<div class="mb-3"><strong>History Description:</strong><div class="p-2 border rounded bg-light">${historyDesc}</div></div>` : ''}
+                    `;
+
+                    if (sections.length > 0) {
+                        html += `<h5 class="mt-3">Sections (${sections.length})</h5><ul class="list-group mb-3">`;
+                        sections.forEach(sec => {
+                            const secTitle = sec.SectionTitle || sec.sectionTitle || 'N/A';
+                            const secSub = sec.SectionSubtitle || sec.sectionSubtitle || '';
+                            const secDesc = sec.SectionDescription || sec.sectionDescription || '';
+                            html += `<li class="list-group-item"><strong>${escapeHtml(secTitle)}</strong> ${secSub ? `<small>(${escapeHtml(secSub)})</small>` : ''}<br/><div>${escapeHtml(secDesc)}</div></li>`;
+                        });
+                        html += `</ul>`;
+                    }
+
+                    if (details.length > 0) {
+                        html += `<h5 class="mt-3">Details (${details.length})</h5><ul class="list-group mb-3">`;
+                        details.forEach(det => {
+                            const detTitle = det.Title || det.title || 'N/A';
+                            const detDesc = det.Description || det.description || '';
+                            let detImg = det.ImageUrl || det.imageUrl || '';
+                            if (detImg && detImg.startsWith('/')) {
+                                detImg = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + detImg;
+                            }
+                            const imgHtml = detImg ? `<img src="${detImg}" class="mr-3 rounded" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Detail" />` : '';
+                            html += `<li class="list-group-item d-flex align-items-center">${imgHtml}<div><strong>${escapeHtml(detTitle)}</strong><br/><div>${escapeHtml(detDesc)}</div></div></li>`;
+                        });
+                        html += `</ul>`;
+                    }
+
+                    if (people.length > 0) {
+                        html += `<h5 class="mt-3">People (${people.length})</h5><ul class="list-group mb-3">`;
+                        people.forEach(per => {
+                            const perName = per.PersonName || per.personName || 'N/A';
+                            const perDesc = per.FullDescription || per.fullDescription || '';
+                            let perImg = per.ImageUrl || per.imageUrl || '';
+                            if (perImg && perImg.startsWith('/')) {
+                                perImg = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + perImg;
+                            }
+                            const imgHtml = perImg ? `<img src="${perImg}" class="mr-3 rounded-circle" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Person" />` : '';
+                            html += `<li class="list-group-item d-flex align-items-center">${imgHtml}<div><strong>${escapeHtml(perName)}</strong><br/><div>${escapeHtml(perDesc)}</div></div></li>`;
+                        });
+                        html += `</ul>`;
+                    }
+
+                    $("#viewAboutPageContent").html(html);
+                    $("#viewAboutPageModal").modal("show");
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+        }
+
+        /* ---------- DELETE FLOW ---------- */
+        $(document).on("click", ".btnDeleteAboutPage", function () {
+            const id = $(this).data("id");
+            if (!id) return;
+
+            showConfirmDialog({
+                title: 'Delete About Page',
+                message: 'Are you sure you want to delete this About Page and associated files?',
+                onYes: function () { deleteAboutPageById(id); }
+            });
+        });
+
+        function deleteAboutPageById(id) {
+            ccConfirmSetLoading(true);
+
+            const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() ||
+                                     $('meta[name="__RequestVerificationToken"]').attr('content') || '';
+
+            $.ajax({
+                url: _BaseURL + "/Admin/DeleteAboutPageById?id=" + id,
+                type: 'POST',
+                data: { id: id },
+                dataType: 'json',
+                headers: {
+                    '__RequestVerificationToken': antiforgeryToken
+                },
+                success: function (data) {
+                    let res;
+                    try {
+                        res = typeof data === "string" ? JSON.parse(data) : data;
+                    } catch (e) {
+                        res = data;
+                    }
+
+                    const ok = res && (res.Success === true || res.success === true || res.Status === true || res.status === true || res.Status === 'True' || res.status === 'True');
+                    if (ok) {
+                        ccConfirmClose();
+                        toastr.success(res.Response || res.response || 'About Page deleted successfully.', 'Deleted');
+                        loadAboutPages(currentPage);
+                    } else {
+                        ccConfirmSetLoading(false);
+                        toastr.warning(res.Response || res.response || 'Delete operation failed.', 'Failed');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    ccConfirmSetLoading(false);
+                    handleAjaxError(xhr, status, error);
+                }
+            });
+        }
     }
 });

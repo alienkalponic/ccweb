@@ -64,50 +64,104 @@ namespace ProjectWeb.Infrastucture.Service.Master
         }
 
         /// <summary>
-        /// Reflects a plain DTO into a MultipartFormDataContent, handling:
-        ///   - IFormFile  → file stream part
-        ///   - IEnumerable&lt;IFormFile&gt; → multiple file parts (same field name)
-        ///   - IEnumerable (non-string, e.g. List&lt;long&gt;) → repeated string parts (same field name)
-        ///   - Everything else → string part
+        /// Reflects a plain or nested DTO into a MultipartFormDataContent, handling:
+        ///   - IFormFile → file stream part
+        ///   - IEnumerable&lt;IFormFile&gt; → multiple file parts
+        ///   - Nested complex objects & lists → indexed keys (e.g. AboutDetails[0].Title, AboutDetails[0].Image)
+        ///   - Strings / Primitives → string content parts
         /// </summary>
         private static MultipartFormDataContent BuildMultipartFromDto(object data)
         {
             var content = new MultipartFormDataContent();
+            AddObjectToContent(content, data, prefix: "");
+            return content;
+        }
+
+        private static void AddObjectToContent(MultipartFormDataContent content, object data, string prefix)
+        {
+            if (data == null) return;
 
             foreach (var prop in data.GetType().GetProperties())
             {
                 var value = prop.GetValue(data);
                 if (value == null) continue;
 
+                string key = string.IsNullOrEmpty(prefix) ? prop.Name : $"{prefix}.{prop.Name}";
+
                 if (value is IFormFile singleFile)
                 {
-                    var fc = new StreamContent(singleFile.OpenReadStream());
-                    fc.Headers.ContentType = new MediaTypeHeaderValue(singleFile.ContentType);
-                    content.Add(fc, prop.Name, singleFile.FileName);
+                    if (singleFile.Length > 0)
+                    {
+                        var st = singleFile.OpenReadStream();
+                        if (st.CanSeek) st.Position = 0;
+                        var fc = new StreamContent(st);
+                        var ct = string.IsNullOrWhiteSpace(singleFile.ContentType) ? "application/octet-stream" : singleFile.ContentType;
+                        fc.Headers.ContentType = new MediaTypeHeaderValue(ct);
+                        content.Add(fc, key, singleFile.FileName ?? "file");
+                    }
                 }
                 else if (value is IEnumerable<IFormFile> files)
                 {
                     foreach (var f in files)
                     {
-                        var fc = new StreamContent(f.OpenReadStream());
-                        fc.Headers.ContentType = new MediaTypeHeaderValue(f.ContentType);
-                        content.Add(fc, prop.Name, f.FileName);
+                        if (f != null && f.Length > 0)
+                        {
+                            var st = f.OpenReadStream();
+                            if (st.CanSeek) st.Position = 0;
+                            var fc = new StreamContent(st);
+                            var ct = string.IsNullOrWhiteSpace(f.ContentType) ? "application/octet-stream" : f.ContentType;
+                            fc.Headers.ContentType = new MediaTypeHeaderValue(ct);
+                            content.Add(fc, key, f.FileName ?? "file");
+                        }
                     }
                 }
-                else if (value is not string && value is IEnumerable enumerable)
+                else if (value is string strVal)
                 {
-                    // Handles List<long>, List<int>, List<string>, etc.
-                    // Each item becomes a separate form field with the same name.
+                    content.Add(new StringContent(strVal), key);
+                }
+                else if (value is DateTime dtVal)
+                {
+                    content.Add(new StringContent(dtVal.ToString("o")), key);
+                }
+                else if (value.GetType().IsValueType)
+                {
+                    content.Add(new StringContent(Convert.ToString(value) ?? ""), key);
+                }
+                else if (value is IEnumerable enumerable)
+                {
+                    int index = 0;
                     foreach (var item in enumerable)
-                        content.Add(new StringContent(Convert.ToString(item) ?? ""), prop.Name);
+                    {
+                        if (item == null) continue;
+                        if (item is IFormFile itemFile)
+                        {
+                            if (itemFile.Length > 0)
+                            {
+                                var st = itemFile.OpenReadStream();
+                                if (st.CanSeek) st.Position = 0;
+                                var fc = new StreamContent(st);
+                                var ct = string.IsNullOrWhiteSpace(itemFile.ContentType) ? "application/octet-stream" : itemFile.ContentType;
+                                fc.Headers.ContentType = new MediaTypeHeaderValue(ct);
+                                content.Add(fc, key, itemFile.FileName ?? "file");
+                            }
+                        }
+                        else if (item is string || item.GetType().IsValueType)
+                        {
+                            content.Add(new StringContent(Convert.ToString(item) ?? ""), key);
+                        }
+                        else
+                        {
+                            string indexedPrefix = $"{key}[{index}]";
+                            AddObjectToContent(content, item, indexedPrefix);
+                        }
+                        index++;
+                    }
                 }
                 else
                 {
-                    content.Add(new StringContent(Convert.ToString(value) ?? ""), prop.Name);
+                    AddObjectToContent(content, value, key);
                 }
             }
-
-            return content;
         }
     }
 }
