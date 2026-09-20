@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.AboutPage;
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
@@ -53,9 +54,32 @@ namespace ProjectWeb.WEB.Controllers
             return View(mmm);
         }
 
-        public IActionResult About()
+        public async Task<IActionResult> About()
         {
-            return View();
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AboutPageGetAll<APIResponse>("10", "1", "");
+
+            var stringResponse = Convert.ToString(response.Response);
+            List<AboutPageDto> list = new List<AboutPageDto>();
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                list = JsonConvert.DeserializeObject<List<AboutPageDto>>(stringResponse) ?? new List<AboutPageDto>();
+                
+            }
+            list = list.Where(x => x.IsActive = true).ToList();
+            if(list.Count==1)
+            {
+                APIResponse data = await _unitOfWork
+                .ContentManagement
+                .AboutPageGet<APIResponse>(list[0].AboutPageId);
+
+                AboutPageDetails aboutPageDetails = JsonConvert.DeserializeObject<AboutPageDetails>(data.Response!.ToString()!)!;
+                mmm.aboutPageDetails = aboutPageDetails;
+            }
+
+            return View(mmm);
         }
 
         public IActionResult ContactUs()

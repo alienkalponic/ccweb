@@ -53,6 +53,7 @@ namespace ProjectWeb.Domain.Model
         public CreateAboutPageDto? CreateAboutPageDto { get; set; }
         public UpdateAboutPageDto? UpdateAboutPageDto { get; set; }
         public AboutPageDto? AboutPageDto { get; set; }
+        public AboutPageDetails? aboutPageDetails { get; set; }
         public List<AboutPageDto>? AboutPageDtos { get; set; }
     }
 }

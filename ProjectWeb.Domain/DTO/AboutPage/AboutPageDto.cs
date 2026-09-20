@@ -66,7 +66,6 @@ namespace ProjectWeb.Domain.DTO.AboutPage
         public string? CreatedBy { get; set; }
         public DateTime? UpdatedDate { get; set; }
         public string? UpdatedBy { get; set; }
-
         public List<AboutPageSectionDto>? AboutPageSection { get; set; } = new();
         public List<AboutDetailsDto>? AboutDetails { get; set; } = new();
         public List<AboutPersonDto>? AboutPerson { get; set; } = new();
@@ -92,5 +91,33 @@ namespace ProjectWeb.Domain.DTO.AboutPage
         public List<AboutPersonDto>? AboutPerson { get; set; } = new();
         public long? UpdatedBy { get; set; }
         public long? DeletedBy { get; set; }
+    }
+
+    public class AboutPage
+    {
+        public long AboutPageId { get; set; }
+        public string? PageTitle { get; set; }
+        public string? PageSlug { get; set; }
+        public string? HeroTitle { get; set; }
+        public string? HeroSubtitle { get; set; }
+        public string? HistoryTitle { get; set; }
+        public string? HistoryDescription { get; set; }
+        public string? MapTitle { get; set; }
+        public string? MapAddress { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+        public string? BannerImageUrl { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime? CreatedDate { get; set; }
+        public string? CreatedBy { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+        public string? UpdatedBy { get; set; }
+    }
+    public class AboutPageDetails
+    {
+        public AboutPage? AboutPage { get; set; }
+        public List<AboutPageSectionDto>? AboutPageSection { get; set; } = new();
+        public List<AboutDetailsDto>? AboutDetails { get; set; } = new();
+        public List<AboutPersonDto>? AboutPerson { get; set; } = new();
     }
 }

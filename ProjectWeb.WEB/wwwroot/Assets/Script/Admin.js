@@ -3600,6 +3600,7 @@ $(document).ready(function () {
             formData.append(`${modelPrefix}.AboutPage.MapAddress`, mapAddress);
             formData.append(`${modelPrefix}.AboutPage.Latitude`, latitude);
             formData.append(`${modelPrefix}.AboutPage.Longitude`, longitude);
+            formData.append(`${modelPrefix}.AboutPage.IsActive`, isActive);
             formData.append(`${modelPrefix}.AboutPage.BannerImageUrl`, bannerImageUrl);
 
             // 3. Nested AboutPage object properties for API_ai
@@ -3955,25 +3956,27 @@ $(document).ready(function () {
                 const bannerUrl = item.BannerImageUrl || item.bannerImageUrl || "";
                 const fullBannerUrl = bannerUrl && bannerUrl.startsWith('/') ? apiBase + bannerUrl : bannerUrl;
                 const isActive = (item.IsActive === true || item.isActive === true) ?
-                    '<span class="label label-success">Active</span>' :
-                    '<span class="label label-danger">Inactive</span>';
+                    '<span class="badge bg-success text-white px-2 py-1 rounded-pill" style="font-size:11px;"><i class="fa fa-check-circle mr-1"></i>Active</span>' :
+                    '<span class="badge bg-danger text-white px-2 py-1 rounded-pill" style="font-size:11px;"><i class="fa fa-times-circle mr-1"></i>Inactive</span>';
                 const createdDate = item.CreatedDate || item.createdDate ? new Date(item.CreatedDate || item.createdDate).toLocaleDateString() : "N/A";
 
                 const row = `
                 <tr>
-                    <td>${slNo}</td>
-                    <td class="fw-bold">${escapeHtml(pageTitle)}</td>
-                    <td><code>${escapeHtml(pageSlug)}</code></td>
-                    <td>${escapeHtml(heroTitle)}</td>
-                    <td>
-                        ${fullBannerUrl ? `<img src="${fullBannerUrl}" alt="Banner" style="height:40px; border-radius:4px; border:1px solid #ddd;" />` : '<span class="text-muted small">No Image</span>'}
+                    <td class="text-center font-weight-bold text-secondary">${slNo}</td>
+                    <td class="fw-bold text-dark">${escapeHtml(pageTitle)}</td>
+                    <td><code class="text-primary bg-light px-2 py-1 rounded">${escapeHtml(pageSlug)}</code></td>
+                    <td class="text-secondary">${escapeHtml(heroTitle)}</td>
+                    <td class="text-center">
+                        ${fullBannerUrl ? `<img src="${fullBannerUrl}" alt="Banner" style="height:38px; width:55px; object-fit:cover; border-radius:6px; border:1px solid #cbd5e1;" />` : '<span class="text-muted small">No Image</span>'}
                     </td>
-                    <td>${isActive}</td>
-                    <td>${createdDate}</td>
-                    <td>
-                        <button class="btn btn-info btn-xs btnViewAboutPage" data-id="${id}" title="View"><i class="fa fa-eye"></i></button>
-                        <button class="btn btn-primary btn-xs btnEditAboutPage" data-id="${id}" title="Edit"><i class="fa fa-pencil"></i></button>
-                        <button class="btn btn-danger btn-xs btnDeleteAboutPage" data-id="${id}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                    <td class="text-center">${isActive}</td>
+                    <td class="text-secondary">${createdDate}</td>
+                    <td class="text-center">
+                        <div class="action-btn-group">
+                            <button class="btn btn-info btn-xs btnViewAboutPage px-2" data-id="${id}" title="View"><i class="fa fa-eye"></i></button>
+                            <button class="btn btn-primary btn-xs btnEditAboutPage px-2" data-id="${id}" title="Edit"><i class="fa fa-pencil"></i></button>
+                            <button class="btn btn-danger btn-xs btnDeleteAboutPage px-2" data-id="${id}" title="Delete"><i class="fa fa-trash-o"></i></button>
+                        </div>
                     </td>
                 </tr>`;
                 $tbody.append(row);
@@ -4102,38 +4105,38 @@ $(document).ready(function () {
                     const people = data.AboutPerson || data.aboutPerson || page.AboutPerson || [];
 
                     let html = `
-                        <h4>${escapeHtml(page.PageTitle || page.pageTitle || '')} <small class="text-muted">(${escapeHtml(page.PageSlug || page.pageSlug || '')})</small></h4>
+                        <h4 class="fw-bold text-break">${escapeHtml(page.PageTitle || page.pageTitle || '')} <small class="text-muted text-break">(${escapeHtml(page.PageSlug || page.pageSlug || '')})</small></h4>
                         <hr/>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <p><strong>Hero Title:</strong> ${escapeHtml(page.HeroTitle || page.heroTitle || 'N/A')}</p>
-                                <p><strong>Hero Subtitle:</strong> ${escapeHtml(page.HeroSubtitle || page.heroSubtitle || 'N/A')}</p>
-                                <p><strong>History Title:</strong> ${escapeHtml(page.HistoryTitle || page.historyTitle || 'N/A')}</p>
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <p class="mb-2"><strong>Hero Title:</strong> <span class="text-break">${escapeHtml(page.HeroTitle || page.heroTitle || 'N/A')}</span></p>
+                                <p class="mb-2"><strong>Hero Subtitle:</strong> <span class="text-break">${escapeHtml(page.HeroSubtitle || page.heroSubtitle || 'N/A')}</span></p>
+                                <p class="mb-2"><strong>History Title:</strong> <span class="text-break">${escapeHtml(page.HistoryTitle || page.historyTitle || 'N/A')}</span></p>
                             </div>
-                            <div class="col-md-6">
-                                <p><strong>Map Title:</strong> ${escapeHtml(page.MapTitle || page.mapTitle || 'N/A')}</p>
-                                <p><strong>Map Address:</strong> ${escapeHtml(page.MapAddress || page.mapAddress || 'N/A')}</p>
-                                <p><strong>Latitude / Longitude:</strong> ${page.Latitude || page.latitude || '0'}, ${page.Longitude || page.longitude || '0'}</p>
-                                <p><strong>Status:</strong> ${(page.IsActive === true || page.isActive === true) ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Inactive</span>'}</p>
+                            <div class="col-sm-6">
+                                <p class="mb-2"><strong>Map Title:</strong> <span class="text-break">${escapeHtml(page.MapTitle || page.mapTitle || 'N/A')}</span></p>
+                                <p class="mb-2"><strong>Map Address:</strong> <span class="text-break">${escapeHtml(page.MapAddress || page.mapAddress || 'N/A')}</span></p>
+                                <p class="mb-2"><strong>Latitude / Longitude:</strong> ${page.Latitude || page.latitude || '0'}, ${page.Longitude || page.longitude || '0'}</p>
+                                <p class="mb-2"><strong>Status:</strong> ${(page.IsActive === true || page.isActive === true) ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Inactive</span>'}</p>
                             </div>
                         </div>
-                        ${fullBannerUrl ? `<div class="mb-3"><strong>Banner Image:</strong><br/><img src="${fullBannerUrl}" style="max-height:150px; border-radius:6px;" /></div>` : ''}
-                        ${historyDesc ? `<div class="mb-3"><strong>History Description:</strong><div class="p-2 border rounded bg-light">${historyDesc}</div></div>` : ''}
+                        ${fullBannerUrl ? `<div class="mb-3"><strong>Banner Image:</strong><br/><div class="mt-1"><img src="${fullBannerUrl}" class="img-fluid rounded" style="max-height:180px; width:auto;" /></div></div>` : ''}
+                        ${historyDesc ? `<div class="mb-3"><strong>History Description:</strong><div class="p-3 border rounded bg-light text-break overflow-auto" style="max-height:200px;">${historyDesc}</div></div>` : ''}
                     `;
 
                     if (sections.length > 0) {
-                        html += `<h5 class="mt-3">Sections (${sections.length})</h5><ul class="list-group mb-3">`;
+                        html += `<h5 class="mt-4 fw-bold">Sections (${sections.length})</h5><ul class="list-group mb-3">`;
                         sections.forEach(sec => {
                             const secTitle = sec.SectionTitle || sec.sectionTitle || 'N/A';
                             const secSub = sec.SectionSubtitle || sec.sectionSubtitle || '';
                             const secDesc = sec.SectionDescription || sec.sectionDescription || '';
-                            html += `<li class="list-group-item"><strong>${escapeHtml(secTitle)}</strong> ${secSub ? `<small>(${escapeHtml(secSub)})</small>` : ''}<br/><div>${escapeHtml(secDesc)}</div></li>`;
+                            html += `<li class="list-group-item"><strong class="d-block mb-1 text-break">${escapeHtml(secTitle)}</strong> ${secSub ? `<small class="text-muted d-block mb-1 text-break">(${escapeHtml(secSub)})</small>` : ''}<div class="text-muted text-break small">${escapeHtml(secDesc)}</div></li>`;
                         });
                         html += `</ul>`;
                     }
 
                     if (details.length > 0) {
-                        html += `<h5 class="mt-3">Details (${details.length})</h5><ul class="list-group mb-3">`;
+                        html += `<h5 class="mt-4 fw-bold">Details (${details.length})</h5><ul class="list-group mb-3">`;
                         details.forEach(det => {
                             const detTitle = det.Title || det.title || 'N/A';
                             const detDesc = det.Description || det.description || '';
@@ -4141,14 +4144,14 @@ $(document).ready(function () {
                             if (detImg && detImg.startsWith('/')) {
                                 detImg = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + detImg;
                             }
-                            const imgHtml = detImg ? `<img src="${detImg}" class="mr-3 rounded" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Detail" />` : '';
-                            html += `<li class="list-group-item d-flex align-items-center">${imgHtml}<div><strong>${escapeHtml(detTitle)}</strong><br/><div>${escapeHtml(detDesc)}</div></div></li>`;
+                            const imgHtml = detImg ? `<img src="${detImg}" class="rounded flex-shrink-0" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Detail" />` : '';
+                            html += `<li class="list-group-item"><div class="view-item-card">${imgHtml}<div class="overflow-hidden"><strong class="d-block text-break">${escapeHtml(detTitle)}</strong><div class="small text-muted text-break">${escapeHtml(detDesc)}</div></div></div></li>`;
                         });
                         html += `</ul>`;
                     }
 
                     if (people.length > 0) {
-                        html += `<h5 class="mt-3">People (${people.length})</h5><ul class="list-group mb-3">`;
+                        html += `<h5 class="mt-4 fw-bold">People (${people.length})</h5><ul class="list-group mb-3">`;
                         people.forEach(per => {
                             const perName = per.PersonName || per.personName || 'N/A';
                             const perDesc = per.FullDescription || per.fullDescription || '';
@@ -4156,8 +4159,8 @@ $(document).ready(function () {
                             if (perImg && perImg.startsWith('/')) {
                                 perImg = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + perImg;
                             }
-                            const imgHtml = perImg ? `<img src="${perImg}" class="mr-3 rounded-circle" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Person" />` : '';
-                            html += `<li class="list-group-item d-flex align-items-center">${imgHtml}<div><strong>${escapeHtml(perName)}</strong><br/><div>${escapeHtml(perDesc)}</div></div></li>`;
+                            const imgHtml = perImg ? `<img src="${perImg}" class="rounded-circle flex-shrink-0" style="height:60px; width:60px; object-fit:cover; border:1px solid #ddd;" alt="Person" />` : '';
+                            html += `<li class="list-group-item"><div class="view-item-card">${imgHtml}<div class="overflow-hidden"><strong class="d-block text-break">${escapeHtml(perName)}</strong><div class="small text-muted text-break">${escapeHtml(perDesc)}</div></div></div></li>`;
                         });
                         html += `</ul>`;
                     }

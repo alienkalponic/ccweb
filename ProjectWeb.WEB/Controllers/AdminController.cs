@@ -830,18 +830,46 @@ namespace ProjectWeb.WEB.Controllers
             var dto = mmm.CreateAboutPageDto ?? new CreateAboutPageDto();
             dto.AboutPage ??= new AboutPageDto();
 
-            if (string.IsNullOrEmpty(dto.AboutPage.PageTitle) && Request.HasFormContentType)
+            if (Request.HasFormContentType)
             {
-                dto.AboutPage.PageTitle = Request.Form["PageTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.PageTitle"].FirstOrDefault() ?? Request.Form["AboutPage.PageTitle"].FirstOrDefault();
-                dto.AboutPage.PageSlug = Request.Form["PageSlug"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.PageSlug"].FirstOrDefault() ?? Request.Form["AboutPage.PageSlug"].FirstOrDefault();
-                dto.AboutPage.HeroTitle = Request.Form["HeroTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HeroTitle"].FirstOrDefault();
-                dto.AboutPage.HeroSubtitle = Request.Form["HeroSubtitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HeroSubtitle"].FirstOrDefault();
-                dto.AboutPage.HistoryTitle = Request.Form["HistoryTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HistoryTitle"].FirstOrDefault();
-                dto.AboutPage.HistoryDescription = Request.Form["HistoryDescription"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.HistoryDescription"].FirstOrDefault();
-                dto.AboutPage.MapTitle = Request.Form["MapTitle"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.MapTitle"].FirstOrDefault();
-                dto.AboutPage.MapAddress = Request.Form["MapAddress"].FirstOrDefault() ?? Request.Form["CreateAboutPageDto.MapAddress"].FirstOrDefault();
-                if (decimal.TryParse(Request.Form["Latitude"].FirstOrDefault(), out var lat)) dto.AboutPage.Latitude = lat;
-                if (decimal.TryParse(Request.Form["Longitude"].FirstOrDefault(), out var lng)) dto.AboutPage.Longitude = lng;
+                var form = Request.Form;
+                if (string.IsNullOrEmpty(dto.AboutPage.PageTitle))
+                {
+                    dto.AboutPage.PageTitle = form["CreateAboutPageDto.AboutPage.PageTitle"].FirstOrDefault() ?? form["PageTitle"].FirstOrDefault() ?? form["CreateAboutPageDto.PageTitle"].FirstOrDefault() ?? form["AboutPage.PageTitle"].FirstOrDefault();
+                    dto.AboutPage.PageSlug = form["CreateAboutPageDto.AboutPage.PageSlug"].FirstOrDefault() ?? form["PageSlug"].FirstOrDefault() ?? form["CreateAboutPageDto.PageSlug"].FirstOrDefault() ?? form["AboutPage.PageSlug"].FirstOrDefault();
+                    dto.AboutPage.HeroTitle = form["CreateAboutPageDto.AboutPage.HeroTitle"].FirstOrDefault() ?? form["HeroTitle"].FirstOrDefault() ?? form["CreateAboutPageDto.HeroTitle"].FirstOrDefault();
+                    dto.AboutPage.HeroSubtitle = form["CreateAboutPageDto.AboutPage.HeroSubtitle"].FirstOrDefault() ?? form["HeroSubtitle"].FirstOrDefault() ?? form["CreateAboutPageDto.HeroSubtitle"].FirstOrDefault();
+                    dto.AboutPage.HistoryTitle = form["CreateAboutPageDto.AboutPage.HistoryTitle"].FirstOrDefault() ?? form["HistoryTitle"].FirstOrDefault() ?? form["CreateAboutPageDto.HistoryTitle"].FirstOrDefault();
+                    dto.AboutPage.HistoryDescription = form["CreateAboutPageDto.AboutPage.HistoryDescription"].FirstOrDefault() ?? form["HistoryDescription"].FirstOrDefault() ?? form["CreateAboutPageDto.HistoryDescription"].FirstOrDefault();
+                    dto.AboutPage.MapTitle = form["CreateAboutPageDto.AboutPage.MapTitle"].FirstOrDefault() ?? form["MapTitle"].FirstOrDefault() ?? form["CreateAboutPageDto.MapTitle"].FirstOrDefault();
+                    dto.AboutPage.MapAddress = form["CreateAboutPageDto.AboutPage.MapAddress"].FirstOrDefault() ?? form["MapAddress"].FirstOrDefault() ?? form["CreateAboutPageDto.MapAddress"].FirstOrDefault();
+                }
+
+                // Latitude
+                var latStr = form["CreateAboutPageDto.AboutPage.Latitude"].FirstOrDefault() ?? form["Latitude"].FirstOrDefault() ?? form["CreateAboutPageDto.Latitude"].FirstOrDefault() ?? form["AboutPage.Latitude"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(latStr))
+                {
+                    latStr = latStr.Trim().Replace(',', '.');
+                    if (decimal.TryParse(latStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var lat))
+                        dto.AboutPage.Latitude = lat;
+                }
+
+                // Longitude
+                var lngStr = form["CreateAboutPageDto.AboutPage.Longitude"].FirstOrDefault() ?? form["Longitude"].FirstOrDefault() ?? form["CreateAboutPageDto.Longitude"].FirstOrDefault() ?? form["AboutPage.Longitude"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(lngStr))
+                {
+                    lngStr = lngStr.Trim().Replace(',', '.');
+                    if (decimal.TryParse(lngStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var lng))
+                        dto.AboutPage.Longitude = lng;
+                }
+
+                // IsActive
+                var activeStr = form["CreateAboutPageDto.AboutPage.IsActive"].FirstOrDefault() ?? form["CreateAboutPageDto.IsActive"].FirstOrDefault() ?? form["AboutPage.IsActive"].FirstOrDefault() ?? form["IsActive"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(activeStr) && bool.TryParse(activeStr, out var isAct))
+                {
+                    dto.AboutPage.IsActive = isAct;
+                }
+
                 dto.BannerFile = Request.Form.Files["BannerFile"] ?? Request.Form.Files["CreateAboutPageDto.BannerFile"] ?? Request.Form.Files["AboutPage.BannerFile"];
             }
 
@@ -864,23 +892,55 @@ namespace ProjectWeb.WEB.Controllers
             var dto = mmm.UpdateAboutPageDto ?? new UpdateAboutPageDto();
             dto.AboutPage ??= new AboutPageDto();
 
-            if (dto.AboutPageId <= 0 && Request.HasFormContentType)
+            if (Request.HasFormContentType)
             {
-                if (long.TryParse(Request.Form["AboutPageId"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.AboutPageId"].FirstOrDefault(), out var id))
+                var form = Request.Form;
+                if (dto.AboutPageId <= 0)
                 {
-                    dto.AboutPageId = id;
-                    dto.AboutPage.AboutPageId = id;
+                    if (long.TryParse(form["AboutPageId"].FirstOrDefault() ?? form["UpdateAboutPageDto.AboutPageId"].FirstOrDefault() ?? form["UpdateAboutPageDto.AboutPage.AboutPageId"].FirstOrDefault(), out var id))
+                    {
+                        dto.AboutPageId = id;
+                        dto.AboutPage.AboutPageId = id;
+                    }
                 }
-                dto.AboutPage.PageTitle = Request.Form["PageTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.PageTitle"].FirstOrDefault() ?? Request.Form["AboutPage.PageTitle"].FirstOrDefault();
-                dto.AboutPage.PageSlug = Request.Form["PageSlug"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.PageSlug"].FirstOrDefault() ?? Request.Form["AboutPage.PageSlug"].FirstOrDefault();
-                dto.AboutPage.HeroTitle = Request.Form["HeroTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HeroTitle"].FirstOrDefault();
-                dto.AboutPage.HeroSubtitle = Request.Form["HeroSubtitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HeroSubtitle"].FirstOrDefault();
-                dto.AboutPage.HistoryTitle = Request.Form["HistoryTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HistoryTitle"].FirstOrDefault();
-                dto.AboutPage.HistoryDescription = Request.Form["HistoryDescription"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.HistoryDescription"].FirstOrDefault();
-                dto.AboutPage.MapTitle = Request.Form["MapTitle"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.MapTitle"].FirstOrDefault();
-                dto.AboutPage.MapAddress = Request.Form["MapAddress"].FirstOrDefault() ?? Request.Form["UpdateAboutPageDto.MapAddress"].FirstOrDefault();
-                if (decimal.TryParse(Request.Form["Latitude"].FirstOrDefault(), out var lat)) dto.AboutPage.Latitude = lat;
-                if (decimal.TryParse(Request.Form["Longitude"].FirstOrDefault(), out var lng)) dto.AboutPage.Longitude = lng;
+
+                if (string.IsNullOrEmpty(dto.AboutPage.PageTitle))
+                {
+                    dto.AboutPage.PageTitle = form["UpdateAboutPageDto.AboutPage.PageTitle"].FirstOrDefault() ?? form["PageTitle"].FirstOrDefault() ?? form["UpdateAboutPageDto.PageTitle"].FirstOrDefault() ?? form["AboutPage.PageTitle"].FirstOrDefault();
+                    dto.AboutPage.PageSlug = form["UpdateAboutPageDto.AboutPage.PageSlug"].FirstOrDefault() ?? form["PageSlug"].FirstOrDefault() ?? form["UpdateAboutPageDto.PageSlug"].FirstOrDefault() ?? form["AboutPage.PageSlug"].FirstOrDefault();
+                    dto.AboutPage.HeroTitle = form["UpdateAboutPageDto.AboutPage.HeroTitle"].FirstOrDefault() ?? form["HeroTitle"].FirstOrDefault() ?? form["UpdateAboutPageDto.HeroTitle"].FirstOrDefault();
+                    dto.AboutPage.HeroSubtitle = form["UpdateAboutPageDto.AboutPage.HeroSubtitle"].FirstOrDefault() ?? form["HeroSubtitle"].FirstOrDefault() ?? form["UpdateAboutPageDto.HeroSubtitle"].FirstOrDefault();
+                    dto.AboutPage.HistoryTitle = form["UpdateAboutPageDto.AboutPage.HistoryTitle"].FirstOrDefault() ?? form["HistoryTitle"].FirstOrDefault() ?? form["UpdateAboutPageDto.HistoryTitle"].FirstOrDefault();
+                    dto.AboutPage.HistoryDescription = form["UpdateAboutPageDto.AboutPage.HistoryDescription"].FirstOrDefault() ?? form["HistoryDescription"].FirstOrDefault() ?? form["UpdateAboutPageDto.HistoryDescription"].FirstOrDefault();
+                    dto.AboutPage.MapTitle = form["UpdateAboutPageDto.AboutPage.MapTitle"].FirstOrDefault() ?? form["MapTitle"].FirstOrDefault() ?? form["UpdateAboutPageDto.MapTitle"].FirstOrDefault();
+                    dto.AboutPage.MapAddress = form["UpdateAboutPageDto.AboutPage.MapAddress"].FirstOrDefault() ?? form["MapAddress"].FirstOrDefault() ?? form["UpdateAboutPageDto.MapAddress"].FirstOrDefault();
+                }
+
+                // Latitude
+                var latStr = form["UpdateAboutPageDto.AboutPage.Latitude"].FirstOrDefault() ?? form["Latitude"].FirstOrDefault() ?? form["UpdateAboutPageDto.Latitude"].FirstOrDefault() ?? form["AboutPage.Latitude"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(latStr))
+                {
+                    latStr = latStr.Trim().Replace(',', '.');
+                    if (decimal.TryParse(latStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var lat))
+                        dto.AboutPage.Latitude = lat;
+                }
+
+                // Longitude
+                var lngStr = form["UpdateAboutPageDto.AboutPage.Longitude"].FirstOrDefault() ?? form["Longitude"].FirstOrDefault() ?? form["UpdateAboutPageDto.Longitude"].FirstOrDefault() ?? form["AboutPage.Longitude"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(lngStr))
+                {
+                    lngStr = lngStr.Trim().Replace(',', '.');
+                    if (decimal.TryParse(lngStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var lng))
+                        dto.AboutPage.Longitude = lng;
+                }
+
+                // IsActive
+                var activeStr = form["UpdateAboutPageDto.AboutPage.IsActive"].FirstOrDefault() ?? form["UpdateAboutPageDto.IsActive"].FirstOrDefault() ?? form["AboutPage.IsActive"].FirstOrDefault() ?? form["IsActive"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(activeStr) && bool.TryParse(activeStr, out var isAct))
+                {
+                    dto.AboutPage.IsActive = isAct;
+                }
+
                 dto.BannerFile = Request.Form.Files["BannerFile"] ?? Request.Form.Files["UpdateAboutPageDto.BannerFile"] ?? Request.Form.Files["AboutPage.BannerFile"];
             }
 
