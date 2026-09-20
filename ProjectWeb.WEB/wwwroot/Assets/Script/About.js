@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
     var _BaseURL = window.location.origin;
     var action_name = !$.isNull($.getactionname()) ? $.getactionname().toLowerCase() : "";
     var contollername = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
@@ -76,7 +76,9 @@
 
 
 
-        const testimonials = [
+        const testimonials = (window.dbAboutPeople && window.dbAboutPeople.length > 0)
+            ? window.dbAboutPeople
+            : [
             {
                 quote:
                     "Rock climbing in West Bengal did not begin on an established path—it began with a vision and a steady guiding hand. Banabhusan Nayak was that guiding force. Through his leadership and passion, he laid the foundation upon which generations of climbers continue to rise.",

@@ -1,4 +1,4 @@
-﻿@model ProjectWeb.Domain.Model.MultipleModel
+@model ProjectWeb.Domain.Model.MultipleModel
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "About-us";
@@ -238,16 +238,19 @@
 </style>
 
 <div class="about-banner">
-    @if(Model.aboutPageDetails!.AboutPage!.BannerImageUrl != null)
+    @if (!string.IsNullOrEmpty(Model?.aboutPageDetails?.AboutPage?.BannerImageUrl))
     {
-        <img src="@($"{projectApiUrl}{Model.aboutPageDetails.AboutPage.BannerImageUrl}")" alt="Trekking Banner">
+        var bannerUrl = Model.aboutPageDetails.AboutPage.BannerImageUrl.StartsWith("/")
+            ? $"{projectApiUrl}{Model.aboutPageDetails.AboutPage.BannerImageUrl}"
+            : Model.aboutPageDetails.AboutPage.BannerImageUrl;
+        <img src="@bannerUrl" alt="Trekking Banner">
     }
     else
     {
         <img src="../Assets/AboutImg/pexels-83916533-8892405.jpg" alt="Trekking Banner">
     }
 
-    @if(Model.aboutPageDetails!.AboutPage!.PageTitle != null)
+    @if (!string.IsNullOrEmpty(Model?.aboutPageDetails?.AboutPage?.PageTitle))
     {
         <h1>@Model.aboutPageDetails.AboutPage.PageTitle</h1>
     }
@@ -255,41 +258,42 @@
     {
         <h1>About Summit Trekkers Club</h1>
     }
-
 </div>
 
 
 <div class="mx-auto md:px-6 About-page">
     <!-- Section: Design Block -->
-   
-        <div class="hills">
-        <div class="hilles-text" >
-            @if(Model.aboutPageDetails!.AboutPage.HistoryTitle!=null)
+    <div class="hills">
+        <div class="hilles-text">
+            @if (!string.IsNullOrEmpty(Model?.aboutPageDetails?.AboutPage?.HistoryTitle))
             {
-                <h3 id="about-hills">@Model.aboutPageDetails!.AboutPage.HistoryTitle</h3>
+                <h3 id="about-hills">@Model.aboutPageDetails.AboutPage.HistoryTitle</h3>
             }
             else
             {
                 <h3 id="about-hills">The Climbers' Circle was born half-a-century ago in Kolkata, India..</h3>
             }
             <hr>
-            @if(Model.aboutPageDetails!.AboutPage!.HistoryDescription!=null)
+            @if (!string.IsNullOrEmpty(Model?.aboutPageDetails?.AboutPage?.HistoryDescription))
             {
-                <p>@Html.Raw(Model.aboutPageDetails!.AboutPage.HistoryDescription)</p>
+                <p>@Html.Raw(Model.aboutPageDetails.AboutPage.HistoryDescription)</p>
             }
-            <p>
-                Following the beginning of the era of mountaineering in West Bengal in the 1960s, after the successful expedition to Mt. Nandaghunti (6309 m), an indomitable urge to pursue climbing mountains in the Himalaya and rock-climbing on the rock-outcrops in some parts of this state had gripped the youth in Bengal.
+            else
+            {
+                <p>
+                    Following the beginning of the era of mountaineering in West Bengal in the 1960s, after the successful expedition to Mt. Nandaghunti (6309 m), an indomitable urge to pursue climbing mountains in the Himalaya and rock-climbing on the rock-outcrops in some parts of this state had gripped the youth in Bengal.
 
-                Climbers' Circle, estd. 1977, has performed a major role in nurturing young aspirants in climbing, introducing more or less 3000 youngsters to Basic and Advance Rock Climbing in the last 50 years. It also organised notable climbing expeditions to peaks in the Himalaya, for example the Gangotri and Bhagirathi peaks and many others. At the same time exploratory trekking expeditions were organised to find out interesting and difficult routes in the Himalaya that were rather unknown at that time.
+                    Climbers' Circle, estd. 1977, has performed a major role in nurturing young aspirants in climbing, introducing more or less 3000 youngsters to Basic and Advance Rock Climbing in the last 50 years. It also organised notable climbing expeditions to peaks in the Himalaya, for example the Gangotri and Bhagirathi peaks and many others. At the same time exploratory trekking expeditions were organised to find out interesting and difficult routes in the Himalaya that were rather unknown at that time.
 
-                Since the year 2000 Climbers' Circle had opened up new vistas of adventure and nature-watch before generations of very tender age by gradually introducing Camping and Nature Study in its activities. Then, farthering the range of annual activities, an annual programme for the 'Senior Campers' was introduced to give the adults, service-holders, housewives and persons from other such sections of the society a taste of adventure - so far unknown to them. Again, alongside organising Annual Rock Climbing Courses as well as Rock Climbing Practice Sessions the Circle also arranged for the regular participation of promising climbers in Basic and Advance Mountaineering Courses at premier mountaineering institutes of India like the HMI, Darjeeling, NIM, Uttarkashi, WHMI, Manali.
+                    Since the year 2000 Climbers' Circle had opened up new vistas of adventure and nature-watch before generations of very tender age by gradually introducing Camping and Nature Study in its activities. Then, farthering the range of annual activities, an annual programme for the 'Senior Campers' was introduced to give the adults, service-holders, housewives and persons from other such sections of the society a taste of adventure - so far unknown to them. Again, alongside organising Annual Rock Climbing Courses as well as Rock Climbing Practice Sessions the Circle also arranged for the regular participation of promising climbers in Basic and Advance Mountaineering Courses at premier mountaineering institutes of India like the HMI, Darjeeling, NIM, Uttarkashi, WHMI, Manali.
 
-                The Climbers' Circle took a unique and a leading role in the late 1980s-early 1990s when this organisation had initiated a programme of orientation of instructors of rock-climbing courses from different other mountaineering clubs of West Bengal. Three such 'Orientation Courses' were organised in three different years with the purpose to apprise the participants about modern aspects of climbing and to open up avenues for them to develop a deeper and wider thinking about climbing. A number of very senior and reputed climbers from different organisations of Bengal were invited to mentor the young instructors to develop in them fresh ideas about the art of climbing.
+                    The Climbers' Circle took a unique and a leading role in the late 1980s-early 1990s when this organisation had initiated a programme of orientation of instructors of rock-climbing courses from different other mountaineering clubs of West Bengal. Three such 'Orientation Courses' were organised in three different years with the purpose to apprise the participants about modern aspects of climbing and to open up avenues for them to develop a deeper and wider thinking about climbing. A number of very senior and reputed climbers from different organisations of Bengal were invited to mentor the young instructors to develop in them fresh ideas about the art of climbing.
 
-                With the rich history of a modest contribution to mountaineering, trekking, camping and nature study Climbers' Circle is now approaching the celebration of its Golden Jubilee Year (2026-2027). We're confident about our future journey in the field of adventure activities in West Bengal, as well as in India.
-            </p>
-               @*  <a href="#">CHECK AVAILABILITY</a> *@
-            </div>
+                    With the rich history of a modest contribution to mountaineering, trekking, camping and nature study Climbers' Circle is now approaching the celebration of its Golden Jubilee Year (2026-2027). We're confident about our future journey in the field of adventure activities in West Bengal, as well as in India.
+                </p>
+            }
+        </div>
+
         <div class="swiper">
             @if (Model?.aboutPageDetails?.AboutDetails != null && Model.aboutPageDetails.AboutDetails.Any(x => x.IsActive))
             {
@@ -297,8 +301,8 @@
                     @foreach (var item in Model.aboutPageDetails.AboutDetails.Where(x => x.IsActive).OrderBy(x => x.DisplayOrder))
                     {
                         var imgUrl = !string.IsNullOrWhiteSpace(item.ImageUrl)
-                        ? (item.ImageUrl.StartsWith("/") ? $"{projectApiUrl}{item.ImageUrl}" : item.ImageUrl)
-                        : "../Assets/AboutImg/about1.jpg";
+                            ? (item.ImageUrl.StartsWith("/") ? $"{projectApiUrl}{item.ImageUrl}" : item.ImageUrl)
+                            : "../Assets/AboutImg/about1.jpg";
                         <div class="swiper-slide" style="background: linear-gradient(to top, #0f2027, #203a4300, #2c536400), url('@imgUrl') no-repeat 50% 50% / cover;">
                             <div>
                                 <h2>@item.Title</h2>
@@ -380,17 +384,14 @@
                     </div>
                 </div>
             }
-
+            
             <!-- Add Pagination -->
             <div class="swiper-pagination"></div>
         </div>
-            <img src="../Assets/AboutImg/golden-mountain-range-silhouette.jpg" alt="" class="bg">
-            <img src="../Assets/AboutImg/golden-mountain-silhouette-front.jpg" alt="" class="bg2">
-        </div>
-
-    <!-- Section: Design Block -->
+        <img src="../Assets/AboutImg/golden-mountain-range-silhouette.jpg" alt="" class="bg">
+        <img src="../Assets/AboutImg/golden-mountain-silhouette-front.jpg" alt="" class="bg2">
+    </div>
 </div>
-
 
 
 <section class="textimoial-slide">
@@ -420,16 +421,37 @@
     </div>
 </section>
 
-
-
-<!-- ================map============== -->
+<!-- Map Section -->
 <div class="mt-5">
     <div class="maps maps_img">
-        @if (Model?.aboutPageDetails?.AboutPage?.Latitude.HasValue == true && Model?.aboutPageDetails?.AboutPage?.Longitude.HasValue == true)
+        @{
+            var mapLabel = !string.IsNullOrWhiteSpace(Model?.aboutPageDetails?.AboutPage?.MapAddress)
+                ? Model.aboutPageDetails.AboutPage.MapAddress
+                : Model?.aboutPageDetails?.AboutPage?.MapTitle;
+
+            string mapQuery = "";
+            if (Model?.aboutPageDetails?.AboutPage?.Latitude.HasValue == true && Model?.aboutPageDetails?.AboutPage?.Longitude.HasValue == true)
+            {
+                var lat = Model.aboutPageDetails.AboutPage.Latitude.Value;
+                var lng = Model.aboutPageDetails.AboutPage.Longitude.Value;
+                if (!string.IsNullOrWhiteSpace(mapLabel))
+                {
+                    mapQuery = $"{lat},{lng}+({System.Net.WebUtility.UrlEncode(mapLabel)})";
+                }
+                else
+                {
+                    mapQuery = $"{lat},{lng}";
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(mapLabel))
+            {
+                mapQuery = System.Net.WebUtility.UrlEncode(mapLabel);
+            }
+        }
+
+        @if (!string.IsNullOrEmpty(mapQuery))
         {
-            var lat = Model.aboutPageDetails.AboutPage.Latitude.Value;
-            var lng = Model.aboutPageDetails.AboutPage.Longitude.Value;
-            <iframe src="https://maps.google.com/maps?q=@lat,@lng&hl=en&z=14&output=embed" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <iframe src="https://maps.google.com/maps?q=@mapQuery&hl=en&z=15&output=embed" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         }
         else
         {
@@ -438,6 +460,19 @@
     </div>
 </div>
 
-
-
+<script>
+    window.dbAboutPeople = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+        (Model?.aboutPageDetails?.AboutPerson ?? new List<ProjectWeb.Domain.DTO.AboutPage.AboutPersonDto>())
+        .Where(x => x.IsActive)
+        .OrderBy(x => x.DisplayOrder)
+        .Select(x => new {
+            name = x.PersonName ?? "",
+            designation = x.PersonName ?? "",
+            quote = x.FullDescription ?? "",
+            src = !string.IsNullOrWhiteSpace(x.ImageUrl)
+                ? (x.ImageUrl.StartsWith("/") ? $"{projectApiUrl}{x.ImageUrl}" : x.ImageUrl)
+                : "../Assets/Testimonials/male.jpg"
+        })
+    ));
+</script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>

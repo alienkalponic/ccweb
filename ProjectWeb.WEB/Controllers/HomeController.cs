@@ -59,24 +59,31 @@ namespace ProjectWeb.WEB.Controllers
             MultipleModel mmm = new MultipleModel();
             APIResponse response = await _unitOfWork
                 .ContentManagement
-                .AboutPageGetAll<APIResponse>("10", "1", "");
+                .AboutPageGetAll<APIResponse>("100", "1", "");
 
-            var stringResponse = Convert.ToString(response.Response);
+            var stringResponse = Convert.ToString(response?.Response);
             List<AboutPageDto> list = new List<AboutPageDto>();
             if (!string.IsNullOrEmpty(stringResponse))
             {
                 list = JsonConvert.DeserializeObject<List<AboutPageDto>>(stringResponse) ?? new List<AboutPageDto>();
-                
             }
-            list = list.Where(x => x.IsActive = true).ToList();
-            if(list.Count==1)
+
+            var activePage = list.FirstOrDefault(x => x.IsActive);
+            if (activePage != null)
             {
                 APIResponse data = await _unitOfWork
-                .ContentManagement
-                .AboutPageGet<APIResponse>(list[0].AboutPageId);
+                    .ContentManagement
+                    .AboutPageGet<APIResponse>(activePage.AboutPageId);
 
-                AboutPageDetails aboutPageDetails = JsonConvert.DeserializeObject<AboutPageDetails>(data.Response!.ToString()!)!;
-                mmm.aboutPageDetails = aboutPageDetails;
+                if (data != null && data.Response != null)
+                {
+                    var detailsJson = Convert.ToString(data.Response);
+                    if (!string.IsNullOrEmpty(detailsJson))
+                    {
+                        AboutPageDetails aboutPageDetails = JsonConvert.DeserializeObject<AboutPageDetails>(detailsJson) ?? new AboutPageDetails();
+                        mmm.aboutPageDetails = aboutPageDetails;
+                    }
+                }
             }
 
             return View(mmm);
