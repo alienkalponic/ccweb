@@ -11,5 +11,7 @@ namespace ProjectWeb.Application.Common.Repository.Master
     {
         IUserRepository User { get; }
         IContentManagement ContentManagement { get; }
-        }
+        IUIManagementRepository UIManagement { get; }
+        ISettingsManagementRepository SettingsManagement { get; }
+    }
 }

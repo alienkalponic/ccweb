@@ -2,6 +2,7 @@ using ProjectWeb.Domain.DTO.AboutPage;
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Category;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.Gallery;
 using System;
@@ -42,6 +43,7 @@ namespace ProjectWeb.Domain.Model
         public AchievementDetailsUpdateDto? AchievementDetailsUpdateDto { get; set; }
         public AchievementDetailsDto? AchievementDetailsDto { get; set; }
         public List<AchievementDetailsDto>? AchievementDetailsDtos { get; set; }
+        public List<GalleryListDto>? GalleryListDtos { get; set; }
 
         public AchievementDetailsGalleryCreateDto? achievementDetailsGalleryCreateDto { get; set; }
         public AchievementDetailsGalleryUpdateDto? achievementDetailsGalleryUpdateDto { get; set; }
@@ -55,5 +57,7 @@ namespace ProjectWeb.Domain.Model
         public AboutPageDto? AboutPageDto { get; set; }
         public AboutPageDetails? aboutPageDetails { get; set; }
         public List<AboutPageDto>? AboutPageDtos { get; set; }
+        public List<CategoryDto>? CategoryDtos { get; set; }
+
     }
 }

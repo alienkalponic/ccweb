@@ -24,6 +24,10 @@ namespace ProjectWeb.Infrastucture.Service.Master
         public IUserRepository User { get; private set; }
         public IContentManagement ContentManagement { get; private set; }
 
+        public IUIManagementRepository UIManagement { get; private set; }
+
+        public ISettingsManagementRepository SettingsManagement { get; private set; }
+
         public UnitOfWork(
             IHttpClientFactory clientFactory, 
             IConfiguration configuration, 
@@ -51,6 +55,20 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 _baseService, 
                 _contextAccessor,
                 _loggerFactory.CreateLogger<ContentManagementRespository>());
+
+            UIManagement = new UIManagementService(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<UIManagementService>());
+
+            SettingsManagement = new SettingsManagementService(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<SettingsManagementService>());
         }
     }
 }

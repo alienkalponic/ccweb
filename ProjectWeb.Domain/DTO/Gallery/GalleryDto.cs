@@ -36,4 +36,15 @@ namespace ProjectWeb.Domain.DTO.Gallery
         public int DisplayOrder { get; set; }
         public bool IsActive { get; set; }
     }
+
+    public class GalleryListDto
+    {
+        public int GalleryItemsId { get; set; }
+        public string? Title { get; set; }
+        public string? CategoryName { get; set; }
+        public int ExpeditionYear { get; set; }
+        public string? ImageUrl { get; set; }
+        public int AchievementDetailsId { get; set; }
+        public int TotalPhotoCount { get; set; }
+    }
 }

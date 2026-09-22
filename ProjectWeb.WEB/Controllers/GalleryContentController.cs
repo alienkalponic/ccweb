@@ -1,10 +1,16 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Category;
+using ProjectWeb.Domain.DTO.Gallery;
+using ProjectWeb.Domain.Model;
+using ProjectWeb.Domain.Utility;
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace ProjectWeb.WEB.Controllers
 {
@@ -31,10 +37,21 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         // GET: GalleryContent
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             ViewBag.InstagramAccessToken = _configuration["InstagramSettings:AccessToken"] ?? "";
-            return View();
+            MultipleModel mmm = new MultipleModel();
+            APIResponse response = await _unitOfWork
+                .UIManagement
+                .GetAllGallery<APIResponse>();
+            mmm.GalleryListDtos= JsonConvert.DeserializeObject<List<GalleryListDto>>(Convert.ToString(response.Response)!);
+
+            APIResponse categoryresponse = await _unitOfWork
+                .SettingsManagement
+                .GetAllCategory<APIResponse>();
+            mmm.CategoryDtos = JsonConvert.DeserializeObject<List<CategoryDto>>(Convert.ToString(categoryresponse.Response)!);
+
+            return View(mmm);
         }
 
         // GET: GalleryContent/Details/5
