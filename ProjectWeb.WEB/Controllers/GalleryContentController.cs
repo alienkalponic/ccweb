@@ -74,7 +74,7 @@ namespace ProjectWeb.WEB.Controllers
             try
             {
                 using var client = new HttpClient();
-                string url = $"https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,like_count,comments_count&access_token={token.Trim()}&limit=12";
+                string url = $"https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,like_count,comments_count&access_token={token.Trim()}&limit=16";
                 
                 var response = await client.GetAsync(url);
                 var jsonString = await response.Content.ReadAsStringAsync();
