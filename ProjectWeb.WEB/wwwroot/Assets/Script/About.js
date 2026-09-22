@@ -242,7 +242,6 @@ $(document).ready(function () {
                     .join(" ");
                 animateWords();
             }
-        }imateWords();
         }
 
         function animateWords() {

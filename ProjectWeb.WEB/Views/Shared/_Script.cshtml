@@ -23,8 +23,11 @@
 <script src="~/Assets/Admin/Js/kebab.min.js"></script>
 <script src="~/Assets/Admin/Js/NewDataTable.js"></script>
 
-
-<script src="~/Assets/Js/swiper.min.js"></script>
+<script>
+    if (typeof Swiper === 'undefined') {
+        document.write('<script src="@Url.Content("~/Assets/Js/swiper.min.js")"><\/script>');
+    }
+</script>
 <script src="~/Assets/Js/flickity.pkgd.min.js"></script>
 <script src="~/Assets/Js/jquery.waypoints.min.js"></script>
 <script src="~/Assets/Js/jquery.counterup.min.js"></script>
@@ -51,7 +54,7 @@
 <script src="~/Assets/Script/confirm-dialog.js" asp-append-version="true"></script>
 <script src="~/Assets/Script/Admin.js"></script>
 <script src="~/Assets/Script/Home.js"></script>
-<script src="~/Assets/Script/About.js"></script>
+<script src="~/Assets/Script/About.js" asp-append-version="true"></script>
 <script src="~/Assets/Script/Public.js" asp-append-version="true"></script>
 
 <script src="~/Assets/Script/Gallery.js"></script>
