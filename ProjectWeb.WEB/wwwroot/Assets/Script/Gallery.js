@@ -3,6 +3,71 @@ $(document).ready(function () {
     var action_name = !$.isNull($.getactionname()) ? $.getactionname().toLowerCase() : "";
     var contollername = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
 
+    // Global helper for Real-Time Instagram API Integration via Backend Controller Proxy
+    window.initInstagramRealTimeFeed = function () {
+        const $container = $("#instagramFeedContainer");
+        if ($container.length === 0) return;
+
+        const feedEndpoint = _BaseURL + "/GalleryContent/GetInstagramFeed";
+
+        $.ajax({
+            url: feedEndpoint,
+            type: "GET",
+            dataType: "json",
+            success: function (response) {
+                if (response && response.data && response.data.length > 0) {
+                    $container.empty(); // Replace fallback with ACTUAL live Instagram posts!
+
+                    $.each(response.data, function (idx, post) {
+                        // Extract actual thumbnail image URL from Instagram
+                        let imgUrl = post.media_url;
+                        if (post.media_type === "VIDEO" && post.thumbnail_url) {
+                            imgUrl = post.thumbnail_url;
+                        }
+
+                        if (!imgUrl) return; // skip if no image URL
+
+                        const permalink = post.permalink || "https://instagram.com";
+                        const captionText = post.caption ? post.caption : "Climbers' Circle Expedition Moment";
+                        const likes = post.like_count !== undefined ? post.like_count : "♥";
+                        const comments = post.comments_count !== undefined ? post.comments_count : "💬";
+
+                        const cardHtml = `
+                            <div class="insta-card">
+                                <a href="${permalink}" target="_blank" rel="noopener noreferrer">
+                                    <img src="${imgUrl}" alt="Actual Instagram Post" loading="lazy">
+                                    <div class="insta-card-overlay">
+                                        <div class="insta-card-top">
+                                            <div class="insta-icon-badge">
+                                                <i class="fa-brands fa-instagram"></i>
+                                            </div>
+                                            <div class="insta-metrics">
+                                                <span><i class="fa-solid fa-heart"></i> ${likes}</span>
+                                                <span><i class="fa-solid fa-comment"></i> ${comments}</span>
+                                            </div>
+                                        </div>
+                                        <div class="insta-caption">
+                                            ${captionText}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        `;
+                        $container.append(cardHtml);
+                    });
+                } else if (response && response.error) {
+                    console.warn("Instagram API Notice:", response.message, response.error);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error connecting to Instagram proxy endpoint:", error);
+            }
+        });
+    };
+
+    // Auto-trigger on page load
+    window.initInstagramRealTimeFeed();
+
     if (action_name === "details") {
         const segments = window.location.pathname.split('/');
         const id = segments[segments.length - 1];

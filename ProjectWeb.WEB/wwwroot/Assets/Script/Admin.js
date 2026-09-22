@@ -1512,7 +1512,7 @@ $(document).ready(function () {
         }
     }
     
-    if (action_name === "gallerycontent" || $("#tab_gallery").length > 0) {
+    if (action_name === "achievementlist" || $("#tab_gallery").length > 0) {
         let currentPage = 1;
         let selectedGalleryFile = null;
 

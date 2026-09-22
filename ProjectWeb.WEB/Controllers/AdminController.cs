@@ -392,12 +392,17 @@ namespace ProjectWeb.WEB.Controllers
 
         #endregion
 
-        #region::Gallery
+        #region::Achievement List
 
-        public IActionResult GalleryContent()
+        public IActionResult AchievementList()
         {
             return View();
         }
+
+        //public IActionResult GalleryContent()
+        //{
+        //    return View();
+        //}
 
         [Authorize(Roles = "2")]
         [HttpGet]

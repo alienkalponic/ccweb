@@ -1,6 +1,7 @@
 @{
-    ViewData["Title"] = "Expedition Albums & Gallery";
+    ViewData["Title"] = "Expedition Albums & Social Feeds";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var instaToken = ViewBag.InstagramAccessToken as string ?? "";
 }
 
 <link rel="stylesheet" href="~/Assets/Css/gallery.css" />
@@ -16,7 +17,7 @@
             Expedition & Training <span>Albums</span>
         </h1>
         <p class="gallery-subtitle">
-            Explore visual memories, high-altitude expeditions, rock climbing courses, and summer camps captured by our team.
+            Explore visual memories, high-altitude expeditions, rock climbing courses, and live social media feeds from our team.
         </p>
 
         <!-- Search & Filter Bar -->
@@ -50,20 +51,20 @@
     </div>
     <div class="stat-card">
         <div class="stat-icon">
-            <i class="fa-solid fa-camera-retro"></i>
+            <i class="fa-brands fa-instagram"></i>
         </div>
         <div class="stat-info">
-            <h4>35+</h4>
-            <p>High Res Photos</p>
+            <h4>12.5k</h4>
+            <p>Instagram Followers</p>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon">
-            <i class="fa-solid fa-compass"></i>
+            <i class="fa-brands fa-facebook"></i>
         </div>
         <div class="stat-info">
-            <h4>100%</h4>
-            <p>Adventure Experience</p>
+            <h4>18k+</h4>
+            <p>Facebook Members</p>
         </div>
     </div>
 </div>
@@ -147,7 +148,7 @@
             </div>
             <div class="gallery-card-body">
                 <h3 class="gallery-card-title">Himalayan Expedition</h3>
-                <p class="gallery-card-desc">Summit attempts, glacier crossing, and high-altitude technical climbs in remote ranges.</p>
+                <p class="gallery-card-desc">Summit attempts, glacier crossing, and technical high-altitude climbs in remote ranges.</p>
                 <div class="gallery-card-footer">
                     <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn">
                         View Album <i class="fa-solid fa-arrow-right"></i>
@@ -178,13 +179,223 @@
         </div>
 
     </div>
+
+    <!-- ==========================================================================
+         SOCIAL FEEDS WRAPPER: INSTAGRAM & FACEBOOK SECTIONS
+         ========================================================================== -->
+    <div class="social-feeds-wrapper">
+        
+        <!-- ==================== 1. INSTAGRAM FEED SECTION ==================== -->
+        <section class="social-feed-section mb-5 pb-4">
+            <div class="social-section-title">
+                <span class="gallery-badge badge-insta">
+                    <i class="fa-brands fa-instagram"></i> INSTAGRAM FEED
+                </span>
+                <h2>Live From <span class="insta-text">Instagram</span></h2>
+                <p>Follow our live expedition stories, climbing moments, and high-altitude photography on Instagram.</p>
+            </div>
+
+            <!-- Instagram Live Container -->
+            <div class="instagram-feed-grid" id="instagramFeedContainer">
+                
+                <!-- Fallback Post 1 -->
+                <div class="insta-card">
+                    <img src="/Assets/GalleryDetails/exp1.JPG" alt="Expedition Summit Sunrise">
+                    <div class="insta-card-overlay">
+                        <div class="insta-card-top">
+                            <div class="insta-icon-badge">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div class="insta-metrics">
+                                <span><i class="fa-solid fa-heart"></i> 1.4k</span>
+                                <span><i class="fa-solid fa-comment"></i> 92</span>
+                            </div>
+                        </div>
+                        <div class="insta-caption">
+                            Golden hour at 18,000 ft summit camp. Preparation is everything when facing high altitude peaks! 🏔️✨
+                            <div class="insta-hashtags">#ClimbersCircle #Himalayas #SummitMoment</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback Post 2 -->
+                <div class="insta-card">
+                    <img src="/Assets/GalleryDetails/climb1.jpg" alt="Rock Climbing Training">
+                    <div class="insta-card-overlay">
+                        <div class="insta-card-top">
+                            <div class="insta-icon-badge">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div class="insta-metrics">
+                                <span><i class="fa-solid fa-heart"></i> 890</span>
+                                <span><i class="fa-solid fa-comment"></i> 45</span>
+                            </div>
+                        </div>
+                        <div class="insta-caption">
+                            Tackling challenging overhang routes during weekend rock climbing practice sessions. 🧗‍♂️💪
+                            <div class="insta-hashtags">#RockClimbing #Bouldering #ClimbingLife</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback Post 3 -->
+                <div class="insta-card">
+                    <img src="/Assets/GalleryDetails/ssummer3.jpg" alt="Summer Adventure Camp">
+                    <div class="insta-card-overlay">
+                        <div class="insta-card-top">
+                            <div class="insta-icon-badge">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div class="insta-metrics">
+                                <span><i class="fa-solid fa-heart"></i> 1.1k</span>
+                                <span><i class="fa-solid fa-comment"></i> 67</span>
+                            </div>
+                        </div>
+                        <div class="insta-caption">
+                            Young adventurers mastering tent pitching and wilderness survival skills at our Annual Summer Camp! 🏕️🌲
+                            <div class="insta-hashtags">#SummerCamp #WildernessSkills #YouthAdventure</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fallback Post 4 -->
+                <div class="insta-card">
+                    <img src="/Assets/GalleryDetails/high2.jpg" alt="High Altitude Trekking Pass">
+                    <div class="insta-card-overlay">
+                        <div class="insta-card-top">
+                            <div class="insta-icon-badge">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div class="insta-metrics">
+                                <span><i class="fa-solid fa-heart"></i> 2.1k</span>
+                                <span><i class="fa-solid fa-comment"></i> 134</span>
+                            </div>
+                        </div>
+                        <div class="insta-caption">
+                            Crossing snowy mountain passes in remote Himalayan valleys. Pure tranquility and rugged nature. ❄️🏔️
+                            <div class="insta-hashtags">#HighAltitudeTrek #HimalayanPass #MountainLove</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="social-feed-cta">
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="btn-insta-follow">
+                    <i class="fa-brands fa-instagram"></i> Follow @@climberscircle on Instagram
+                </a>
+            </div>
+        </section>
+
+        <!-- ==================== 2. FACEBOOK FEED SECTION ==================== -->
+        <section class="social-feed-section pt-4">
+            <div class="social-section-title">
+                <span class="gallery-badge badge-fb">
+                    <i class="fa-brands fa-facebook"></i> FACEBOOK COMMUNITY
+                </span>
+                <h2>Official <span class="fb-text">Facebook Feed</span></h2>
+                <p>Stay updated with our official announcements, course registrations, and club member news.</p>
+            </div>
+
+            <!-- Facebook Posts Grid -->
+            <div class="facebook-feed-grid">
+                
+                <!-- FB Post 1 -->
+                <div class="fb-post-card">
+                    <div class="fb-post-header">
+                        <div class="fb-profile-avatar">
+                            <img src="~/Assets/images/logo.jpeg" alt="Climbers Circle Logo">
+                        </div>
+                        <div class="fb-author-info">
+                            <h4>Climbers' Circle <i class="fa-solid fa-circle-check fb-verified-icon"></i></h4>
+                            <p>Posted 2 hours ago • <i class="fa-solid fa-earth-americas"></i></p>
+                        </div>
+                    </div>
+                    <div class="fb-post-content">
+                        📢 <strong>ADMISSION OPEN:</strong> Registrations are now live for the 2026 Annual Basic Mountaineering & Rock Climbing Course! Limited seats. Learn rope techniques, safety protocols, and physical conditioning from certified instructors.
+                    </div>
+                    <div class="fb-post-image">
+                        <img src="/Assets/GalleryDetails/course3.jpg" alt="Course Announcement">
+                    </div>
+                    <div class="fb-post-actions">
+                        <div class="fb-action-btn"><i class="fa-regular fa-thumbs-up"></i> 420 Likes</div>
+                        <div class="fb-action-btn"><i class="fa-regular fa-comment"></i> 58 Comments</div>
+                        <div class="fb-action-btn"><i class="fa-solid fa-share"></i> 32 Shares</div>
+                    </div>
+                </div>
+
+                <!-- FB Post 2 -->
+                <div class="fb-post-card">
+                    <div class="fb-post-header">
+                        <div class="fb-profile-avatar">
+                            <img src="~/Assets/images/logo.jpeg" alt="Climbers Circle Logo">
+                        </div>
+                        <div class="fb-author-info">
+                            <h4>Climbers' Circle <i class="fa-solid fa-circle-check fb-verified-icon"></i></h4>
+                            <p>Posted 1 day ago • <i class="fa-solid fa-earth-americas"></i></p>
+                        </div>
+                    </div>
+                    <div class="fb-post-content">
+                        🏔️ <strong>EXPEDITION UPDATE:</strong> Huge congratulations to our team members for successfully completing the Himalayan Summit Expedition! Check out the full photo album in our archives.
+                    </div>
+                    <div class="fb-post-image">
+                        <img src="/Assets/GalleryDetails/exp7.jpg" alt="Summit Expedition Update">
+                    </div>
+                    <div class="fb-post-actions">
+                        <div class="fb-action-btn"><i class="fa-regular fa-thumbs-up"></i> 850 Likes</div>
+                        <div class="fb-action-btn"><i class="fa-regular fa-comment"></i> 112 Comments</div>
+                        <div class="fb-action-btn"><i class="fa-solid fa-share"></i> 95 Shares</div>
+                    </div>
+                </div>
+
+                <!-- FB Post 3 -->
+                <div class="fb-post-card">
+                    <div class="fb-post-header">
+                        <div class="fb-profile-avatar">
+                            <img src="~/Assets/images/logo.jpeg" alt="Climbers Circle Logo">
+                        </div>
+                        <div class="fb-author-info">
+                            <h4>Climbers' Circle <i class="fa-solid fa-circle-check fb-verified-icon"></i></h4>
+                            <p>Posted 3 days ago • <i class="fa-solid fa-earth-americas"></i></p>
+                        </div>
+                    </div>
+                    <div class="fb-post-content">
+                        🏕️ Highlights from our Summer Adventure Camp with young climbers practicing knot work, map reading, and outdoor endurance!
+                    </div>
+                    <div class="fb-post-image">
+                        <img src="/Assets/GalleryDetails/ssummer5.jpg" alt="Summer Camp Update">
+                    </div>
+                    <div class="fb-post-actions">
+                        <div class="fb-action-btn"><i class="fa-regular fa-thumbs-up"></i> 310 Likes</div>
+                        <div class="fb-action-btn"><i class="fa-regular fa-comment"></i> 24 Comments</div>
+                        <div class="fb-action-btn"><i class="fa-solid fa-share"></i> 18 Shares</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="social-feed-cta">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="btn-fb-follow">
+                    <i class="fa-brands fa-facebook-f"></i> Join Climbers' Circle Facebook Page
+                </a>
+            </div>
+        </section>
+
+    </div>
 </div>
 
 <script>
+    window.INSTAGRAM_ACCESS_TOKEN = "@instaToken";
+
     document.addEventListener("DOMContentLoaded", function () {
         const filterBtns = document.querySelectorAll(".gallery-filter-btn");
         const albumCards = document.querySelectorAll(".gallery-card");
         const searchInput = document.getElementById("albumSearchInput");
+
+        // Trigger Real-Time Instagram API Fetch
+        if (typeof window.initInstagramRealTimeFeed === "function" && window.INSTAGRAM_ACCESS_TOKEN) {
+            window.initInstagramRealTimeFeed(window.INSTAGRAM_ACCESS_TOKEN);
+        }
 
         function filterAlbums() {
             const activeFilter = document.querySelector(".gallery-filter-btn.active").getAttribute("data-filter");

@@ -11,6 +11,8 @@
     --accent-gold-gradient: linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #b08b45 100%);
     --accent-cyan: #00f2fe;
     --accent-cyan-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    --accent-insta-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    --accent-fb-gradient: linear-gradient(135deg, #1877f2 0%, #0866ff 100%);
     --text-heading: #ffffff;
     --text-body: #cbd5e1;
     --text-muted: #94a3b8;
@@ -238,7 +240,7 @@
 .gallery-container {
     max-width: 1350px;
     margin: 0 auto;
-    padding: 0 20px 100px;
+    padding: 0 20px 80px;
 }
 
 .gallery-grid {
@@ -256,11 +258,10 @@
     backdrop-filter: var(--glass-blur);
     box-shadow: var(--shadow-main);
     transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    overflow: visible; /* allows stack photo effect */
+    overflow: visible;
     cursor: pointer;
 }
 
-/* Tilted Photo Stack Effect behind main folder card */
 .gallery-card::before,
 .gallery-card::after {
     content: "";
@@ -300,7 +301,6 @@
     border-color: rgba(212, 175, 55, 0.3);
 }
 
-/* Image Banner */
 .gallery-card-image {
     position: relative;
     width: 100%;
@@ -327,7 +327,6 @@
     pointer-events: none;
 }
 
-/* Badge for photo count */
 .gallery-card-count-badge {
     position: absolute;
     top: 16px;
@@ -361,7 +360,6 @@
     color: #070a12;
 }
 
-/* Category Badge */
 .gallery-card-cat-badge {
     position: absolute;
     bottom: 16px;
@@ -378,7 +376,6 @@
     z-index: 2;
 }
 
-/* Card Body Content */
 .gallery-card-body {
     padding: 22px 24px 26px;
 }
@@ -448,13 +445,327 @@
     transform: translateX(4px);
 }
 
-/* No Match alert */
 .no-albums-found {
     grid-column: 1 / -1;
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
     font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   SOCIAL FEEDS SECTIONS (INSTAGRAM & FACEBOOK)
+   ========================================================================== */
+
+.social-feeds-wrapper {
+    margin-top: 60px;
+    padding-top: 60px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.social-section-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.social-section-title h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 12px;
+}
+
+.social-section-title h2 span.insta-text {
+    background: var(--accent-insta-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.social-section-title h2 span.fb-text {
+    background: var(--accent-fb-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.social-section-title p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.badge-insta {
+    background: rgba(220, 39, 67, 0.12);
+    border: 1px solid rgba(220, 39, 67, 0.3);
+    color: #dc2743;
+}
+
+.badge-fb {
+    background: rgba(24, 119, 242, 0.12);
+    border: 1px solid rgba(24, 119, 242, 0.3);
+    color: #1877f2;
+}
+
+/* INSTAGRAM FEED GRID */
+.instagram-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 35px;
+}
+
+.insta-card {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    background: var(--gallery-card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-main);
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.insta-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.insta-card:hover img {
+    transform: scale(1.1);
+}
+
+.insta-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(220, 39, 67, 0.6) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    opacity: 0;
+    backdrop-filter: blur(4px);
+    transition: opacity 0.35 ease;
+}
+
+.insta-card:hover .insta-card-overlay {
+    opacity: 1;
+}
+
+.insta-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fff;
+}
+
+.insta-icon-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-insta-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 15px rgba(220, 39, 67, 0.4);
+}
+
+.insta-metrics {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.insta-metrics span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.insta-caption {
+    color: #fff;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.insta-hashtags {
+    color: var(--accent-cyan);
+    font-weight: 600;
+}
+
+.btn-insta-follow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    border-radius: 50px;
+    background: var(--accent-insta-gradient);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(220, 39, 67, 0.35);
+    transition: all 0.3s ease;
+}
+
+.btn-insta-follow:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(220, 39, 67, 0.5);
+    color: #fff;
+}
+
+/* FACEBOOK FEED SECTION */
+.facebook-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 30px;
+    margin-bottom: 35px;
+}
+
+.fb-post-card {
+    background: var(--gallery-card-bg);
+    border: 1px solid rgba(24, 119, 242, 0.25);
+    border-radius: 20px;
+    padding: 24px;
+    backdrop-filter: var(--glass-blur);
+    box-shadow: var(--shadow-main);
+    transition: all 0.3s ease;
+}
+
+.fb-post-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(24, 119, 242, 0.6);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 25px rgba(24, 119, 242, 0.2);
+}
+
+.fb-post-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.fb-profile-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #1877f2;
+}
+
+.fb-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fb-author-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fb-verified-icon {
+    color: #1877f2;
+    font-size: 0.85rem;
+}
+
+.fb-author-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.fb-post-content {
+    font-size: 0.92rem;
+    color: var(--text-body);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.fb-post-image {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.fb-post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.fb-post-card:hover .fb-post-image img {
+    transform: scale(1.05);
+}
+
+.fb-post-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+    font-size: 0.88rem;
+}
+
+.fb-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.fb-action-btn:hover {
+    color: #1877f2;
+}
+
+.btn-fb-follow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    border-radius: 50px;
+    background: var(--accent-fb-gradient);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(24, 119, 242, 0.35);
+    transition: all 0.3s ease;
+}
+
+.btn-fb-follow:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(24, 119, 242, 0.5);
+    color: #fff;
+}
+
+/* Social Section Center Footer */
+.social-feed-cta {
+    text-align: center;
+    margin-top: 10px;
 }
 
 /* ==========================================================================
@@ -483,7 +794,6 @@
     margin-bottom: 30px;
 }
 
-/* Floating Back Button */
 .back-btn {
     display: inline-flex;
     align-items: center;
@@ -569,7 +879,6 @@
     transform: scale(1.1);
 }
 
-/* Hover Overlay on photo */
 .gallery-item-overlay {
     position: absolute;
     inset: 0;
@@ -623,7 +932,6 @@
     transform: translateY(0);
 }
 
-/* Bottom Back button container */
 .gallery-bottom-back {
     margin-top: 60px;
     display: flex;
@@ -655,7 +963,6 @@
     padding: 20px 0;
 }
 
-/* Lightbox Header Controls */
 .lightbox-header {
     width: 100%;
     padding: 10px 40px;
@@ -698,7 +1005,6 @@
     transform: rotate(90deg);
 }
 
-/* Lightbox Content */
 .lightbox-content {
     position: relative;
     width: 100%;
@@ -718,7 +1024,6 @@
     animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Lightbox Nav Buttons */
 .lightbox-prev,
 .lightbox-next {
     position: absolute;
@@ -766,7 +1071,6 @@
     margin-top: 10px;
 }
 
-/* Lightbox Thumbnail Strip */
 .lightbox-thumbnails {
     display: flex;
     gap: 10px;
@@ -822,10 +1126,7 @@
     to { opacity: 1; transform: scale(1); }
 }
 
-/* ==========================================================================
-   Responsive Breakpoints
-   ========================================================================== */
-
+/* Responsive */
 @media (max-width: 992px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -837,6 +1138,9 @@
     }
     .gallery-filter-tabs {
         justify-content: center;
+    }
+    .facebook-feed-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -851,6 +1155,10 @@
         grid-template-columns: 1fr;
         gap: 25px;
     }
+    .instagram-feed-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
     .gallery-details-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 15px;
@@ -863,6 +1171,9 @@
 }
 
 @media (max-width: 480px) {
+    .instagram-feed-grid {
+        grid-template-columns: 1fr;
+    }
     .gallery-details-grid {
         grid-template-columns: 1fr;
     }
