@@ -1,99 +1,221 @@
 @{
-    ViewData["Title"] = "Gallery";
+    ViewData["Title"] = "Expedition Albums & Gallery";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <link rel="stylesheet" href="~/Assets/Css/gallery.css" />
 
-<!-- Gallery Grid -->
-<div class="gallery-gape-section" style="margin:7rem;">
+<!-- Hero Header Section -->
+<section class="gallery-hero-section">
+    <div class="gallery-hero-bg-glow"></div>
+    <div class="container">
+        <div class="gallery-badge">
+            <i class="fa-solid fa-mountain-sun"></i> CLIMBERS' CIRCLE ARCHIVES
+        </div>
+        <h1 class="gallery-title">
+            Expedition & Training <span>Albums</span>
+        </h1>
+        <p class="gallery-subtitle">
+            Explore visual memories, high-altitude expeditions, rock climbing courses, and summer camps captured by our team.
+        </p>
+
+        <!-- Search & Filter Bar -->
+        <div class="gallery-controls-bar">
+            <div class="gallery-filter-tabs">
+                <button class="gallery-filter-btn active" data-filter="all">All Albums</button>
+                <button class="gallery-filter-btn" data-filter="training">Training</button>
+                <button class="gallery-filter-btn" data-filter="climbing">Rock Climbing</button>
+                <button class="gallery-filter-btn" data-filter="camp">Summer Camp</button>
+                <button class="gallery-filter-btn" data-filter="expedition">Expeditions</button>
+                <button class="gallery-filter-btn" data-filter="treks">Treks</button>
+            </div>
+            <div class="gallery-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="albumSearchInput" placeholder="Search albums..." />
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Animated Stats Section -->
+<div class="gallery-stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fa-solid fa-folder-closed"></i>
+        </div>
+        <div class="stat-info">
+            <h4>5+</h4>
+            <p>Active Albums</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fa-solid fa-camera-retro"></i>
+        </div>
+        <div class="stat-info">
+            <h4>35+</h4>
+            <p>High Res Photos</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fa-solid fa-compass"></i>
+        </div>
+        <div class="stat-info">
+            <h4>100%</h4>
+            <p>Adventure Experience</p>
+        </div>
+    </div>
 </div>
+
+<!-- Main Albums Grid Section -->
 <div class="container gallery-container">
-    <div class="gallery-grid">
+    <div class="gallery-grid" id="albumGrid">
         
-        <!-- Gallery Album 1 -->
-        <div class="gallery-card">
+        <!-- Gallery Album 1: Training -->
+        <div class="gallery-card" data-category="training" data-title="Annual training courses">
             <div class="gallery-card-image">
-                <img src="~/Assets/GalleryDetails/course3.jpg" alt="Adventure Gallery">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>Annual training courses</h3>
-                        <p>8 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn">View Gallery</a>
-                    </div>
+                <img src="~/Assets/GalleryDetails/course3.jpg" alt="Annual training courses">
+                <div class="gallery-card-overlay-gradient"></div>
+                <div class="gallery-card-count-badge">
+                    <i class="fa-regular fa-images"></i> 8 Photos
+                </div>
+                <div class="gallery-card-cat-badge">Training</div>
+            </div>
+            <div class="gallery-card-body">
+                <h3 class="gallery-card-title">Annual Training Courses</h3>
+                <p class="gallery-card-desc">Basic & advanced mountaineering skills, knot technique training, and endurance preparation.</p>
+                <div class="gallery-card-footer">
+                    <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn">
+                        View Album <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Gallery Album 2 -->
-        <div class="gallery-card">
+        <!-- Gallery Album 2: Rock Climbing -->
+        <div class="gallery-card" data-category="climbing" data-title="Rock climbing">
             <div class="gallery-card-image">
-                <img src="/Assets/GalleryDetails/climb6.jpg" alt="Team Events">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>Rock climbing</h3>
-                        <p>8 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 2 })" class="gallery-btn">View Gallery</a>
-                    </div>
+                <img src="/Assets/GalleryDetails/climb6.jpg" alt="Rock climbing">
+                <div class="gallery-card-overlay-gradient"></div>
+                <div class="gallery-card-count-badge">
+                    <i class="fa-regular fa-images"></i> 7 Photos
+                </div>
+                <div class="gallery-card-cat-badge">Climbing</div>
+            </div>
+            <div class="gallery-card-body">
+                <h3 class="gallery-card-title">Rock Climbing</h3>
+                <p class="gallery-card-desc">Natural rock face scaling, bouldering sessions, and safety gear maneuvering.</p>
+                <div class="gallery-card-footer">
+                    <a href="@Url.Action("Details", "GalleryContent", new { id = 2 })" class="gallery-btn">
+                        View Album <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Gallery Album 3 -->
-        <div class="gallery-card">
+        <!-- Gallery Album 3: Summer Camp -->
+        <div class="gallery-card" data-category="camp" data-title="Summer camp">
             <div class="gallery-card-image">
-                <img src="/Assets/GalleryDetails/ssummer5.jpg" alt="Training Sessions">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>Summer camp</h3>
-                        <p>8 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 3 })" class="gallery-btn">View Gallery</a>
-                    </div>
+                <img src="/Assets/GalleryDetails/ssummer5.jpg" alt="Summer camp">
+                <div class="gallery-card-overlay-gradient"></div>
+                <div class="gallery-card-count-badge">
+                    <i class="fa-regular fa-images"></i> 8 Photos
+                </div>
+                <div class="gallery-card-cat-badge">Camp</div>
+            </div>
+            <div class="gallery-card-body">
+                <h3 class="gallery-card-title">Summer Camp</h3>
+                <p class="gallery-card-desc">Youth outdoor workshops, tent pitching, wilderness survival, and team building.</p>
+                <div class="gallery-card-footer">
+                    <a href="@Url.Action("Details", "GalleryContent", new { id = 3 })" class="gallery-btn">
+                        View Album <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Gallery Album 4 -->
-        <div class="gallery-card">
+        <!-- Gallery Album 4: Expedition -->
+        <div class="gallery-card" data-category="expedition" data-title="Expedition">
             <div class="gallery-card-image">
-                <img src="/Assets/GalleryDetails/exp7.jpg" alt="Competitions">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>Expedition</h3>
-                        <p>8 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn">View Gallery</a>
-                    </div>
+                <img src="/Assets/GalleryDetails/exp7.jpg" alt="Expedition">
+                <div class="gallery-card-overlay-gradient"></div>
+                <div class="gallery-card-count-badge">
+                    <i class="fa-regular fa-images"></i> 8 Photos
+                </div>
+                <div class="gallery-card-cat-badge">Expedition</div>
+            </div>
+            <div class="gallery-card-body">
+                <h3 class="gallery-card-title">Himalayan Expedition</h3>
+                <p class="gallery-card-desc">Summit attempts, glacier crossing, and high-altitude technical climbs in remote ranges.</p>
+                <div class="gallery-card-footer">
+                    <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn">
+                        View Album <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
-        <!-- Gallery Album 5 -->
-        <div class="gallery-card">
+        <!-- Gallery Album 5: High-altitude treks -->
+        <div class="gallery-card" data-category="treks" data-title="High-altitude treks">
             <div class="gallery-card-image">
-                <img src="https://picsum.photos/id/1018/600/400" alt="Outdoor Activities">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>High-altitude treks</h3>
-                        <p>5 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 5 })" class="gallery-btn">View Gallery</a>
-                    </div>
+                <img src="/Assets/GalleryDetails/high1.jpg" alt="High-altitude treks">
+                <div class="gallery-card-overlay-gradient"></div>
+                <div class="gallery-card-count-badge">
+                    <i class="fa-regular fa-images"></i> 4 Photos
+                </div>
+                <div class="gallery-card-cat-badge">Treks</div>
+            </div>
+            <div class="gallery-card-body">
+                <h3 class="gallery-card-title">High-Altitude Treks</h3>
+                <p class="gallery-card-desc">Breathtaking Himalayan trail journeys, mountain passes, and scenic valley photography.</p>
+                <div class="gallery-card-footer">
+                    <a href="@Url.Action("Details", "GalleryContent", new { id = 5 })" class="gallery-btn">
+                        View Album <i class="fa-solid fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
-        </div>
-
-        <!-- Gallery Album 6 -->
-        @* <div class="gallery-card">
-            <div class="gallery-card-image">
-                <img src="https://picsum.photos/id/1019/600/400" alt="Workshops">
-                <div class="gallery-overlay">
-                    <div class="gallery-overlay-content">
-                        <h3>Low-altitude treks</h3>
-                        <p>20 Photos</p>
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 6 })" class="gallery-btn">View Gallery</a>
-                    </div>
-                </div>
-            </div> *@
         </div>
 
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const filterBtns = document.querySelectorAll(".gallery-filter-btn");
+        const albumCards = document.querySelectorAll(".gallery-card");
+        const searchInput = document.getElementById("albumSearchInput");
+
+        function filterAlbums() {
+            const activeFilter = document.querySelector(".gallery-filter-btn.active").getAttribute("data-filter");
+            const searchQuery = searchInput.value.toLowerCase().trim();
+
+            albumCards.forEach(card => {
+                const category = card.getAttribute("data-category");
+                const title = card.getAttribute("data-title").toLowerCase();
+
+                const matchesFilter = activeFilter === "all" || category === activeFilter;
+                const matchesSearch = title.includes(searchQuery);
+
+                if (matchesFilter && matchesSearch) {
+                    card.style.display = "block";
+                    card.style.animation = "fadeIn 0.5s ease forwards";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener("click", function () {
+                filterBtns.forEach(b => b.classList.remove("active"));
+                this.classList.add("active");
+                filterAlbums();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener("input", filterAlbums);
+        }
+    });
+</script>

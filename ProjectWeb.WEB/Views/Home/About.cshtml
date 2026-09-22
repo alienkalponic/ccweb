@@ -460,19 +460,33 @@
     </div>
 </div>
 
-<script>
-    window.dbAboutPeople = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
-        (Model?.aboutPageDetails?.AboutPerson ?? new List<ProjectWeb.Domain.DTO.AboutPage.AboutPersonDto>())
-        .Where(x => x.IsActive)
-        .OrderBy(x => x.DisplayOrder)
+@{
+    var rawPeopleList = Model?.aboutPageDetails?.AboutPerson
+                     ?? Model?.AboutPageDto?.AboutPerson
+                     ?? new List<ProjectWeb.Domain.DTO.AboutPage.AboutPersonDto>();
+
+    var formattedPeopleList = rawPeopleList
         .Select(x => new {
-            name = x.PersonName ?? "",
-            designation = x.PersonName ?? "",
-            quote = x.FullDescription ?? "",
+            name = !string.IsNullOrWhiteSpace(x.PersonName) ? x.PersonName : "Team Member",
+            designation = !string.IsNullOrWhiteSpace(x.PersonName) ? x.PersonName : "Climbers' Circle",
+            quote = !string.IsNullOrWhiteSpace(x.FullDescription) 
+                ? x.FullDescription 
+                : "Dedicated member and supporter of Climbers' Circle adventure and mountaineering activities.",
             src = !string.IsNullOrWhiteSpace(x.ImageUrl)
                 ? (x.ImageUrl.StartsWith("/") ? $"{projectApiUrl}{x.ImageUrl}" : x.ImageUrl)
-                : "../Assets/Testimonials/male.jpg"
+                : "../Assets/Testimonials/male.jpg",
+            isActive = x.IsActive
         })
-    ));
+        .ToList();
+
+    var activePeopleList = formattedPeopleList.Where(x => x.isActive).ToList();
+    if (activePeopleList.Count == 0 && formattedPeopleList.Count > 0)
+    {
+        activePeopleList = formattedPeopleList;
+    }
+}
+
+<script>
+    window.dbAboutPeople = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(activePeopleList));
 </script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
