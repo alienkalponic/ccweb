@@ -154,6 +154,56 @@ $(document).ready(function () {
             let $datset = $("#detailsimageBind");
             $datset.empty();
 
+
+            const apiUrl = _BaseURL + "/GalleryContent/GetGalleryDetails?id=" + id;
+            toastr.info("Fetching banner details...", "Please wait");
+
+            showLoader();
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                cache: false,  // Always fetch fresh data for edit modal
+                success: function (res) {
+                    if (res) {
+                        const data = res.Response || res;
+
+                        //$("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + matchingPhotos.length + ' High-Res Photos');
+
+                        //if (matchingPhotos.length === 0) {
+                        //    $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
+                        //    return;
+                        //}
+                        var _apiUrl = $("#apiurl").val();
+                        $.each(data, function (index, val) {
+                            let photoNumber = index + 1;
+                            var src = _apiUrl + val.ImagePath1;
+                            let htmlCard = `
+                                <div class="gallery-item" data-index="${index}">
+                                    <img src="${src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
+                                    <div class="gallery-item-overlay">
+                                        <div class="gallery-zoom-icon">
+                                            <i class="fa-solid fa-expand"></i>
+                                        </div>
+                                        <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
+                                    </div>
+                                </div>
+                            `;
+                            $datset.append(htmlCard);
+                        });
+                       
+                    } else {
+                        toastr.warning("Could not retrieve banner data.", "Warning");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    handleAjaxError(xhr, status, error);
+                },
+                complete: function () {
+                    hideLoader();
+                }
+            });
+
             const currentMeta = albumMeta[id] || {
                 title: "Expedition Gallery",
                 category: "ALBUM ARCHIVE",
@@ -161,34 +211,35 @@ $(document).ready(function () {
             };
 
             // Set dynamic header titles
-            $("#dynamicAlbumTitle").text(currentMeta.title);
-            $("#dynamicAlbumSubtitle").text(currentMeta.subtitle);
-            $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentMeta.category);
 
-            let matchingPhotos = testimonials.filter(val => val.id === id);
+            //$("#dynamicAlbumTitle").text(currentMeta.title);
+            //$("#dynamicAlbumSubtitle").text(currentMeta.subtitle);
+            //$("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentMeta.category);
+
+            //let matchingPhotos = testimonials.filter(val => val.id === id);
             
-            $("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + matchingPhotos.length + ' High-Res Photos');
+            //$("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + matchingPhotos.length + ' High-Res Photos');
 
-            if (matchingPhotos.length === 0) {
-                $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
-                return;
-            }
+            //if (matchingPhotos.length === 0) {
+            //    $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
+            //    return;
+            //}
 
-            $.each(matchingPhotos, function (index, val) {
-                let photoNumber = index + 1;
-                let htmlCard = `
-                    <div class="gallery-item" data-index="${index}">
-                        <img src="${val.src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
-                        <div class="gallery-item-overlay">
-                            <div class="gallery-zoom-icon">
-                                <i class="fa-solid fa-expand"></i>
-                            </div>
-                            <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
-                        </div>
-                    </div>
-                `;
-                $datset.append(htmlCard);
-            });
+            //$.each(matchingPhotos, function (index, val) {
+            //    let photoNumber = index + 1;
+            //    let htmlCard = `
+            //        <div class="gallery-item" data-index="${index}">
+            //            <img src="${val.src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
+            //            <div class="gallery-item-overlay">
+            //                <div class="gallery-zoom-icon">
+            //                    <i class="fa-solid fa-expand"></i>
+            //                </div>
+            //                <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
+            //            </div>
+            //        </div>
+            //    `;
+            //    $datset.append(htmlCard);
+            //});
 
             // Initialize Lightbox Modal Controller
             if (typeof window.initGallery === "function") {

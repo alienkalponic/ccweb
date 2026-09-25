@@ -112,7 +112,7 @@
                         <h3 class="gallery-card-title">@item.Title</h3>
                     // <p class="gallery-card-desc">Basic & advanced mountaineering skills, knot technique training, and endurance preparation.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = item.AchievementDetailsId })" class="gallery-btn">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>

@@ -10,6 +10,7 @@ using ProjectWeb.Domain.DTO.AboutPage;
 using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.ActivityDetails;
 using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Category;
 using ProjectWeb.Domain.DTO.ClubDescription;
 using ProjectWeb.Domain.DTO.Gallery;
 using ProjectWeb.Domain.DTO.LoginDto;
@@ -394,9 +395,14 @@ namespace ProjectWeb.WEB.Controllers
 
         #region::Achievement List
 
-        public IActionResult AchievementList()
+        public async Task<IActionResult> AchievementList()
         {
-            return View();
+            MultipleModel mmm = new MultipleModel();
+            APIResponse categoryresponse = await _unitOfWork
+                .SettingsManagement
+                .GetAllCategory<APIResponse>();
+            mmm.CategoryDtos = JsonConvert.DeserializeObject<List<CategoryDto>>(Convert.ToString(categoryresponse.Response)!);
+            return View(mmm);
         }
 
         //public IActionResult GalleryContent()

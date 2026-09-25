@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ProjectWeb.Application.Common.Repository.Master;
+using ProjectWeb.Domain.DTO.AchievementDetails;
 using ProjectWeb.Domain.DTO.Banner;
 using ProjectWeb.Domain.DTO.Category;
 using ProjectWeb.Domain.DTO.Gallery;
@@ -55,10 +56,30 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         // GET: GalleryContent/Details/5
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
             ViewBag.GalleryId = id;
+            
+
+
             return View();
+        }
+
+        public async Task<IActionResult> GetGalleryDetails(int id)
+        {
+            if (id <= 0)
+                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Achievement ID." }), "application/json");
+            APIResponse response = await _unitOfWork
+                .ContentManagement
+                .AchievementDetailsGalleryGetByAchievementId<APIResponse>(id);
+
+            var stringResponse = Convert.ToString(response.Response);
+            List<AchievementDetailsGalleryUpdateDto> list = new List<AchievementDetailsGalleryUpdateDto>();
+            if (!string.IsNullOrEmpty(stringResponse))
+            {
+                list = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryUpdateDto>>(stringResponse) ?? new List<AchievementDetailsGalleryUpdateDto>();
+            }
+            return Content(JsonConvert.SerializeObject(list), "application/json");
         }
 
         // GET: GalleryContent/GetInstagramFeed

@@ -1,4 +1,6 @@
-﻿@{
+﻿@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
+@{
     ViewData["Title"] = "Gallery";
     Layout = "~/Views/Shared/Admin_Layout.cshtml";
 }
@@ -86,7 +88,31 @@
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold mb-2">SubTitle</label>
-                                <input type="text" class="form-control" id="txtGallerySubTitle" name="CreateGalleryDto.SubTitle" placeholder="Enter subtitle...">
+                                @* <input type="text" class="form-control" id="txtGallerySubTitle" name="CreateGalleryDto.SubTitle" placeholder="Enter subtitle..."> *@
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0" style="border-radius: var(--admin-radius-sm) 0 0 var(--admin-radius-sm);"><i class="fa fa-sort"></i></span>
+                                    <select class="form-select border-start-0" id="ddlSection" name="@Model.AchievementDetailsCreateDto?.GalleryItemsId" style="border-radius: 0 var(--admin-radius-sm) var(--admin-radius-sm) 0;">
+                                        @if (Model.CategoryDtos == null || !Model.CategoryDtos.Any())
+                                        {
+                                            <option value="">No Sections Available</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="">-- Select Section --</option>
+                                            @foreach (var item in Model.CategoryDtos)
+                                            {
+
+
+                                                <option value="@item.CategoryId">@item.CategoryName</option>
+
+
+                                            }
+                                        }
+
+
+                                    </select>
+                                </div>
+                                
                             </div>
 
                             <div class="col-md-6 mb-3">

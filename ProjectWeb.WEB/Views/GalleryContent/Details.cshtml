@@ -1,12 +1,17 @@
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Album Details - Climbers' Circle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    string imagePath = Url.Content("~/");
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
 }
 
 <link rel="stylesheet" href="~/Assets/Css/gallery.css" />
 
 <!-- Dynamic Album Details Header -->
 <div class="gallery-details-header">
+    <input type="hidden" id="apiurl" value="@projectApiUrl" />
     <div class="container">
         <div class="gallery-details-topbar">
             <a href="@Url.Action("Index", "GalleryContent")" class="back-btn">
