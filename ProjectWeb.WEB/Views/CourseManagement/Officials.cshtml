@@ -1,0 +1,342 @@
+@{
+    ViewData["Title"] = "Officials Management";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+<script>
+    var _ProjectAPI = '@projectApiUrl';
+</script>
+
+@section Styles {
+    <style>
+        /* --- Header Panel Styling --- */
+        .about-page-header-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .about-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .about-action-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        @@media (max-width: 767.98px) {
+            .about-page-header-card {
+                padding: 1rem;
+            }
+            .about-header-flex {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .about-action-group {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+            .about-action-group .form-control,
+            .about-action-group select,
+            .about-action-group .btn {
+                width: 100% !important;
+            }
+        }
+
+        /* --- Table Styling & Responsiveness --- */
+        .about-table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table-responsive-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .about-custom-table {
+            width: 100%;
+            min-width: 1000px !important;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .about-custom-table thead th {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 12px 16px !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+        }
+        .about-custom-table tbody td {
+            padding: 12px 16px !important;
+            vertical-align: middle !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            font-size: 0.875rem !important;
+            white-space: nowrap !important;
+        }
+        .about-custom-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* --- Modal Dialog Responsive & Scrollability --- */
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 2rem);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-dialog-scrollable .modal-body {
+            max-height: calc(100vh - 140px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        @@media (max-width: 767.98px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+            .modal-dialog-scrollable .modal-content {
+                max-height: calc(100vh - 1rem);
+            }
+            .modal-dialog-scrollable .modal-body {
+                max-height: calc(100vh - 120px) !important;
+                padding: 1rem !important;
+            }
+            .modal-header {
+                padding: 1rem 1rem 0.5rem 1rem !important;
+            }
+            .modal-footer {
+                padding: 0.75rem 1rem !important;
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0 !important;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <!-- Modern Header Card Panel -->
+            <div class="about-page-header-card animate-fade-in">
+                <div class="about-header-flex">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark" style="font-size: 1.35rem; color: #1e293b;">
+                            <i class="fa fa-user-secret text-primary me-2"></i>Course Officials Management
+                        </h3>
+                        <p class="text-muted small mb-0">Manage course instructors, leaders, doctors, quarter masters, and their honorariums.</p>
+                    </div>
+                    <div class="about-action-group">
+                        <button type="button" class="btn btn-primary btn-sm btn-add-page px-3 fw-semibold" id="btnAddNewOfficial">
+                            <i class="fa fa-plus me-1"></i> Add Course Official
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Filter Section Card -->
+            <div class="about-page-header-card animate-fade-in mb-4" style="padding: 1rem 1.25rem;">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Course</label>
+                        <select id="official_FilterCourse" class="form-control select2">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Year</label>
+                        <input type="number" id="official_FilterYear" class="form-control" placeholder="e.g. 2026" />
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Role</label>
+                        <select id="official_FilterRole" class="form-control">
+                            <option value="">All Roles</option>
+                            <option value="Instructor">Instructor</option>
+                            <option value="Leader">Leader</option>
+                            <option value="QuarterMaster">Quarter Master</option>
+                            <option value="Doctor">Doctor / Medical</option>
+                            <option value="Volunteer">Volunteer</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Payment Status</label>
+                        <select id="official_FilterPaymentStatus" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="PAID">Paid</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Search</label>
+                        <input type="text" id="official_Search" class="form-control" placeholder="Official Name..." />
+                    </div>
+                    <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-end gap-2 mt-2">
+                        <button type="button" id="btnFilterOfficials" class="btn btn-info px-4">
+                            <i class="fa fa-search me-1"></i> Search
+                        </button>
+                        <button type="button" id="btnResetOfficials" class="btn btn-secondary px-4">
+                            <i class="fa fa-refresh me-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card Container with Horizontal Scroll -->
+            <div class="about-table-card animate-fade-in">
+                <div class="table-responsive-container">
+                    <table id="tbl_Officials" class="table about-custom-table align-middle" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">SL</th>
+                                <th style="min-width: 150px;">Official Name</th>
+                                <th style="min-width: 160px;">Course & Batch</th>
+                                <th style="min-width: 120px;">Role</th>
+                                <th style="min-width: 110px;" class="text-end">Howrah → Dest (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Dest → Howrah (₹)</th>
+                                <th style="min-width: 120px;" class="text-end font-weight-bold">Total Amount (₹)</th>
+                                <th style="min-width: 110px;" class="text-center">Payment Status</th>
+                                <th style="min-width: 140px;">Remarks</th>
+                                <th style="min-width: 100px;" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading officials...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+                <div id="officialRecordInfo" class="text-muted small"></div>
+                <div class="pagination_oputer" style="text-align: right!important;">
+                    <ul class="pagination" id="officialPagination"></ul>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <!-- Create / Edit Official Modal -->
+    <div class="modal fade" id="officialModal" tabindex="-1" role="dialog" aria-labelledby="officialModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg, 12px);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary mr-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-user-secret fs-4" style="color: var(--admin-primary, #a01c2b);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="officialModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main, #1e293b);">Add Course Official</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="officialForm" novalidate onsubmit="return false;">
+                        <input type="hidden" id="hdn_CourseOfficialId" value="0" />
+                        <input type="hidden" id="hdn_OfficialPersonId" value="0" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Official Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="txt_OfficialName" placeholder="Full Name of Official" required />
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Select Course Batch <span class="text-danger">*</span></label>
+                                <select id="ddl_OfficialBatch" class="form-control select2" required>
+                                    <option value="">-- Select Batch --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                                <select id="txt_OfficialRole" class="form-control" required>
+                                    <option value="Instructor">Instructor</option>
+                                    <option value="Leader">Leader</option>
+                                    <option value="QuarterMaster">Quarter Master</option>
+                                    <option value="Doctor">Doctor / Medical</option>
+                                    <option value="Volunteer">Volunteer</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Payment Status</label>
+                                <select id="ddl_OfficialPaymentStatus" class="form-control">
+                                    <option value="PENDING">PENDING</option>
+                                    <option value="PAID">PAID</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Howrah → Destination (₹)</label>
+                                <input type="number" step="0.01" min="0" class="form-control calc-official-total" id="txt_HowrahToDest" value="0" />
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Destination → Howrah (₹)</label>
+                                <input type="number" step="0.01" min="0" class="form-control calc-official-total" id="txt_DestToHowrah" value="0" />
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Total Amount (₹) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="txt_OfficialAmount" value="0" required />
+                            </div>
+
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Remarks</label>
+                                <textarea class="form-control" id="txt_OfficialRemarks" rows="2" placeholder="Notes or instructions..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer bg-light border-top-0 px-4 py-3">
+                    <button type="button" class="btn btn-light btnCancel px-4 fw-semibold" data-bs-dismiss="modal">
+                        <i class="fa fa-times me-1"></i> Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary px-4 fw-semibold" id="btnSaveOfficial">
+                        <i class="fa fa-save me-1"></i> Save Official
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

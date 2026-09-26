@@ -27,6 +27,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
         public IUIManagementRepository UIManagement { get; private set; }
 
         public ISettingsManagementRepository SettingsManagement { get; private set; }
+        public ICourseManagementRepository CourseManagement { get; private set; }
 
         public UnitOfWork(
             IHttpClientFactory clientFactory, 
@@ -69,6 +70,13 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 _baseService,
                 _contextAccessor,
                 _loggerFactory.CreateLogger<SettingsManagementService>());
+
+            CourseManagement = new CourseManagementRepository(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<CourseManagementRepository>());
         }
     }
 }

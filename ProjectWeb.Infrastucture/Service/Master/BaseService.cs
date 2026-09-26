@@ -400,8 +400,30 @@ namespace ProjectWeb.Infrastucture.Service.Master
                         default:
                             if (httpResponseMessage.IsSuccessStatusCode)
                             {
-                                finalApiResponse = JsonConvert.DeserializeObject<APIResponse>(apiContent);
-                                finalApiResponse.Success = true;
+                                try
+                                {
+                                    // Try deserializing as standard APIResponse
+                                    var parsedObj = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                    if (parsedObj != null && (parsedObj.Response != null || parsedObj.ErrorMassage?.Count > 0 || parsedObj.StatusCode != 0))
+                                    {
+                                        finalApiResponse = parsedObj;
+                                        finalApiResponse.Success = true;
+                                    }
+                                    else
+                                    {
+                                        // Payload is raw data (e.g. array or direct DTO object)
+                                        finalApiResponse.Success = true;
+                                        finalApiResponse.StatusCode = HttpStatusCode.OK;
+                                        finalApiResponse.Response = apiContent;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Payload is a raw JSON array (e.g. [{...}]) or direct object
+                                    finalApiResponse.Success = true;
+                                    finalApiResponse.StatusCode = HttpStatusCode.OK;
+                                    finalApiResponse.Response = apiContent;
+                                }
                             }
                             else
                             {

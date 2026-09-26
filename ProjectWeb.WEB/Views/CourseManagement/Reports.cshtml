@@ -1,0 +1,284 @@
+@{
+    ViewData["Title"] = "Course Financial & Summary Reports";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+<script>
+    var _ProjectAPI = '@projectApiUrl';
+</script>
+
+@section Styles {
+    <style>
+        /* --- Header Panel Styling --- */
+        .about-page-header-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .about-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .about-action-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        @@media (max-width: 767.98px) {
+            .about-page-header-card {
+                padding: 1rem;
+            }
+            .about-header-flex {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .about-action-group {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+            .about-action-group .form-control,
+            .about-action-group select,
+            .about-action-group .btn {
+                width: 100% !important;
+            }
+        }
+
+        /* --- Table Styling & Responsiveness --- */
+        .about-table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table-responsive-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .about-custom-table {
+            width: 100%;
+            min-width: 900px !important;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .about-custom-table thead th {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 12px 16px !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+        }
+        .about-custom-table tbody td {
+            padding: 12px 16px !important;
+            vertical-align: middle !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            font-size: 0.875rem !important;
+            white-space: nowrap !important;
+        }
+        .about-custom-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+    </style>
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <!-- Modern Header Card Panel -->
+            <div class="about-page-header-card animate-fade-in">
+                <div class="about-header-flex">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark" style="font-size: 1.35rem; color: #1e293b;">
+                            <i class="fa fa-bar-chart text-primary me-2"></i>Course Reports & Financial Analytics
+                        </h3>
+                        <p class="text-muted small mb-0">Consolidated financial overview, segment analysis, and multi-year summaries.</p>
+                    </div>
+                    <div class="about-action-group">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-semibold" onclick="window.print()">
+                            <i class="fa fa-print me-1"></i> Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Filter Section Card -->
+            <div class="about-page-header-card animate-fade-in mb-4" style="padding: 1rem 1.25rem;">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Filter Course</label>
+                        <select id="report_FilterCourse" class="form-control select2">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Year</label>
+                        <input type="number" id="report_FilterYear" class="form-control" value="@DateTime.Now.Year" placeholder="e.g. @DateTime.Now.Year" />
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Date From</label>
+                        <input type="text" id="report_DateFrom" class="form-control flatpickr-date" placeholder="YYYY-MM-DD" />
+                    </div>
+                    <div class="col-lg-2 col-md-6 col-sm-12">
+                        <label class="form-label small text-muted font-weight-bold">Date To</label>
+                        <input type="text" id="report_DateTo" class="form-control flatpickr-date" placeholder="YYYY-MM-DD" />
+                    </div>
+                    <div class="col-lg-2 col-md-12 col-sm-12 d-flex align-items-end gap-2 mt-3 mt-lg-0">
+                        <button type="button" id="btnFilterReports" class="btn btn-info w-100" title="Filter Report">
+                            <i class="fa fa-search me-1"></i> Filter
+                        </button>
+                        <button type="button" id="btnResetReports" class="btn btn-secondary w-100" title="Reset Filter">
+                            <i class="fa fa-refresh me-1"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REGISTRATION & FINANCIAL SUMMARY CARDS -->
+            <div class="row g-3 mb-4 animate-fade-in">
+                <!-- Registration Breakdown Card -->
+                <div class="col-lg-6">
+                    <div class="about-table-card h-100 mb-0 p-3">
+                        <h6 class="mb-3 font-weight-bold text-primary border-bottom pb-2">
+                            <i class="fa fa-users me-2"></i>Registration Status Summary
+                        </h6>
+                        <div class="row text-center g-3">
+                            <div class="col-4 border-end">
+                                <div class="text-muted small">Total Registrations</div>
+                                <div class="h4 mb-0 text-primary font-weight-bold" id="rep_RegTotal">0</div>
+                            </div>
+                            <div class="col-4 border-end">
+                                <div class="text-muted small">Confirmed</div>
+                                <div class="h4 mb-0 text-success font-weight-bold" id="rep_RegConfirmed">0</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted small">Cancelled</div>
+                                <div class="h4 mb-0 text-danger font-weight-bold" id="rep_RegCancelled">0</div>
+                            </div>
+                            <div class="col-4 border-end pt-3">
+                                <div class="text-muted small">Registered</div>
+                                <div class="h5 mb-0 text-info" id="rep_RegRegistered">0</div>
+                            </div>
+                            <div class="col-4 border-end pt-3">
+                                <div class="text-muted small">Completed</div>
+                                <div class="h5 mb-0 text-dark" id="rep_RegCompleted">0</div>
+                            </div>
+                            <div class="col-4 pt-3">
+                                <div class="text-muted small">Waiting</div>
+                                <div class="h5 mb-0 text-warning" id="rep_RegWaiting">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Calculation Card -->
+                <div class="col-lg-6">
+                    <div class="about-table-card h-100 mb-0 p-3">
+                        <h6 class="mb-3 font-weight-bold text-success border-bottom pb-2">
+                            <i class="fa fa-calculator me-2"></i>Financial & Net Income Formula
+                        </h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent">
+                                <span>Total Collection (₹)</span>
+                                <span class="font-weight-bold text-success" id="rep_FinCollection">₹0.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent">
+                                <span>(-) Total Refund (₹)</span>
+                                <span class="text-danger" id="rep_FinRefund">₹0.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent">
+                                <span>(-) Total Expense (₹)</span>
+                                <span class="text-secondary" id="rep_FinExpense">₹0.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-0 bg-transparent">
+                                <span>(-) Official Honorarium Paid (₹)</span>
+                                <span class="text-warning" id="rep_FinOfficialPaid">₹0.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-3 bg-light rounded mt-2">
+                                <span class="font-weight-bold h6 mb-0 text-primary">(=) Net Course Income</span>
+                                <span class="font-weight-bold h5 mb-0 text-primary" id="rep_NetCourseIncome">₹0.00</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEGMENT-WISE REPORT TABLE -->
+            <div class="about-table-card animate-fade-in mb-4">
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-0 font-weight-bold text-primary"><i class="fa fa-pie-chart me-2"></i>Segment-Wise Course Breakdown</h5>
+                </div>
+                <div class="table-responsive-container">
+                    <table class="table about-custom-table align-middle" id="rep_SegmentTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 150px;">Course Segment</th>
+                                <th style="min-width: 110px;" class="text-center">Participants</th>
+                                <th style="min-width: 120px;" class="text-end">Collected (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Due (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Refund (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Expense (₹)</th>
+                                <th style="min-width: 120px;" class="text-end">Official Paid (₹)</th>
+                                <th style="min-width: 130px;" class="text-end font-weight-bold">Net Income (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading segment report...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- YEAR-WISE REPORT TABLE -->
+            <div class="about-table-card animate-fade-in mb-4">
+                <div class="p-3 border-bottom">
+                    <h5 class="mb-0 font-weight-bold text-primary"><i class="fa fa-calendar-check-o me-2"></i>Year-Wise Summary</h5>
+                </div>
+                <div class="table-responsive-container">
+                    <table class="table about-custom-table align-middle" id="rep_YearTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 80px;">Year</th>
+                                <th style="min-width: 180px;">Course Name</th>
+                                <th style="min-width: 110px;" class="text-center">Participants</th>
+                                <th style="min-width: 120px;" class="text-end">Collected (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Refund (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Expense (₹)</th>
+                                <th style="min-width: 130px;" class="text-end font-weight-bold">Net Income (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading year-wise report...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </section>
+}
