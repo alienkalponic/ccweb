@@ -22,35 +22,81 @@ namespace ProjectWeb.WEB.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenProvider _tokenProvider;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<GalleryContentController> _logger;
 
         public GalleryContentController(
             IMapper mapper, 
             IUnitOfWork unitOfWork, 
             IHttpContextAccessor httpContextAccessor, 
             ITokenProvider tokenProvider,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<GalleryContentController> logger)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
             _tokenProvider = tokenProvider;
             _configuration = configuration;
+            _logger = logger;
         }
 
         // GET: GalleryContent
         public async Task<IActionResult> Index()
         {
             ViewBag.InstagramAccessToken = _configuration["InstagramSettings:AccessToken"] ?? "";
-            MultipleModel mmm = new MultipleModel();
-            APIResponse response = await _unitOfWork
-                .UIManagement
-                .GetAllGallery<APIResponse>();
-            mmm.GalleryListDtos= JsonConvert.DeserializeObject<List<GalleryListDto>>(Convert.ToString(response.Response)!);
+            MultipleModel mmm = new MultipleModel
+            {
+                GalleryListDtos = new List<GalleryListDto>(),
+                CategoryDtos = new List<CategoryDto>()
+            };
 
-            APIResponse categoryresponse = await _unitOfWork
-                .SettingsManagement
-                .GetAllCategory<APIResponse>();
-            mmm.CategoryDtos = JsonConvert.DeserializeObject<List<CategoryDto>>(Convert.ToString(categoryresponse.Response)!);
+            try
+            {
+                APIResponse response = await _unitOfWork
+                    .UIManagement
+                    .GetAllGallery<APIResponse>();
+
+                if (response != null && response.Success && response.Response != null)
+                {
+                    var rawJson = Convert.ToString(response.Response);
+                    if (!string.IsNullOrWhiteSpace(rawJson))
+                    {
+                        mmm.GalleryListDtos = JsonConvert.DeserializeObject<List<GalleryListDto>>(rawJson) ?? new List<GalleryListDto>();
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("[GalleryContent] GetAllGallery returned unsuccessful or empty response.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[GalleryContent] Error fetching gallery list in Index");
+            }
+
+            try
+            {
+                APIResponse categoryresponse = await _unitOfWork
+                    .SettingsManagement
+                    .GetAllCategory<APIResponse>();
+
+                if (categoryresponse != null && categoryresponse.Success && categoryresponse.Response != null)
+                {
+                    var rawJson = Convert.ToString(categoryresponse.Response);
+                    if (!string.IsNullOrWhiteSpace(rawJson))
+                    {
+                        mmm.CategoryDtos = JsonConvert.DeserializeObject<List<CategoryDto>>(rawJson) ?? new List<CategoryDto>();
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("[GalleryContent] GetAllCategory returned unsuccessful or empty response.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[GalleryContent] Error fetching category list in Index");
+            }
 
             return View(mmm);
         }

@@ -14,4 +14,8 @@
     <Folder Include="wwwroot\Assets\Admin\Css\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+  </ItemGroup>
+
 </Project>

@@ -133,6 +133,20 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public decimal NetReceived { get; set; }
         public string PaymentStatus { get; set; } = "PENDING"; // PENDING, PARTIAL, COMPLETED
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Dynamic Aliases for flexible API/UI deserialization
+        public long Id { get => CourseEnrollmentId > 0 ? CourseEnrollmentId : EnrollmentId; set { if (CourseEnrollmentId == 0) CourseEnrollmentId = value; if (EnrollmentId == 0) EnrollmentId = value; } }
+        public string? FullName { get => ParticipantName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(ParticipantName)) ParticipantName = value; } }
+        public string? Name { get => ParticipantName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(ParticipantName)) ParticipantName = value; } }
+        public string? PhoneNumber { get => Phone; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(Phone)) Phone = value; } }
+        public string? BatchName { get => CourseName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(CourseName)) CourseName = value; } }
+        public string? CourseCode { get; set; }
+        public string? Status { get => EnrollmentStatus; set { if (!string.IsNullOrEmpty(value)) EnrollmentStatus = value; } }
+        public decimal? PaidAmount { get => TotalPaid; set { if (value.HasValue && value.Value > 0) TotalPaid = value.Value; } }
+        public decimal? Paid { get => TotalPaid; set { if (value.HasValue && value.Value > 0) TotalPaid = value.Value; } }
+        public decimal? CourseFee { get => TotalCourseFee; set { if (value.HasValue && value.Value > 0) TotalCourseFee = value.Value; } }
+        public decimal? TotalFee { get => TotalCourseFee; set { if (value.HasValue && value.Value > 0) TotalCourseFee = value.Value; } }
+        public List<CoursePaymentDto>? Payments { get; set; }
     }
 
     public class CreateEnrollmentDto
@@ -142,6 +156,13 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public string ReferencePerson { get; set; } = string.Empty;
         public bool FormSubmitted { get; set; } = false;
         public string EnrollmentStatus { get; set; } = "REGISTERED";
+
+        /// <summary>
+        /// Alias for EnrollmentStatus — required because the API's create-enrollment
+        /// JSON payload maps to $.Enrollment.Status (not EnrollmentStatus).
+        /// </summary>
+        public string Status { get => EnrollmentStatus; set { if (!string.IsNullOrEmpty(value)) EnrollmentStatus = value; } }
+
         public string Remarks { get; set; } = string.Empty;
 
         // Person info (if creating new person)
@@ -197,6 +218,12 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public long Id { get => CourseEnrollmentId; set => CourseEnrollmentId = value; }
     }
 
+    public class ReconfirmEnrollmentRequest
+    {
+        public long EnrollmentId { get; set; }
+        public long CourseEnrollmentId { get => EnrollmentId; set => EnrollmentId = value; }
+    }
+
     public class EnrollmentDetailsDto
     {
         public CourseEnrollmentDto Enrollment { get; set; } = new();
@@ -224,6 +251,16 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public string TransactionReference { get; set; } = string.Empty;
         public string Remarks { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Dynamic Aliases
+        public long Id { get => CoursePaymentId > 0 ? CoursePaymentId : EnrollmentId; set { if (CoursePaymentId == 0) CoursePaymentId = value; } }
+        public long CourseEnrollmentId { get => EnrollmentId; set { if (value > 0 && EnrollmentId == 0) EnrollmentId = value; } }
+        public string? FullName { get => ParticipantName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(ParticipantName)) ParticipantName = value; } }
+        public string? Name { get => ParticipantName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(ParticipantName)) ParticipantName = value; } }
+        public string? PersonName { get => ParticipantName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(ParticipantName)) ParticipantName = value; } }
+        public decimal? PaymentAmount { get => Amount; set { if (value.HasValue && value.Value > 0) Amount = value.Value; } }
+        public string? Paymentreceiver { get => PaymentReceiver; set { if (!string.IsNullOrEmpty(value)) PaymentReceiver = value; } }
+        public string? Receiver { get => PaymentReceiver; set { if (!string.IsNullOrEmpty(value)) PaymentReceiver = value; } }
     }
 
     public class AddPaymentDto
@@ -302,6 +339,14 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public string PaymentStatus { get; set; } = "PENDING"; // PENDING, PAID
         public string Remarks { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Dynamic Aliases
+        public long Id { get => CourseOfficialId; set { if (CourseOfficialId == 0) CourseOfficialId = value; } }
+        public string? Name { get => OfficialName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(OfficialName)) OfficialName = value; } }
+        public string? FullName { get => OfficialName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(OfficialName)) OfficialName = value; } }
+        public string? ParticipantName { get => OfficialName; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(OfficialName)) OfficialName = value; } }
+        public decimal? OfficialPaid { get => Amount; set { if (value.HasValue && value.Value > 0) Amount = value.Value; } }
+        public decimal? TotalOfficialPaid { get => Amount; set { if (value.HasValue && value.Value > 0) Amount = value.Value; } }
     }
 
     public class AddCourseOfficialDto
@@ -348,6 +393,8 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public string PaymentMode { get; set; } = "CASH";
         public string Remarks { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public string? ExpenseMadeBy { get => PaidBy; set { if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(PaidBy)) PaidBy = value; } }
     }
 
     public class AddCourseExpenseDto
@@ -420,5 +467,18 @@ namespace ProjectWeb.Domain.DTO.CourseManagement
         public CourseDashboardSummaryDto Summary { get; set; } = new();
         public List<SegmentSummaryDto> SegmentSummaries { get; set; } = new();
         public List<YearWiseSummaryDto> YearWiseSummaries { get; set; } = new();
+    }
+
+    public class CourseExcelExportRequestDto
+    {
+        public List<CourseEnrollmentDto>? Enrollments { get; set; }
+        public List<CoursePaymentDto>? Payments { get; set; }
+        public List<CourseRefundDto>? Refunds { get; set; }
+        public List<CourseOfficialDto>? Officials { get; set; }
+        public List<CourseExpenseDto>? Expenses { get; set; }
+        public int? Year { get; set; }
+        public long? CourseId { get; set; }
+        public DateTime? DateFrom { get; set; }
+        public DateTime? DateTo { get; set; }
     }
 }

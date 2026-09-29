@@ -36,6 +36,19 @@ $(document).ready(function () {
         }
     }
 
+    // Helper: Payment Receiver ID → Display Name
+    // Master receiver list — future master table এর সাথে link করার জন্য ID গুলো string হিসেবে save হবে
+    const PAYMENT_RECEIVERS = {
+        "1": "Dipto",
+        "2": "Bank",
+        "3": "Prabir"
+    };
+    function getReceiverName(idOrValue) {
+        if (!idOrValue) return '-';
+        const key = String(idOrValue).trim();
+        return PAYMENT_RECEIVERS[key] || idOrValue; // fallback: stored value দেখাবে যদি ID match না হয়
+    }
+
     // Helper: Non-refundable retention amount and refund calculator
     function calculateRetentionAndRefund(totalPaid, batchRetentionAmount) {
         const paid = parseFloat(totalPaid) || 0;
@@ -156,21 +169,34 @@ $(document).ready(function () {
     // Common AJAX Error Handler
     function handleAjaxError(xhr, status, error) {
         hideLoader();
-        let errorMessage = "An error occurred while processing your request.";
-        if (xhr.status === 0) {
-            errorMessage = "Network error: Unable to connect to server.";
-        } else if (xhr.status === 404) {
-            errorMessage = "API endpoint not found (404).";
-        } else if (xhr.status === 401) {
-            errorMessage = "Unauthorized access. Please login again.";
-        } else if (xhr.status === 500) {
-            errorMessage = "Internal server error (500).";
-        } else if (xhr.responseText) {
+        let errorMessage = "";
+        if (xhr.responseText) {
             try {
                 const res = JSON.parse(xhr.responseText);
-                errorMessage = res.Response || res.response || (res.ErrorMassage ? res.ErrorMassage.join("<br/>") : errorMessage);
+                if (res.Response || res.response) {
+                    errorMessage = res.Response || res.response;
+                } else if (res.ErrorMassage && res.ErrorMassage.length > 0) {
+                    errorMessage = res.ErrorMassage.join("<br/>");
+                } else if (res.errorMassage && res.errorMassage.length > 0) {
+                    errorMessage = res.errorMassage.join("<br/>");
+                }
             } catch (e) {
-                errorMessage = xhr.responseText || "Server error occurred.";
+                if (xhr.responseText && xhr.responseText.length < 250 && !xhr.responseText.includes("<!DOCTYPE")) {
+                    errorMessage = xhr.responseText;
+                }
+            }
+        }
+        if (!errorMessage) {
+            if (xhr.status === 0) {
+                errorMessage = "Network error: Unable to connect to server.";
+            } else if (xhr.status === 404) {
+                errorMessage = "API endpoint not found (404).";
+            } else if (xhr.status === 401) {
+                errorMessage = "Unauthorized access. Please login again.";
+            } else if (xhr.status === 500) {
+                errorMessage = "Internal server error (500). Please check server logs.";
+            } else {
+                errorMessage = "An error occurred while processing your request.";
             }
         }
         toastr.error(errorMessage, "Error");
@@ -937,6 +963,25 @@ $(document).ready(function () {
             saveEnrollment();
         });
 
+        $("#txt_InitialPaymentAmount").on("input change", function () {
+            const raw = $(this).val();
+            const amt = raw !== null && raw !== undefined && raw !== "" 
+                ? parseFloat(raw.toString().replace(/,/g, '').trim()) || 0 
+                : 0;
+            const currentStatus = ($("#ddl_EnrollStatus").val() || "").toUpperCase();
+            const enrollId = parseInt($("#hdn_EnrollmentId").val()) || 0;
+
+            if (amt > 0) {
+                if (currentStatus === "REGISTERED" || enrollId === 0) {
+                    $("#ddl_EnrollStatus").val("CONFIRMED");
+                }
+            } else {
+                if (currentStatus === "CONFIRMED" && (enrollId === 0 || $("#hdn_OriginalEnrollStatus").val() === "REGISTERED")) {
+                    $("#ddl_EnrollStatus").val("REGISTERED");
+                }
+            }
+        });
+
         $("#btnSubmitPayment").on("click", function () {
             submitPayment();
         });
@@ -1065,6 +1110,10 @@ $(document).ready(function () {
                                 <button type="button" class="btn btn-outline-primary btnEditEnrollment" data-id="${item.CourseEnrollmentId || item.EnrollmentId}" title="Edit Enrollment">
                                     <i class="fa fa-pencil"></i>
                                 </button>
+                                ${isCancelled ? `
+                                <button type="button" class="btn btn-outline-success btnReconfirmEnrollment" data-id="${item.CourseEnrollmentId || item.EnrollmentId}" data-name="${participantName}" data-refund="${item.TotalRefund ?? 0}" data-fee="${totalCourseFee}" data-paid="${totalPaid}" title="Re-Confirm / Activate Enrollment">
+                                    <i class="fa fa-check-circle"></i>
+                                </button>` : ''}
                                 ${!isCancelled && totalDue > 0 ? `
                                 <button type="button" class="btn btn-outline-success btnAddPaymentModal" data-id="${item.CourseEnrollmentId || item.EnrollmentId}" data-name="${participantName}" data-fee="${totalCourseFee}" data-paid="${totalPaid}" data-due="${totalDue}" title="Add Payment">
                                     <i class="fa fa-money"></i>
@@ -1111,12 +1160,22 @@ $(document).ready(function () {
                 const name = $(this).data("name");
                 confirmCancelEnrollment(id, name);
             });
+
+            $(".btnReconfirmEnrollment").off("click").on("click", function () {
+                const id = $(this).data("id");
+                const name = $(this).data("name");
+                const refund = parseFloat($(this).data("refund")) || 0;
+                const fee = parseFloat($(this).data("fee")) || 0;
+                const paid = parseFloat($(this).data("paid")) || 0;
+                quickReconfirmEnrollment(id, name, refund, fee, paid);
+            });
         }
 
         function resetEnrollmentModal() {
             $("#hdn_EnrollmentId").val("0");
             $("#hdn_PersonId").val("0");
             $("#hdn_PaymentId").val("0");
+            $("#hdn_OriginalEnrollStatus").val("");
             $("#alert_ExistingPaymentInfo").addClass("d-none");
             $("#lbl_ExistingPaymentId").text("0");
 
@@ -1172,6 +1231,8 @@ $(document).ready(function () {
 
                         $("#hdn_EnrollmentId").val(actualEnrollmentId);
                         $("#hdn_PersonId").val(actualPersonId);
+                        const originalStatus = (e.EnrollmentStatus || e.Status || "REGISTERED").toString().toUpperCase().trim();
+                        $("#hdn_OriginalEnrollStatus").val(originalStatus);
 
                         $("#txt_PersonName").val(p.FullName || p.Name || p.ParticipantName || e.FullName || e.Name || e.ParticipantName || "");
                         $("#txt_PersonPhone").val(p.PhoneNumber || p.Phone || e.PhoneNumber || e.Phone || "");
@@ -1183,8 +1244,10 @@ $(document).ready(function () {
                         else if (genderVal.includes("OTHER") || genderVal === "O") $("#ddl_PersonGender").val("OTHER");
                         else $("#ddl_PersonGender").val("MALE");
 
-                        $("#txt_PersonDOB").val(p.DateOfBirth ? p.DateOfBirth.substring(0, 10) : (e.DateOfBirth ? e.DateOfBirth.substring(0, 10) : ""));
-                        $("#txt_FatherMotherName").val(p.FatherMotherName || p.FatherOrMotherName || e.FatherMotherName || e.FatherOrMotherName || "");
+                        const rawDob = (p.DateOfBirth || p.dateOfBirth || e.DateOfBirth || e.dateOfBirth || "");
+                        const dobStr = rawDob ? rawDob.toString().substring(0, 10) : "";
+                        $("#txt_PersonDOB").val(dobStr.startsWith("0001") ? "" : dobStr);
+                        $("#txt_FatherMotherName").val(p.FatherMotherName || p.fatherMotherName || p.FatherOrMotherName || p.fatherOrMotherName || e.FatherMotherName || e.fatherMotherName || "");
                         $("#txt_Profession").val(p.Profession || e.Profession || "");
                         $("#txt_Address").val(p.Address || e.Address || "");
                         $("#ddl_BloodGroup").val(p.BloodGroup || e.BloodGroup || "");
@@ -1279,6 +1342,18 @@ $(document).ready(function () {
                 ? parseFloat(rawAmount.toString().replace(/,/g, '').trim()) || 0 
                 : 0;
 
+            const isEdit = enrollId > 0;
+            let finalStatus = $("#ddl_EnrollStatus").val() || "REGISTERED";
+            if (initialAmount > 0) {
+                if (!isEdit || finalStatus === "REGISTERED") {
+                    finalStatus = "CONFIRMED";
+                    $("#ddl_EnrollStatus").val("CONFIRMED");
+                }
+            } else if (!isEdit) {
+                finalStatus = "REGISTERED";
+                $("#ddl_EnrollStatus").val("REGISTERED");
+            }
+
             const dto = {
                 CourseEnrollmentId: enrollId,
                 EnrollmentId: enrollId,
@@ -1288,7 +1363,7 @@ $(document).ready(function () {
                 RegistrationDate: $("#txt_RegistrationDate").val(),
                 ReferencePerson: $("#txt_ReferencePerson").val().trim(),
                 FormSubmitted: $("#chk_FormSubmitted").is(":checked"),
-                EnrollmentStatus: $("#ddl_EnrollStatus").val(),
+                EnrollmentStatus: finalStatus,
                 Remarks: $("#txt_EnrollRemarks").val().trim(),
 
                 Name: name,
@@ -1297,7 +1372,7 @@ $(document).ready(function () {
                 PhoneNumber: phone,
                 Email: $("#txt_PersonEmail").val().trim(),
                 Gender: $("#ddl_PersonGender").val(),
-                DateOfBirth: $("#txt_PersonDOB").val() || null,
+                DateOfBirth: ($("#txt_PersonDOB").val() && $("#txt_PersonDOB").val().length >= 10 && parseInt($("#txt_PersonDOB").val().substring(0, 4)) >= 1900) ? $("#txt_PersonDOB").val() : null,
                 FatherOrMotherName: $("#txt_FatherMotherName").val().trim(),
                 FatherMotherName: $("#txt_FatherMotherName").val().trim(),
                 Address: $("#txt_Address").val().trim(),
@@ -1371,8 +1446,10 @@ $(document).ready(function () {
                 dto.PaymentRemarks = "Initial payment during enrollment";
             }
 
-            const isEdit = enrollId > 0;
-            if (isEdit && dto.EnrollmentStatus === "CANCELLED") {
+            const originalStatus = ($("#hdn_OriginalEnrollStatus").val() || "").toUpperCase().trim();
+
+            // Only prompt cancellation flow if changing from an active status to CANCELLED for the first time
+            if (isEdit && originalStatus !== "CANCELLED" && dto.EnrollmentStatus === "CANCELLED") {
                 $("#enrollModal").modal("hide");
                 confirmCancelEnrollment(enrollId, name);
                 return;
@@ -1387,12 +1464,81 @@ $(document).ready(function () {
                 contentType: "application/json",
                 data: JSON.stringify(dto),
                 success: function (res) {
-                    hideLoader();
                     if (isSuccessResponse(res)) {
-                        toastr.success(isEdit ? "Enrollment updated!" : (isOfficial ? "Official enrolled successfully!" : "Participant enrolled successfully!"), "Success");
-                        $("#enrollModal").modal("hide");
-                        loadEnrollments(currentPage);
+                        const afterSaveDone = function () {
+                            hideLoader();
+                            let successMsg = isEdit ? "Enrollment updated!" : (isOfficial ? "Official enrolled successfully!" : "Participant enrolled successfully!");
+                            if (isEdit && originalStatus === "CANCELLED" && dto.EnrollmentStatus === "CONFIRMED") {
+                                successMsg = `Candidate ${name} re-confirmed and updated successfully!`;
+                            } else if (!isEdit && initialAmount > 0) {
+                                successMsg = `Candidate ${name} enrolled and confirmed!`;
+                            }
+                            toastr.success(successMsg, "Success");
+                            $("#enrollModal").modal("hide");
+                            loadEnrollments(currentPage);
+                        };
+
+                        // If new enrollment was created with initial payment, ensure database status is CONFIRMED
+                        if (!isEdit && initialAmount > 0) {
+                            let createdId = 0;
+                            const resObj = extractObject(res);
+                            if (typeof resObj === "number" && resObj > 0) {
+                                createdId = resObj;
+                            } else if (resObj) {
+                                createdId = parseInt(resObj.CourseEnrollmentId || resObj.courseEnrollmentId || resObj.EnrollmentId || resObj.enrollmentId || resObj.Id || resObj.id || 0) || 0;
+                            }
+
+                            if (createdId > 0) {
+                                dto.CourseEnrollmentId = createdId;
+                                dto.EnrollmentId = createdId;
+                                dto.Id = createdId;
+                                dto.EnrollmentStatus = "CONFIRMED";
+                                $.ajax({
+                                    url: _BaseURL + "/CourseManagement/UpdateEnrollment",
+                                    type: "POST",
+                                    contentType: "application/json",
+                                    data: JSON.stringify(dto),
+                                    complete: afterSaveDone
+                                });
+                                return;
+                            } else {
+                                // Lookup newly created enrollment by phone to confirm it
+                                $.ajax({
+                                    url: `${_BaseURL}/CourseManagement/GetAllEnrollment?search=${encodeURIComponent(phone)}&pageSize=5`,
+                                    type: "GET",
+                                    dataType: "json",
+                                    success: function (lookupRes) {
+                                        const lookupData = extractObject(lookupRes);
+                                        const list = Array.isArray(lookupData) ? lookupData : (lookupData?.Items || lookupData?.items || lookupData?.List || lookupData?.list || []);
+                                        if (list && list.length > 0) {
+                                            const match = list.find(item => (item.Phone || item.PhoneNumber || "").trim() === phone.trim()) || list[0];
+                                            const foundId = match.CourseEnrollmentId || match.EnrollmentId || match.Id;
+                                            if (foundId > 0 && (match.EnrollmentStatus || "").toUpperCase() !== "CONFIRMED") {
+                                                dto.CourseEnrollmentId = foundId;
+                                                dto.EnrollmentId = foundId;
+                                                dto.Id = foundId;
+                                                dto.EnrollmentStatus = "CONFIRMED";
+                                                $.ajax({
+                                                    url: _BaseURL + "/CourseManagement/UpdateEnrollment",
+                                                    type: "POST",
+                                                    contentType: "application/json",
+                                                    data: JSON.stringify(dto),
+                                                    complete: afterSaveDone
+                                                });
+                                                return;
+                                            }
+                                        }
+                                        afterSaveDone();
+                                    },
+                                    error: afterSaveDone
+                                });
+                                return;
+                            }
+                        }
+
+                        afterSaveDone();
                     } else {
+                        hideLoader();
                         toastr.error(res.Response || "Operation failed.", "Error");
                     }
                 },
@@ -1473,7 +1619,7 @@ $(document).ready(function () {
                         if (payments.length === 0) payHtml = '<tr><td colspan="6" class="text-center py-2 text-muted">No payments recorded.</td></tr>';
                         else {
                             payments.forEach(py => {
-                                payHtml += `<tr><td>${formatDateDisplay(py.PaymentDate)}</td><td class="text-success font-weight-bold">${formatMoney(py.Amount)}</td><td>${py.PaymentMode}</td><td>${py.PaymentReceiver || '-'}</td><td>${py.TransactionReference || '-'}</td><td>${py.Remarks || '-'}</td></tr>`;
+                                payHtml += `<tr><td>${formatDateDisplay(py.PaymentDate)}</td><td class="text-success font-weight-bold">${formatMoney(py.Amount)}</td><td>${py.PaymentMode}</td><td>${getReceiverName(py.PaymentReceiver || py.Receiver)}</td><td>${py.TransactionReference || '-'}</td><td>${py.Remarks || '-'}</td></tr>`;
                             });
                         }
                         $("#tbl_ViewPayments tbody").html(payHtml);
@@ -1577,6 +1723,11 @@ $(document).ready(function () {
                     hideLoader();
                     if (isSuccessResponse(res)) {
                         toastr.success("Payment recorded successfully!", "Success");
+                        if (res && res.StatusAutoConfirmed) {
+                            setTimeout(function () {
+                                toastr.success("Payment complete! Enrollment status has been automatically set to <strong>CONFIRMED</strong>.", "Status Updated", { timeOut: 5000, extendedTimeOut: 2000, enableHtml: true });
+                            }, 500);
+                        }
                         $("#addPaymentModal").modal("hide");
                         loadEnrollments(currentPage);
                     } else {
@@ -1657,6 +1808,245 @@ $(document).ready(function () {
                                 error: handleAjaxError
                             });
                         }
+                    });
+                },
+                error: handleAjaxError
+            });
+        }
+
+        function quickReconfirmEnrollment(enrollmentId, participantName, knownRefund, knownFee, knownPaid) {
+            showLoader();
+            $.ajax({
+                url: `${_BaseURL}/CourseManagement/GetEnrollmentDetails?id=${enrollmentId}`,
+                type: "GET",
+                dataType: "json",
+                success: function (res) {
+                    hideLoader();
+                    const data = extractObject(res) || {};
+                    const e = data.Enrollment || data.enrollment || data;
+                    const p = data.Person || data.person || e.Person || e.person || data;
+                    const b = data.Batch || data.batch || e.Batch || e.batch || data.Course || data.course || {};
+
+                    const actualEnrollId = parseInt(e.CourseEnrollmentId || e.courseEnrollmentId || e.EnrollmentId || e.enrollmentId || e.Id || e.id || enrollmentId) || enrollmentId;
+                    const personId = parseInt(p.PersonId || p.personId || e.PersonId || e.personId || data.PersonId || data.personId || 0) || null;
+                    const batchId = parseInt(e.CourseBatchId || e.courseBatchId || e.BatchId || e.batchId || b.CourseBatchId || b.courseBatchId || b.BatchId || b.batchId || b.Id || b.id || 0) || 0;
+
+                    const totalRefund = parseFloat(e.TotalRefund ?? e.totalRefund ?? knownRefund ?? 0) || 0;
+                    const totalCourseFee = parseFloat(e.TotalCourseFee ?? e.totalCourseFee ?? b.TotalCourseFee ?? knownFee ?? 0) || 0;
+                    const totalPaid = parseFloat(e.TotalPaid ?? e.totalPaid ?? knownPaid ?? 0) || 0;
+                    const outstandingDue = Math.max(0, totalCourseFee - totalPaid + totalRefund);
+
+                    // Build confirmation message
+                    let htmlMsg = `<div class="text-start fs-6">`;
+                    htmlMsg += `<p class="mb-2">Are you sure you want to re-confirm enrollment for <strong>${participantName}</strong>?</p>`;
+                    htmlMsg += `<p class="text-muted small mb-2">Status will be updated from CANCELLED to CONFIRMED.</p>`;
+
+                    if (totalRefund > 0) {
+                        htmlMsg += `<div class="alert alert-warning p-2 mb-2">`;
+                        htmlMsg += `<i class="fa fa-exclamation-triangle"></i> <strong>Refund Detected!</strong><br/>`;
+                        htmlMsg += `This candidate previously received a refund of <strong class="text-danger">${formatMoney(totalRefund)}</strong>.<br/>`;
+                        htmlMsg += `After re-confirming, candidate <strong>must pay the refunded amount</strong> to clear dues.`;
+                        htmlMsg += `</div>`;
+                        htmlMsg += `<div class="bg-light p-2 rounded border">`;
+                        htmlMsg += `<div><strong>Course Fee:</strong> ${formatMoney(totalCourseFee)}</div>`;
+                        htmlMsg += `<div><strong>Previously Paid:</strong> ${formatMoney(totalPaid)}</div>`;
+                        htmlMsg += `<div><strong>Refund Given:</strong> <span class="text-danger">${formatMoney(totalRefund)}</span></div>`;
+                        htmlMsg += `<div><strong>Outstanding Due to Collect:</strong> <span class="text-danger fw-bold">${formatMoney(outstandingDue)}</span></div>`;
+                        htmlMsg += `</div>`;
+                    }
+                    htmlMsg += `</div>`;
+
+                    Swal.fire({
+                        title: "Re-Confirm Enrollment?",
+                        html: htmlMsg,
+                        icon: totalRefund > 0 ? "warning" : "question",
+                        showCancelButton: true,
+                        confirmButtonColor: "#198754",
+                        confirmButtonText: totalRefund > 0 ? "Yes, Re-Confirm & Collect Payment" : "Yes, Re-Confirm",
+                        cancelButtonText: "Cancel"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            showLoader();
+
+                            let dob = (p.DateOfBirth || p.dateOfBirth || e.DateOfBirth || e.dateOfBirth || "");
+                            if (dob) {
+                                dob = dob.toString().substring(0, 10);
+                                if (dob.startsWith("0001") || parseInt(dob.substring(0, 4)) < 1900) dob = null;
+                            } else {
+                                dob = null;
+                            }
+
+                            let regDate = e.RegistrationDate || e.registrationDate || "";
+                            if (regDate) {
+                                regDate = regDate.toString().substring(0, 10);
+                                if (regDate.startsWith("0001") || parseInt(regDate.substring(0, 4)) < 1900) regDate = new Date().toISOString().substring(0, 10);
+                            } else {
+                                regDate = new Date().toISOString().substring(0, 10);
+                            }
+
+                            const fullName = p.FullName || p.fullName || p.Name || p.name || p.ParticipantName || p.participantName || e.ParticipantName || e.participantName || participantName;
+                            const phone = p.PhoneNumber || p.phoneNumber || p.Phone || p.phone || e.Phone || e.phone || "";
+
+                            const updateDto = {
+                                CourseEnrollmentId: actualEnrollId,
+                                EnrollmentId: actualEnrollId,
+                                Id: actualEnrollId,
+                                PersonId: personId,
+                                CourseBatchId: batchId,
+                                RegistrationDate: regDate,
+                                ReferencePerson: e.ReferencePerson || e.referencePerson || "",
+                                FormSubmitted: e.FormSubmitted === true || e.formSubmitted === true || e.IsFormSubmitted === true,
+                                EnrollmentStatus: "CONFIRMED",
+                                Remarks: (e.Remarks || e.remarks || "").trim(),
+                                Name: fullName,
+                                FullName: fullName,
+                                Phone: phone,
+                                PhoneNumber: phone,
+                                Email: p.Email || p.email || e.Email || e.email || "",
+                                Gender: (p.Gender || p.gender || e.Gender || e.gender || "MALE").toString().toUpperCase(),
+                                DateOfBirth: dob,
+                                FatherMotherName: p.FatherMotherName || p.fatherMotherName || p.FatherOrMotherName || p.fatherOrMotherName || "",
+                                FatherOrMotherName: p.FatherMotherName || p.fatherMotherName || p.FatherOrMotherName || p.fatherOrMotherName || "",
+                                Address: p.Address || p.address || "",
+                                Profession: p.Profession || p.profession || "",
+                                BloodGroup: p.BloodGroup || p.bloodGroup || "",
+                                FoodHabit: (p.FoodHabit || p.foodHabit || "VEG").toString().toUpperCase().includes("NON") ? "NON-VEG" : "VEG",
+                                Height: p.Height !== undefined && p.Height !== null ? p.Height.toString() : (p.height !== undefined && p.height !== null ? p.height.toString() : null),
+                                Weight: p.Weight !== undefined && p.Weight !== null ? p.Weight.toString() : (p.weight !== undefined && p.weight !== null ? p.weight.toString() : null),
+                                PhysicalProblem: p.PhysicalProblem || p.physicalProblem || ""
+                            };
+
+                            $.ajax({
+                                url: _BaseURL + "/CourseManagement/UpdateEnrollment",
+                                type: "POST",
+                                contentType: "application/json",
+                                data: JSON.stringify(updateDto),
+                                success: function (updateRes) {
+                                    hideLoader();
+                                    if (isSuccessResponse(updateRes)) {
+                                        toastr.success(`Enrollment for ${participantName} re-confirmed successfully!`, "Success");
+                                        loadEnrollments(currentPage);
+
+                                        if (totalRefund > 0 && outstandingDue > 0) {
+                                            setTimeout(function () {
+                                                openAddPaymentModal(actualEnrollId, participantName, totalCourseFee, totalPaid, outstandingDue);
+                                                toastr.info(`Please collect payment of <strong>${formatMoney(outstandingDue)}</strong> to cover refunded amount.`, "Payment Required", { timeOut: 8000, enableHtml: true });
+                                            }, 600);
+                                        }
+                                    } else {
+                                        const errMsg = updateRes.Response || updateRes.response || (updateRes.ErrorMassage ? updateRes.ErrorMassage.join("; ") : "Re-confirmation failed.");
+                                        toastr.error(errMsg, "Error");
+                                    }
+                                },
+                                error: handleAjaxError
+                            });
+                        }
+                    });
+                },
+                error: function () {
+                    hideLoader();
+                    fallbackReconfirmEnrollment(enrollmentId, participantName);
+                }
+            });
+        }
+
+        function fallbackReconfirmEnrollment(enrollmentId, participantName) {
+            showLoader();
+            $.ajax({
+                url: `${_BaseURL}/CourseManagement/GetEnrollmentById?id=${enrollmentId}`,
+                type: "GET",
+                dataType: "json",
+                success: function (res) {
+                    hideLoader();
+                    const data = extractObject(res);
+                    if (!data) {
+                        toastr.error("Could not load enrollment details.", "Error");
+                        return;
+                    }
+                    const e = data.Enrollment || data.enrollment || data;
+                    const p = data.Person || data.person || e.Person || e.person || data;
+                    const b = data.Batch || data.batch || e.Batch || e.batch || data.Course || data.course || {};
+
+                    const actualEnrollId = parseInt(e.CourseEnrollmentId || e.courseEnrollmentId || e.EnrollmentId || e.enrollmentId || e.Id || e.id || enrollmentId) || enrollmentId;
+                    const personId = parseInt(p.PersonId || p.personId || e.PersonId || e.personId || data.PersonId || data.personId || 0) || null;
+                    const batchId = parseInt(e.CourseBatchId || e.courseBatchId || e.BatchId || e.batchId || b.CourseBatchId || b.courseBatchId || b.BatchId || b.batchId || b.Id || b.id || 0) || 0;
+
+                    const totalRefund = parseFloat(e.TotalRefund ?? e.totalRefund ?? 0) || 0;
+                    const totalCourseFee = parseFloat(e.TotalCourseFee ?? e.totalCourseFee ?? b.TotalCourseFee ?? 0) || 0;
+                    const totalPaid = parseFloat(e.TotalPaid ?? e.totalPaid ?? 0) || 0;
+                    const outstandingDue = Math.max(0, totalCourseFee - totalPaid + totalRefund);
+
+                    let dob = (p.DateOfBirth || p.dateOfBirth || e.DateOfBirth || e.dateOfBirth || "");
+                    if (dob) {
+                        dob = dob.toString().substring(0, 10);
+                        if (dob.startsWith("0001") || parseInt(dob.substring(0, 4)) < 1900) dob = null;
+                    } else {
+                        dob = null;
+                    }
+
+                    let regDate = e.RegistrationDate || e.registrationDate || "";
+                    if (regDate) {
+                        regDate = regDate.toString().substring(0, 10);
+                        if (regDate.startsWith("0001") || parseInt(regDate.substring(0, 4)) < 1900) regDate = new Date().toISOString().substring(0, 10);
+                    } else {
+                        regDate = new Date().toISOString().substring(0, 10);
+                    }
+
+                    const fullName = p.FullName || p.fullName || p.Name || p.name || p.ParticipantName || p.participantName || e.ParticipantName || e.participantName || participantName;
+                    const phone = p.PhoneNumber || p.phoneNumber || p.Phone || p.phone || e.Phone || e.phone || "";
+
+                    const dto = {
+                        CourseEnrollmentId: actualEnrollId,
+                        EnrollmentId: actualEnrollId,
+                        Id: actualEnrollId,
+                        PersonId: personId,
+                        CourseBatchId: batchId,
+                        RegistrationDate: regDate,
+                        ReferencePerson: e.ReferencePerson || e.referencePerson || "",
+                        FormSubmitted: e.FormSubmitted === true || e.formSubmitted === true || e.IsFormSubmitted === true,
+                        EnrollmentStatus: "CONFIRMED",
+                        Remarks: (e.Remarks || e.remarks || "").trim(),
+                        Name: fullName,
+                        FullName: fullName,
+                        Phone: phone,
+                        PhoneNumber: phone,
+                        Email: p.Email || p.email || e.Email || e.email || "",
+                        Gender: (p.Gender || p.gender || "MALE").toString().toUpperCase(),
+                        DateOfBirth: dob,
+                        FatherMotherName: p.FatherMotherName || p.fatherMotherName || p.FatherOrMotherName || p.fatherOrMotherName || "",
+                        FatherOrMotherName: p.FatherMotherName || p.fatherMotherName || p.FatherOrMotherName || p.fatherOrMotherName || "",
+                        Address: p.Address || p.address || "",
+                        Profession: p.Profession || p.profession || "",
+                        BloodGroup: p.BloodGroup || p.bloodGroup || "",
+                        FoodHabit: (p.FoodHabit || p.foodHabit || "VEG").toString().toUpperCase().includes("NON") ? "NON-VEG" : "VEG",
+                        Height: p.Height !== undefined && p.Height !== null ? p.Height.toString() : (p.height !== undefined && p.height !== null ? p.height.toString() : null),
+                        Weight: p.Weight !== undefined && p.Weight !== null ? p.Weight.toString() : (p.weight !== undefined && p.weight !== null ? p.weight.toString() : null),
+                        PhysicalProblem: p.PhysicalProblem || p.physicalProblem || ""
+                    };
+
+                    showLoader();
+                    $.ajax({
+                        url: _BaseURL + "/CourseManagement/UpdateEnrollment",
+                        type: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(dto),
+                        success: function (updateRes) {
+                            hideLoader();
+                            if (isSuccessResponse(updateRes)) {
+                                toastr.success(`Enrollment for ${participantName} re-confirmed successfully!`, "Success");
+                                loadEnrollments(currentPage);
+
+                                if (totalRefund > 0 && outstandingDue > 0) {
+                                    setTimeout(function () {
+                                        openAddPaymentModal(actualEnrollId, participantName, totalCourseFee, totalPaid, outstandingDue);
+                                        toastr.info(`Please collect payment of <strong>${formatMoney(outstandingDue)}</strong> to cover refunded amount.`, "Payment Required", { timeOut: 8000, enableHtml: true });
+                                    }, 600);
+                                }
+                            } else {
+                                toastr.error(updateRes.Response || updateRes.response || "Re-confirmation failed.", "Error");
+                            }
+                        },
+                        error: handleAjaxError
                     });
                 },
                 error: handleAjaxError
@@ -1799,7 +2189,8 @@ $(document).ready(function () {
                 const pDate = item.PaymentDate || item.Paymentdate || item.Date || item.date || item.CreatedAt || '';
                 const amt = item.Amount !== undefined && item.Amount !== null ? item.Amount : (item.PaymentAmount !== undefined ? item.PaymentAmount : 0);
                 const pMode = item.PaymentMode || item.Paymentmode || item.Mode || 'CASH';
-                const receiver = item.PaymentReceiver || item.Paymentreceiver || item.Receiver || '-';
+                const receiverRaw = item.PaymentReceiver || item.Paymentreceiver || item.Receiver || '';
+                const receiver = getReceiverName(receiverRaw) || '-';
                 const ref = item.TransactionReference || item.Transactionreference || item.TxnRef || '-';
                 const remarks = item.Remarks || item.remarks || '-';
 
@@ -2521,7 +2912,7 @@ $(document).ready(function () {
                         <td><span class="badge bg-secondary">${item.ExpenseCategory || 'General'}</span></td>
                         <td class="font-weight-bold text-dark">${item.Description || '-'}</td>
                         <td class="text-end font-weight-bold text-danger">${formatMoney(item.Amount)}</td>
-                        <td>${item.PaidBy || '-'}</td>
+                        <td>${getReceiverName(item.PaidBy) || item.PaidBy || '-'}</td>
                         <td class="text-center"><span class="badge bg-info text-dark">${item.PaymentMode || 'CASH'}</span></td>
                         <td class="small text-muted">${item.Remarks || '-'}</td>
                         <td class="text-center">
@@ -2553,7 +2944,7 @@ $(document).ready(function () {
             $("#txt_ExpenseDate").val(new Date().toISOString().substring(0, 10));
             $("#ddl_ExpenseCategory").val("Food & Catering");
             $("#txt_ExpenseAmount").val("");
-            $("#txt_PaidBy").val("");
+            $("#txt_PaidBy").val("1");
             $("#ddl_ExpensePaymentMode").val("CASH");
             $("#txt_ExpenseDescription").val("");
             $("#txt_ExpenseRemarks").val("");
@@ -2575,7 +2966,7 @@ $(document).ready(function () {
                         $("#txt_ExpenseDate").val(ex.ExpenseDate ? ex.ExpenseDate.substring(0, 10) : "");
                         $("#ddl_ExpenseCategory").val(ex.ExpenseCategory);
                         $("#txt_ExpenseAmount").val(ex.Amount);
-                        $("#txt_PaidBy").val(ex.PaidBy);
+                        $("#txt_PaidBy").val(ex.PaidBy || "1");
                         $("#ddl_ExpensePaymentMode").val(ex.PaymentMode || "CASH");
                         $("#txt_ExpenseDescription").val(ex.Description);
                         $("#txt_ExpenseRemarks").val(ex.Remarks);
@@ -2646,6 +3037,12 @@ $(document).ready(function () {
     // 9. REPORTS & FINANCIAL ANALYTICS PAGE
     // ==========================================
     if (controller_name === "coursemanagement" && action_name === "reports") {
+        var currentReportEnrollList = [];
+        var reportAllPayments = [];
+        var reportAllRefunds = [];
+        var reportAllExpenses = [];
+        var reportAllOfficials = [];
+
         loadCourseDropdowns(["#report_FilterCourse"]);
         loadReportsData();
 
@@ -2660,8 +3057,88 @@ $(document).ready(function () {
             $("#report_FilterYear").val(new Date().getFullYear());
             $("#report_DateFrom").val("");
             $("#report_DateTo").val("");
+            $("#rep_ReceiverFilter").val("");
             loadReportsData();
         });
+
+        $("#rep_ReceiverFilter").off("change").on("change", function () {
+            renderReceiverSummary();
+        });
+
+        $("#btnToggleReceiverTxns").off("click").on("click", function () {
+            const $container = $("#rep_ReceiverTxnsContainer");
+            const $lbl = $("#lblToggleReceiverTxns");
+            const $icon = $(this).find("i");
+            if ($container.is(":visible")) {
+                $container.slideUp(200);
+                $lbl.text("Show Transactions");
+                $icon.removeClass("fa-chevron-up").addClass("fa-chevron-down");
+            } else {
+                $container.slideDown(200);
+                $lbl.text("Hide Transactions");
+                $icon.removeClass("fa-chevron-down").addClass("fa-chevron-up");
+            }
+        });
+
+        $("#btnPrintReport").off("click").on("click", function (e) {
+            e.preventDefault();
+            const courseId = $("#report_FilterCourse").val();
+            const year = $("#report_FilterYear").val();
+            const dateFrom = $("#report_DateFrom").val();
+            const dateTo = $("#report_DateTo").val();
+
+            const $btn = $(this);
+            const origHtml = $btn.html();
+            $btn.prop("disabled", true).html('<i class="fa fa-spinner fa-spin me-1"></i> Generating...');
+
+            const payload = {
+                Enrollments: currentReportEnrollList || [],
+                Payments: reportAllPayments || [],
+                Refunds: reportAllRefunds || [],
+                Officials: reportAllOfficials || [],
+                Expenses: reportAllExpenses || [],
+                Year: year ? parseInt(year) : new Date().getFullYear(),
+                CourseId: courseId ? parseInt(courseId) : null,
+                DateFrom: dateFrom || null,
+                DateTo: dateTo || null
+            };
+
+            fetch(_BaseURL + "/CourseManagement/ExportCourseExcelReport", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(function (res) {
+                if (!res.ok) throw new Error("Server error: " + res.status);
+                return res.blob();
+            })
+            .then(function (blob) {
+                $btn.prop("disabled", false).html(origHtml);
+                const reportYear = year || new Date().getFullYear();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `ClimbersCircle_CourseReport_${reportYear}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(function (err) {
+                $btn.prop("disabled", false).html(origHtml);
+                console.warn("Direct POST export failed, trying GET fallback...", err);
+                let params = [];
+                if (courseId) params.push("courseId=" + encodeURIComponent(courseId));
+                if (year) params.push("year=" + encodeURIComponent(year));
+                if (dateFrom) params.push("dateFrom=" + encodeURIComponent(dateFrom));
+                if (dateTo) params.push("dateTo=" + encodeURIComponent(dateTo));
+                const url = _BaseURL + "/CourseManagement/ExportCourseExcelReport" + (params.length > 0 ? "?" + params.join("&") : "");
+                window.location.href = url;
+            });
+        });
+
 
         function isOfficialSegment(name) {
             const n = (name || '').toUpperCase();
@@ -2733,6 +3210,7 @@ $(document).ready(function () {
                 type: "GET",
                 dataType: "json",
                 success: function (res) {
+                    reportAllOfficials = extractList(res) || [];
                     renderOfficialsTable(res, "#rep_OfficialsTable tbody", "#rep_OfficialsSection");
                 },
                 error: function () { $("#rep_OfficialsSection").hide(); }
@@ -2788,6 +3266,7 @@ $(document).ready(function () {
 
         function loadReportsData() {
             showLoader();
+            currentReportEnrollList = [];
             const courseId = $("#report_FilterCourse").val();
             let year = $("#report_FilterYear").val();
             if (!year && !courseId) {
@@ -2815,6 +3294,7 @@ $(document).ready(function () {
                 dataType: "json",
                 success: function (enrollRes) {
                     const reportEnrollList = extractList(enrollRes);
+                    currentReportEnrollList = reportEnrollList || [];
 
                     // 1. Overall Financial Report & Summary
                     $.ajax({
@@ -2938,6 +3418,393 @@ $(document).ready(function () {
 
             // 3. Officials Summary
             loadOfficialsForReport(year, courseId);
+
+            // 4. Payment Receiver Summary
+            loadPaymentReceiverSummary(year, courseId, dateFrom, dateTo);
+        }
+
+        function getPaymentReceiverInfo(item) {
+            const raw = item.PaymentReceiver || item.Paymentreceiver || item.Receiver || '';
+            const s = String(raw).trim();
+            if (s === "1" || s.toLowerCase() === "dipto") {
+                return { id: "1", name: "Dipto", icon: "fa-user text-primary" };
+            }
+            if (s === "2" || s.toLowerCase() === "bank") {
+                return { id: "2", name: "Bank", icon: "fa-university text-indigo" };
+            }
+            if (s === "3" || s.toLowerCase() === "prabir") {
+                return { id: "3", name: "Prabir", icon: "fa-user text-warning" };
+            }
+            if (s) {
+                return { id: s, name: getReceiverName(s) || s, icon: "fa-user text-secondary" };
+            }
+            return { id: "unassigned", name: "Unassigned", icon: "fa-question-circle text-muted" };
+        }
+
+        function loadPaymentReceiverSummary(year, courseId, dateFrom, dateTo) {
+            let payParams = ["pageNumber=1", "pageSize=10000"];
+            if (courseId) payParams.push(`courseId=${courseId}`);
+            if (year) payParams.push(`year=${year}`);
+            if (dateFrom) payParams.push(`dateFrom=${dateFrom}`);
+            if (dateTo) payParams.push(`dateTo=${dateTo}`);
+
+            $("#rep_ReceiverTable tbody").html('<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading receiver summary...</td></tr>');
+            $("#rep_ReceiverTableFoot").empty();
+
+            $.ajax({
+                url: _BaseURL + "/CourseManagement/GetAllPayment?" + payParams.join("&"),
+                type: "GET",
+                dataType: "json",
+                success: function (res) {
+                    const rawList = extractList(res);
+                    // Filter out zero or negative payments
+                    reportAllPayments = (rawList || []).filter(item => {
+                        const amt = item.Amount !== undefined && item.Amount !== null ? parseFloat(item.Amount) : (item.PaymentAmount !== undefined ? parseFloat(item.PaymentAmount) : 0);
+                        return amt > 0;
+                    });
+
+                    // Fetch refund records
+                    let refUrl = _BaseURL + "/CourseManagement/GetAllRefund?pageNumber=1&pageSize=10000";
+                    if (courseId) refUrl += `&courseId=${courseId}`;
+                    if (year) refUrl += `&year=${year}`;
+
+                    let expUrl = _BaseURL + "/CourseManagement/GetAllCourseExpense?pageNumber=1&pageSize=10000";
+                    if (courseId) expUrl += `&courseId=${courseId}`;
+                    if (year) expUrl += `&year=${year}`;
+                    if (dateFrom) expUrl += `&dateFrom=${dateFrom}`;
+                    if (dateTo) expUrl += `&dateTo=${dateTo}`;
+
+                    $.ajax({
+                        url: refUrl,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (refRes) {
+                            reportAllRefunds = extractList(refRes) || [];
+                            fetchExpensesAndRender(expUrl);
+                        },
+                        error: function () {
+                            reportAllRefunds = [];
+                            fetchExpensesAndRender(expUrl);
+                        }
+                    });
+
+                    function fetchExpensesAndRender(url) {
+                        $.ajax({
+                            url: url,
+                            type: "GET",
+                            dataType: "json",
+                            success: function (expRes) {
+                                reportAllExpenses = extractList(expRes) || [];
+                                renderReceiverSummary();
+                            },
+                            error: function () {
+                                reportAllExpenses = [];
+                                renderReceiverSummary();
+                            }
+                        });
+                    }
+                },
+                error: function () {
+                    $("#rep_ReceiverTable tbody").html('<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fa fa-exclamation-triangle me-1"></i> Failed to load receiver summary data.</td></tr>');
+                    $("#rep_ReceiverTableFoot").empty();
+                }
+            });
+        }
+
+        function renderReceiverSummary() {
+            const selectedFilter = $("#rep_ReceiverFilter").val(); // "" or "1" or "2" or "3"
+
+            let totalCollectedAll = 0;
+            let totalTxnsAll = reportAllPayments.length;
+            const enrollmentReceiverPayments = {};
+
+            const groupMap = {
+                "1": { id: "1", name: "Dipto", icon: "fa-user text-primary", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 },
+                "2": { id: "2", name: "Bank", icon: "fa-university text-indigo", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 },
+                "3": { id: "3", name: "Prabir", icon: "fa-user text-warning", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 }
+            };
+
+            // 1. Accumulate positive payments by receiver
+            reportAllPayments.forEach(p => {
+                const amt = p.Amount !== undefined && p.Amount !== null ? parseFloat(p.Amount) : (p.PaymentAmount !== undefined ? parseFloat(p.PaymentAmount) : 0);
+                totalCollectedAll += amt;
+
+                const rInfo = getPaymentReceiverInfo(p);
+                if (!groupMap[rInfo.id]) {
+                    groupMap[rInfo.id] = { id: rInfo.id, name: rInfo.name, icon: rInfo.icon, count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+                }
+                groupMap[rInfo.id].count++;
+                groupMap[rInfo.id].total += amt;
+
+                const eId = p.EnrollmentId || p.CourseEnrollmentId;
+                if (eId) {
+                    if (!enrollmentReceiverPayments[eId]) {
+                        enrollmentReceiverPayments[eId] = { total: 0, receivers: {} };
+                    }
+                    enrollmentReceiverPayments[eId].total += amt;
+                    enrollmentReceiverPayments[eId].receivers[rInfo.id] = (enrollmentReceiverPayments[eId].receivers[rInfo.id] || 0) + amt;
+                }
+            });
+
+            // 2. Collect and attribute all refunds to respective receiver
+            const processedRefundEnrollmentIds = new Set();
+            const allRefundRecords = [];
+
+            (reportAllRefunds || []).forEach(r => {
+                const eId = r.EnrollmentId || r.CourseEnrollmentId;
+                const refAmt = parseFloat(r.RefundAmount ?? r.refundAmount ?? 0);
+                if (refAmt > 0) {
+                    if (eId) processedRefundEnrollmentIds.add(eId);
+                    allRefundRecords.push({
+                        enrollmentId: eId,
+                        refundAmount: refAmt,
+                        receiverRaw: r.PaymentReceiver || r.Paymentreceiver || r.Receiver || r.RefundReceiver || ''
+                    });
+                }
+            });
+
+            // Also check for any cancelled enrollments in current dataset
+            (currentReportEnrollList || []).forEach(e => {
+                const st = (e.EnrollmentStatus || e.Status || '').toString().toUpperCase();
+                if (st === "CANCELLED" || st === "CANCELED") {
+                    const eId = e.CourseEnrollmentId || e.EnrollmentId;
+                    if (eId && !processedRefundEnrollmentIds.has(eId)) {
+                        processedRefundEnrollmentIds.add(eId);
+                        let totalPaid = e.TotalPaid ?? e.PaidAmount ?? e.Paid ?? 0;
+                        if ((totalPaid === 0 || totalPaid === undefined) && Array.isArray(e.Payments) && e.Payments.length > 0) {
+                            totalPaid = e.Payments.reduce((s, p) => s + (p.Amount || 0), 0);
+                        }
+                        const retentionSetting = e.CancellationRetentionAmount ?? e.CourseBatch?.CancellationRetentionAmount ?? 2000;
+                        const calc = calculateRetentionAndRefund(totalPaid, retentionSetting);
+                        if (calc.refundAmount > 0) {
+                            allRefundRecords.push({
+                                enrollmentId: eId,
+                                refundAmount: calc.refundAmount,
+                                receiverRaw: ''
+                            });
+                        }
+                    }
+                }
+            });
+
+            let totalRefundAll = 0;
+
+            allRefundRecords.forEach(ref => {
+                totalRefundAll += ref.refundAmount;
+                let targetReceiverId = null;
+
+                // Explicit receiver on refund
+                if (ref.receiverRaw) {
+                    const rInfo = getPaymentReceiverInfo({ PaymentReceiver: ref.receiverRaw });
+                    targetReceiverId = rInfo.id;
+                }
+
+                // If not explicit, map from candidate's payments
+                if (!targetReceiverId && ref.enrollmentId && enrollmentReceiverPayments[ref.enrollmentId]) {
+                    const ep = enrollmentReceiverPayments[ref.enrollmentId];
+                    const rIds = Object.keys(ep.receivers);
+                    if (rIds.length === 1) {
+                        targetReceiverId = rIds[0];
+                    } else if (rIds.length > 1) {
+                        rIds.forEach(rId => {
+                            const proportion = ep.total > 0 ? (ep.receivers[rId] / ep.total) : 0;
+                            const portion = ref.refundAmount * proportion;
+                            if (!groupMap[rId]) {
+                                groupMap[rId] = { id: rId, name: getReceiverName(rId) || rId, icon: "fa-user text-secondary", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+                            }
+                            groupMap[rId].refund += portion;
+                        });
+                        return;
+                    }
+                }
+
+                if (!targetReceiverId) {
+                    targetReceiverId = "unassigned";
+                }
+
+                if (!groupMap[targetReceiverId]) {
+                    groupMap[targetReceiverId] = { id: targetReceiverId, name: getReceiverName(targetReceiverId) || targetReceiverId, icon: "fa-question-circle text-muted", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+                }
+                groupMap[targetReceiverId].refund += ref.refundAmount;
+            });
+
+            // 3. Collect and attribute all expenses to respective receiver
+            let totalExpenseAll = 0;
+
+            (reportAllExpenses || []).forEach(exp => {
+                const expAmt = parseFloat(exp.Amount ?? exp.amount ?? 0);
+                if (expAmt <= 0) return;
+                totalExpenseAll += expAmt;
+
+                const paidByRaw = exp.PaidBy || exp.paidBy || '';
+                const rInfo = getPaymentReceiverInfo({ PaymentReceiver: paidByRaw });
+
+                if (!groupMap[rInfo.id]) {
+                    groupMap[rInfo.id] = { id: rInfo.id, name: rInfo.name, icon: rInfo.icon, count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+                }
+                groupMap[rInfo.id].expense += expAmt;
+            });
+
+            // 4. Compute in-hand amount for each group (Total Collected - Refund - Expense)
+            Object.keys(groupMap).forEach(k => {
+                const g = groupMap[k];
+                g.inHand = g.total - g.refund - g.expense;
+            });
+
+            const totalInHandAll = totalCollectedAll - totalRefundAll - totalExpenseAll;
+
+            // 5. Update KPI Cards with In-Hand Amounts & Complete Breakdown
+            $("#rep_CardTotalAmt").text(formatMoney(totalInHandAll));
+            $("#rep_CardTotalTxns").text(`${totalTxnsAll} txns • Col: ${formatMoney(totalCollectedAll)} • Ref: ${formatMoney(totalRefundAll)} • Exp: ${formatMoney(totalExpenseAll)}`);
+
+            $("#rep_CardDiptoAmt").text(formatMoney(groupMap["1"].inHand));
+            $("#rep_CardDiptoTxns").text(`${groupMap["1"].count} txns • Col: ${formatMoney(groupMap["1"].total)} • Ref: ${formatMoney(groupMap["1"].refund)} • Exp: ${formatMoney(groupMap["1"].expense)}`);
+
+            $("#rep_CardBankAmt").text(formatMoney(groupMap["2"].inHand));
+            $("#rep_CardBankTxns").text(`${groupMap["2"].count} txns • Col: ${formatMoney(groupMap["2"].total)} • Ref: ${formatMoney(groupMap["2"].refund)} • Exp: ${formatMoney(groupMap["2"].expense)}`);
+
+            $("#rep_CardPrabirAmt").text(formatMoney(groupMap["3"].inHand));
+            $("#rep_CardPrabirTxns").text(`${groupMap["3"].count} txns • Col: ${formatMoney(groupMap["3"].total)} • Ref: ${formatMoney(groupMap["3"].refund)} • Exp: ${formatMoney(groupMap["3"].expense)}`);
+
+            // 6. Build rows to display in Summary Table
+            let groupsToDisplay = [];
+            if (selectedFilter) {
+                if (groupMap[selectedFilter]) {
+                    groupsToDisplay.push(groupMap[selectedFilter]);
+                }
+            } else {
+                groupsToDisplay = [groupMap["1"], groupMap["2"], groupMap["3"]];
+                Object.keys(groupMap).forEach(key => {
+                    if (key !== "1" && key !== "2" && key !== "3" && (groupMap[key].count > 0 || groupMap[key].refund > 0 || groupMap[key].expense > 0)) {
+                        groupsToDisplay.push(groupMap[key]);
+                    }
+                });
+            }
+
+            let tbodyHtml = "";
+            let filteredSumCollected = 0;
+            let filteredSumRefund = 0;
+            let filteredSumExpense = 0;
+            let filteredSumInHand = 0;
+            let filteredSumTxns = 0;
+
+            if (reportAllPayments.length === 0 && allRefundRecords.length === 0 && (reportAllExpenses || []).length === 0) {
+                tbodyHtml = '<tr><td colspan="7" class="text-center py-4 text-muted">No payment, refund, or expense records found for the selected criteria.</td></tr>';
+            } else {
+                groupsToDisplay.forEach(g => {
+                    filteredSumCollected += g.total;
+                    filteredSumRefund += g.refund;
+                    filteredSumExpense += g.expense;
+                    filteredSumInHand += g.inHand;
+                    filteredSumTxns += g.count;
+
+                    const pct = totalInHandAll > 0
+                        ? ((g.inHand / totalInHandAll) * 100).toFixed(1)
+                        : (totalCollectedAll > 0 ? ((g.total / totalCollectedAll) * 100).toFixed(1) : "0.0");
+
+                    const inHandClass = g.inHand >= 0 ? "text-primary" : "text-danger";
+
+                    tbodyHtml += `
+                        <tr>
+                            <td>
+                                <i class="fa ${g.icon} me-2"></i>
+                                <span class="font-weight-bold text-dark">${g.name}</span>
+                            </td>
+                            <td class="text-center font-weight-bold">${g.count}</td>
+                            <td class="text-end text-success font-weight-bold">${formatMoney(g.total)}</td>
+                            <td class="text-end text-danger font-weight-bold">${formatMoney(g.refund)}</td>
+                            <td class="text-end text-secondary font-weight-bold">${formatMoney(g.expense)}</td>
+                            <td class="text-end ${inHandClass} font-weight-bold font-monospace">${formatMoney(g.inHand)}</td>
+                            <td class="text-center">
+                                <span class="badge bg-light text-dark border font-monospace">${pct}%</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            $("#rep_ReceiverTable tbody").html(tbodyHtml);
+
+            // Table Footer (Total row)
+            if (reportAllPayments.length > 0 || allRefundRecords.length > 0 || (reportAllExpenses || []).length > 0) {
+                const totalPct = totalInHandAll > 0 ? ((filteredSumInHand / totalInHandAll) * 100).toFixed(1) : "100.0";
+                const totalInHandClass = filteredSumInHand >= 0 ? "text-primary" : "text-danger";
+                const footHtml = `
+                    <tr>
+                        <td class="font-weight-bold text-uppercase">Total</td>
+                        <td class="text-center font-weight-bold">${filteredSumTxns}</td>
+                        <td class="text-end font-weight-bold text-success">${formatMoney(filteredSumCollected)}</td>
+                        <td class="text-end font-weight-bold text-danger">${formatMoney(filteredSumRefund)}</td>
+                        <td class="text-end font-weight-bold text-secondary">${formatMoney(filteredSumExpense)}</td>
+                        <td class="text-end font-weight-bold ${totalInHandClass} font-monospace">${formatMoney(filteredSumInHand)}</td>
+                        <td class="text-center font-weight-bold"><span class="badge bg-secondary">${totalPct}%</span></td>
+                    </tr>
+                `;
+                $("#rep_ReceiverTableFoot").html(footHtml);
+            } else {
+                $("#rep_ReceiverTableFoot").empty();
+            }
+
+            // Update detailed transactions sub-table
+            renderReceiverTxns(selectedFilter);
+        }
+
+        function renderReceiverTxns(selectedFilter) {
+            const filteredPayments = selectedFilter
+                ? reportAllPayments.filter(p => getPaymentReceiverInfo(p).id === selectedFilter)
+                : reportAllPayments;
+
+            const receiverTitle = selectedFilter && PAYMENT_RECEIVERS[selectedFilter]
+                ? PAYMENT_RECEIVERS[selectedFilter]
+                : "All Receivers";
+
+            $("#rep_ReceiverTxnHeading").html(`<i class="fa fa-list me-1"></i>Detailed Transactions (${filteredPayments.length} record${filteredPayments.length === 1 ? '' : 's'} for ${receiverTitle})`);
+
+            const $tbody = $("#rep_ReceiverTxnTable tbody");
+            $tbody.empty();
+
+            if (filteredPayments.length === 0) {
+                $tbody.html('<tr><td colspan="8" class="text-center py-3 text-muted">No transactions found for this receiver.</td></tr>');
+                return;
+            }
+
+            // Map enrollmentId -> refund amount
+            const refundByEnrollment = {};
+            (reportAllRefunds || []).forEach(r => {
+                const eId = r.EnrollmentId || r.CourseEnrollmentId;
+                if (eId) refundByEnrollment[eId] = parseFloat(r.RefundAmount ?? r.refundAmount ?? 0);
+            });
+
+            let html = "";
+            filteredPayments.forEach(item => {
+                const pDate = item.PaymentDate || item.Paymentdate || item.Date || item.date || item.CreatedAt || '';
+                const eId = item.EnrollmentId || item.CourseEnrollmentId;
+                const regNo = item.RegistrationNumber || item.RegNo || item.RegistrationNo || (eId ? 'REG-#' + eId : '-');
+                const pName = item.ParticipantName || item.FullName || item.Name || item.PersonName || item.Person?.FullName || '-';
+                const courseName = item.CourseName || '-';
+                const pMode = item.PaymentMode || item.Paymentmode || item.Mode || 'CASH';
+                const rInfo = getPaymentReceiverInfo(item);
+                const amt = item.Amount !== undefined && item.Amount !== null ? parseFloat(item.Amount) : (item.PaymentAmount !== undefined ? parseFloat(item.PaymentAmount) : 0);
+                const ref = item.TransactionReference || item.Transactionreference || item.TxnRef || '-';
+
+                const refundAmt = eId && refundByEnrollment[eId] ? refundByEnrollment[eId] : 0;
+                const refundBadge = refundAmt > 0
+                    ? `<br/><span class="badge bg-danger-subtle text-danger border border-danger-subtle small" title="Refund processed">Ref: -${formatMoney(refundAmt)}</span>`
+                    : '';
+
+                html += `
+                    <tr>
+                        <td>${formatDateDisplay(pDate)}</td>
+                        <td><span class="badge bg-light text-dark border font-monospace">${regNo}</span></td>
+                        <td class="font-weight-bold text-dark">${pName}</td>
+                        <td class="small">${courseName}</td>
+                        <td><span class="badge bg-info text-dark">${pMode}</span></td>
+                        <td><span class="badge bg-light text-dark border">${rInfo.name}</span></td>
+                        <td class="text-end font-weight-bold text-success">${formatMoney(amt)}${refundBadge}</td>
+                        <td class="font-monospace small text-muted">${ref}</td>
+                    </tr>
+                `;
+            });
+            $tbody.html(html);
         }
     }
 

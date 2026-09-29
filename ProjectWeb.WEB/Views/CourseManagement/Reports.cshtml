@@ -117,7 +117,7 @@
                         <p class="text-muted small mb-0">Consolidated financial overview, segment analysis, and multi-year summaries.</p>
                     </div>
                     <div class="about-action-group">
-                        <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-semibold" onclick="window.print()">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-semibold" id="btnPrintReport">
                             <i class="fa fa-print me-1"></i> Print Report
                         </button>
                     </div>
@@ -279,6 +279,122 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- PAYMENT RECEIVER SUMMARY SECTION -->
+            <div class="about-table-card animate-fade-in mb-4" id="rep_ReceiverSection">
+                <div class="p-3 border-bottom bg-light">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-0 font-weight-bold text-success">
+                                <i class="fa fa-user-circle me-2"></i>Payment Receiver Summary
+                            </h5>
+                            <p class="text-muted small mb-0 mt-1">Total collections and transactions breakdown grouped by payment receiver</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="small text-muted font-weight-bold mb-0 text-nowrap"><i class="fa fa-filter me-1"></i>Filter Receiver:</label>
+                            <select id="rep_ReceiverFilter" class="form-control form-select-sm" style="min-width: 170px; border-radius: 6px; font-weight: 600;">
+                                <option value="">All Receivers</option>
+                                <option value="1">Dipto</option>
+                                <option value="2">Bank</option>
+                                <option value="3">Prabir</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receiver KPI Cards -->
+                <div class="p-3 border-bottom">
+                    <div class="row g-3 text-center">
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #10b981 !important;">
+                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-briefcase me-1 text-success"></i>Total In-Hand</div>
+                                <div class="h4 mb-0 font-weight-bold text-success mt-1" id="rep_CardTotalAmt">₹0.00</div>
+                                <div class="text-muted small mt-1" id="rep_CardTotalTxns">0 transactions</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #3b82f6 !important;">
+                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-user me-1 text-primary"></i>Dipto (In-Hand)</div>
+                                <div class="h4 mb-0 font-weight-bold text-primary mt-1" id="rep_CardDiptoAmt">₹0.00</div>
+                                <div class="text-muted small mt-1" id="rep_CardDiptoTxns">0 transactions</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #6366f1 !important;">
+                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-university me-1" style="color: #4f46e5;"></i>Bank (In-Hand)</div>
+                                <div class="h4 mb-0 font-weight-bold mt-1" style="color: #4f46e5;" id="rep_CardBankAmt">₹0.00</div>
+                                <div class="text-muted small mt-1" id="rep_CardBankTxns">0 transactions</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 col-6">
+                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #f59e0b !important;">
+                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-user me-1 text-warning"></i>Prabir (In-Hand)</div>
+                                <div class="h4 mb-0 font-weight-bold text-warning mt-1" id="rep_CardPrabirAmt">₹0.00</div>
+                                <div class="text-muted small mt-1" id="rep_CardPrabirTxns">0 transactions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receiver Summary Breakdown Table -->
+                <div class="table-responsive-container">
+                    <table class="table about-custom-table align-middle" id="rep_ReceiverTable" style="min-width: 800px !important;">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 160px;">Payment Receiver</th>
+                                <th style="min-width: 100px;" class="text-center">Transactions</th>
+                                <th style="min-width: 130px;" class="text-end">Total Collected (₹)</th>
+                                <th style="min-width: 120px;" class="text-end text-danger font-weight-bold">Refund (₹)</th>
+                                <th style="min-width: 120px;" class="text-end text-secondary font-weight-bold">Expense (₹)</th>
+                                <th style="min-width: 140px;" class="text-end text-primary font-weight-bold">In-Hand Amount (₹)</th>
+                                <th style="min-width: 90px;" class="text-center">Share (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="fa fa-spinner fa-spin me-2"></i> Loading receiver summary...
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot id="rep_ReceiverTableFoot" class="bg-light font-weight-bold">
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Toggleable Details Table for Selected Transactions -->
+                <div class="p-3 border-top bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small font-weight-bold text-muted" id="rep_ReceiverTxnHeading">
+                            <i class="fa fa-list me-1"></i>Detailed Transactions List
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnToggleReceiverTxns">
+                            <i class="fa fa-chevron-down me-1"></i> <span id="lblToggleReceiverTxns">Show Transactions</span>
+                        </button>
+                    </div>
+                    <div id="rep_ReceiverTxnsContainer" style="display: none;" class="mt-3">
+                        <div class="table-responsive-container">
+                            <table class="table table-bordered table-sm table-hover align-middle bg-white mb-0" id="rep_ReceiverTxnTable">
+                                <thead class="table-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Reg No</th>
+                                        <th>Candidate Name</th>
+                                        <th>Course</th>
+                                        <th>Mode</th>
+                                        <th>Receiver</th>
+                                        <th class="text-end">Amount (₹)</th>
+                                        <th>Txn Ref</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="8" class="text-center py-3 text-muted">No transactions to display.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 

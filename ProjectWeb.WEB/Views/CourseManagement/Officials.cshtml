@@ -283,6 +283,7 @@
                         <input type="hidden" id="hdn_EnrollmentId" value="0" />
                         <input type="hidden" id="hdn_PersonId" value="0" />
                         <input type="hidden" id="hdn_PaymentId" value="0" />
+                        <input type="hidden" id="hdn_OriginalEnrollStatus" value="" />
 
                         <h6 class="text-primary fw-bold border-bottom pb-2 mb-3"><i class="fa fa-user me-2"></i>Personal Details</h6>
                         <div class="row g-3 mb-4">
@@ -376,7 +377,12 @@
                             </div>
                             <div class="col-md-3 col-sm-6">
                                 <label class="form-label fw-semibold">Payment Receiver</label>
-                                <input type="text" class="form-control" id="txt_InitialPaymentReceiver" name="txt_InitialPaymentReceiver" placeholder="Receiver name..." />
+                                <select class="form-control" id="txt_InitialPaymentReceiver" name="txt_InitialPaymentReceiver">
+                                    <option value="">-- Select Receiver --</option>
+                                    <option value="1">Dipto</option>
+                                    <option value="2">Bank</option>
+                                    <option value="3">Prabir</option>
+                                </select>
                             </div>
                             <div class="col-md-3 col-sm-6">
                                 <label class="form-label fw-semibold">Txn Ref / Cheque No</label>
@@ -545,7 +551,12 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Payment Receiver</label>
-                            <input type="text" class="form-control" id="pay_PaymentReceiver" placeholder="Name of receiver" />
+                            <select class="form-select" id="pay_PaymentReceiver">
+                                <option value="">-- Select Receiver --</option>
+                                <option value="1">Dipto</option>
+                                <option value="2">Bank</option>
+                                <option value="3">Prabir</option>
+                            </select>
                         </div>
 
                         <div class="mb-3">

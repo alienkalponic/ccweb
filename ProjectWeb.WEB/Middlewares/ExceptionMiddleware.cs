@@ -32,6 +32,12 @@ namespace ProjectWeb.WEB.Middlewares
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
+            if (context.Response.HasStarted)
+            {
+                _logger.LogWarning("The response has already started, cannot modify response status or headers.");
+                return;
+            }
+
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
