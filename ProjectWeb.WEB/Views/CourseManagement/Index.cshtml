@@ -263,7 +263,7 @@
                 </div>
             </div>
 
-            <!-- Segment-Wise Income Overview Table Card -->
+            <!-- Segment-Wise Income Overview Table Card (Regular Courses) -->
             <div class="about-table-card animate-fade-in mb-4">
                 <div class="d-flex align-items-center justify-content-between p-3 border-bottom bg-white">
                     <h5 class="mb-0 fw-bold" style="color: #1e293b;"><i class="fa fa-pie-chart me-2 text-primary"></i>Segment-Wise Course Financials</h5>
@@ -286,6 +286,41 @@
                         <tbody>
                             <tr>
                                 <td colspan="8" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading segment summary...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Course Officials Overview Table -->
+            <div class="about-table-card animate-fade-in mb-4" id="dash_OfficialsSection" style="display:none;">
+                <div class="d-flex align-items-center justify-content-between p-3 border-bottom" style="background: linear-gradient(135deg, #667eea10, #764ba210);">
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: #667eea;"><i class="fa fa-shield me-2"></i>Course Officials Overview</h5>
+                        <p class="text-muted small mb-0 mt-1">Honorarium summary for course officials, grouped by course</p>
+                    </div>
+                    <a href="@Url.Action("Officials", "CourseManagement")" class="btn btn-sm btn-outline-secondary">Manage Officials <i class="fa fa-arrow-right ms-1"></i></a>
+                </div>
+                <div class="table-responsive-container">
+                    <table class="table about-custom-table align-middle" id="dash_OfficialsTable">
+                        <thead>
+                            <tr>
+                                <th>Course Official</th>
+                                <th style="text-align: center;">Officials</th>
+                                @* <th style="text-align: right;">Paid (₹)</th>
+                                <th style="text-align: right;">Due (₹)</th>
+                                <th style="text-align: right; font-weight: bold;">Total Honorarium (₹)</th> *@
+                                <th style="text-align: right;">Collected (₹)</th>
+                                <th style="text-align: right;">Due (₹)</th>
+                                <th style="text-align: right;">Refund (₹)</th>
+                                <th style="text-align: right;">Expense (₹)</th>
+                                <th style="text-align: right;">Official Paid (₹)</th>
+                                <th style="text-align: right; font-weight: bold;">Net Income (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading officials...</td>
                             </tr>
                         </tbody>
                     </table>

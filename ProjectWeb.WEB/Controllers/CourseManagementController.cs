@@ -275,7 +275,7 @@ namespace ProjectWeb.WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCourseOfficial(long? courseId = null, int? year = null, string? role = null, string? paymentStatus = null, int pageNumber = 1, int pageSize = 10, string search = "")
         {
-            APIResponse response = await _unitOfWork.CourseManagement.GetAllCourseOfficial<APIResponse>(courseId, year, role, paymentStatus, pageNumber, pageSize, search);
+            APIResponse response = await _unitOfWork.CourseManagement.GetAllCourseOfficial<APIResponse>(5, year, role, paymentStatus, pageNumber, pageSize, search);
             return Content(JsonConvert.SerializeObject(response), "application/json");
         }
 

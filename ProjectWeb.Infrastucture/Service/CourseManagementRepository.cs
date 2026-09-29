@@ -318,7 +318,7 @@ namespace ProjectWeb.Infrastucture.Service
             return await _baseService.SendAsync<T>(new APIRequest
             {
                 ApiType = StaticDetails.ApiType.GET,
-                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/get-all-course-official" + query
+                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/get-all-enrollment" + query
             }, withBearer: true);
         }
 

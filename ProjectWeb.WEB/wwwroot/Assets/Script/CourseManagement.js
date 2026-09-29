@@ -18,8 +18,10 @@ $(document).ready(function () {
 
     // Helper: Currency formatting
     function formatMoney(amount) {
-        if (amount === null || amount === undefined || isNaN(amount)) return "₹0.00";
-        return "₹" + parseFloat(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const num = parseFloat(amount);
+        if (amount === null || amount === undefined || isNaN(num)) return '₹0.00';
+        const formatted = num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return '₹' + formatted;
     }
 
     // Helper: Date formatting
@@ -32,6 +34,123 @@ $(document).ready(function () {
         } catch (e) {
             return dateStr;
         }
+    }
+
+    // Helper: Non-refundable retention amount and refund calculator
+    function calculateRetentionAndRefund(totalPaid, batchRetentionAmount) {
+        const paid = parseFloat(totalPaid) || 0;
+        const batchRetention = (batchRetentionAmount !== undefined && batchRetentionAmount !== null && batchRetentionAmount !== '')
+            ? (parseFloat(batchRetentionAmount) || 0)
+            : 2000;
+        
+        const retentionAmount = Math.min(paid, batchRetention);
+        const refundAmount = Math.max(0, paid - retentionAmount);
+        
+        return {
+            totalPaid: paid,
+            retentionAmount: retentionAmount,
+            refundAmount: refundAmount
+        };
+    }
+
+    // Helper: Participant Active & Segment Match Checkers
+    function getParticipantCourseName(e) {
+        if (!e) return '';
+        return (e.CourseName || e.Course?.CourseName || e.BatchName || e.CourseBatch?.CourseName || e.CourseBatch?.Course?.CourseName || e.CourseCode || e.Course?.CourseCode || '').toString().trim();
+    }
+
+    function isParticipantActive(e) {
+        if (!e) return false;
+        const st = (e.EnrollmentStatus || e.Status || e.enrollmentStatus || e.status || '').toString().toUpperCase().trim();
+        if (st === "CANCELLED" || st === "CANCELED") return false;
+        return true;
+    }
+
+    function isParticipantMatchSegment(e, cId, cName) {
+        if (!e) return false;
+        const eCId = e.CourseId || e.Course?.CourseId || e.CourseBatch?.CourseId || 0;
+        if (cId > 0 && eCId > 0) {
+            if (parseInt(eCId) === parseInt(cId)) return true;
+        }
+        const eCName = getParticipantCourseName(e).toUpperCase();
+        const targetName = (cName || '').toString().toUpperCase().trim();
+        if (!eCName || !targetName) return false;
+        return eCName.includes(targetName) || targetName.includes(eCName);
+    }
+
+    // Helper: Group & Render Course Officials Table
+    function renderOfficialsTable(res, tbodySelector, sectionSelector) {
+        const officials = extractList(res);
+        if (!officials || officials.length === 0) {
+            if (sectionSelector) $(sectionSelector).hide();
+            return;
+        }
+
+        const groups = {};
+        officials.forEach(item => {
+            const cName = (item.CourseName || item.courseName || item.Name || item.name || item.Course?.CourseName || 'Course Official').toString().trim();
+            const st = (item.EnrollmentStatus || item.Status || item.enrollmentStatus || item.status || '').toString().toUpperCase().trim();
+            const isCancelled = st === "CANCELLED" || st === "CANCELED";
+
+            if (!groups[cName]) {
+                groups[cName] = {
+                    courseName: cName,
+                    officialsCount: 0,
+                    totalCollected: 0,
+                    totalDue: 0,
+                    totalRefund: 0,
+                    totalExpense: 0,
+                    totalOfficialPaid: 0
+                };
+            }
+
+            const fee = item.TotalCourseFee ?? item.CourseFee ?? item.TotalFee ?? item.CourseBatch?.Fee ?? 0;
+            let paid = item.TotalPaid ?? item.PaidAmount ?? item.Paid ?? item.TotalCollected ?? item.totalCollected ?? 0;
+            if ((paid === 0 || paid === undefined || paid === null) && Array.isArray(item.Payments) && item.Payments.length > 0) {
+                paid = item.Payments.reduce((s, p) => s + (p.Amount || 0), 0);
+            }
+
+            const refund = item.TotalRefund ?? item.totalRefund ?? item.RefundAmount ?? 0;
+            const expense = item.TotalExpense ?? item.totalExpense ?? 0;
+            const officialPaid = item.TotalOfficialPaid ?? item.totalOfficialPaid ?? item.OfficialPaid ?? 0;
+
+            if (!isCancelled) {
+                groups[cName].officialsCount += 1;
+                groups[cName].totalCollected += paid;
+                groups[cName].totalDue += Math.max(0, fee - paid);
+            } else {
+                groups[cName].totalRefund += refund;
+            }
+
+            groups[cName].totalExpense += expense;
+            groups[cName].totalOfficialPaid += officialPaid;
+        });
+
+        const keys = Object.keys(groups);
+        if (keys.length === 0) {
+            if (sectionSelector) $(sectionSelector).hide();
+            return;
+        }
+
+        let html = '';
+        keys.forEach(k => {
+            const g = groups[k];
+            const netInc = g.totalCollected - g.totalRefund - g.totalExpense - g.totalOfficialPaid;
+            html += `
+                <tr>
+                    <td class="font-weight-bold text-primary">${g.courseName}</td>
+                    <td class="text-center font-weight-bold">${g.officialsCount}</td>
+                    <td class="text-end text-success font-weight-bold">${formatMoney(g.totalCollected)}</td>
+                    <td class="text-end text-warning">${formatMoney(g.totalDue)}</td>
+                    <td class="text-end text-danger">${formatMoney(g.totalRefund)}</td>
+                    <td class="text-end text-secondary">${formatMoney(g.totalExpense)}</td>
+                    <td class="text-end text-info">${formatMoney(g.totalOfficialPaid)}</td>
+                    <td class="text-end font-weight-bold ${netInc >= 0 ? 'text-success' : 'text-danger'}">${formatMoney(netInc)}</td>
+                </tr>
+            `;
+        });
+        $(tbodySelector).html(html);
+        if (sectionSelector) $(sectionSelector).show();
     }
 
     // Common AJAX Error Handler
@@ -148,7 +267,18 @@ $(document).ready(function () {
             type: "GET",
             dataType: "json",
             success: function (res) {
-                const list = extractList(res);
+                let list = extractList(res);
+                if (action_name === "participants") {
+                    list = list.filter(c => {
+                        const name = (c.CourseName || c.Name || c.CourseCode || '').toString().toUpperCase();
+                        return !name.includes("OFFICIAL") && !name.includes("OFFICAL");
+                    });
+                } else if (action_name === "officials") {
+                    list = list.filter(c => {
+                        const name = (c.CourseName || c.Name || c.CourseCode || '').toString().toUpperCase();
+                        return name.includes("OFFICIAL") || name.includes("OFFICAL");
+                    });
+                }
                 selectors.forEach(selector => {
                     const $el = $(selector);
                     const currentVal = $el.val();
@@ -176,7 +306,18 @@ $(document).ready(function () {
             type: "GET",
             dataType: "json",
             success: function (res) {
-                const list = extractList(res);
+                let list = extractList(res);
+                if (action_name === "participants") {
+                    list = list.filter(b => {
+                        const name = (b.CourseName || b.Course?.CourseName || b.Name || '').toString().toUpperCase();
+                        return !name.includes("OFFICIAL") && !name.includes("OFFICAL");
+                    });
+                } else if (action_name === "officials") {
+                    list = list.filter(b => {
+                        const name = (b.CourseName || b.Course?.CourseName || b.Name || '').toString().toUpperCase();
+                        return name.includes("OFFICIAL") || name.includes("OFFICAL");
+                    });
+                }
                 selectors.forEach(selector => {
                     const $el = $(selector);
                     $el.empty().append('<option value="">-- Select Course Batch --</option>');
@@ -201,81 +342,125 @@ $(document).ready(function () {
 
         function loadDashboardData() {
             showLoader();
+
             $.ajax({
-                url: _BaseURL + "/CourseManagement/GetCourseDashboard",
+                url: _BaseURL + "/CourseManagement/GetAllEnrollment?pageSize=5000",
                 type: "GET",
                 dataType: "json",
-                success: function (res) {
-                    hideLoader();
-                    const data = extractObject(res) || {};
+                success: function (enrollRes) {
+                    const enrollList = extractList(enrollRes);
+                    const activeParticipants = enrollList.filter(isParticipantActive);
 
-                    const totalCourses = data.TotalCourses ?? data.totalCourses ?? data.TotalCourse ?? data.totalCourse ?? data.CourseCount ?? data.courseCount ?? 0;
-                    const totalBatches = data.TotalBatches ?? data.totalBatches ?? data.TotalBatch ?? data.totalBatch ?? data.BatchCount ?? data.batchCount ?? 0;
-                    const totalParticipants = data.TotalParticipants ?? data.totalParticipants ?? data.TotalParticipant ?? data.totalParticipant ?? data.TotalEnrollments ?? data.totalEnrollments ?? data.ParticipantCount ?? data.participantCount ?? 0;
-                    const totalCollection = data.TotalCollection ?? data.totalCollection ?? data.TotalCollected ?? data.totalCollected ?? data.TotalPaid ?? data.totalPaid ?? data.CollectionAmount ?? 0;
-                    const totalDue = data.TotalDue ?? data.totalDue ?? data.DueAmount ?? data.dueAmount ?? 0;
-                    const totalRefund = data.TotalRefund ?? data.totalRefund ?? data.RefundAmount ?? data.refundAmount ?? 0;
-                    const totalExpense = data.TotalExpense ?? data.totalExpense ?? data.ExpenseAmount ?? data.expenseAmount ?? 0;
-                    const officialPaid = data.TotalOfficialPaid ?? data.totalOfficialPaid ?? data.OfficialPaid ?? 0;
+                    // 1. Dashboard summary counters
+                    $.ajax({
+                        url: _BaseURL + "/CourseManagement/GetCourseDashboard",
+                        type: "GET",
+                        dataType: "json",
+                        success: function (res) {
+                            hideLoader();
+                            const data = extractObject(res) || {};
 
-                    let netIncome = data.NetCourseIncome ?? data.netCourseIncome ?? data.NetIncome ?? data.netIncome;
-                    if (netIncome === undefined || netIncome === null || isNaN(netIncome)) {
-                        netIncome = totalCollection - totalRefund - totalExpense - officialPaid;
-                    }
+                            const totalCourses = data.TotalCourses ?? data.totalCourses ?? 0;
+                            const totalBatches = data.TotalBatches ?? data.totalBatches ?? 0;
 
-                    $("#dash_TotalCourses").text(totalCourses);
-                    $("#dash_TotalBatches").text(totalBatches);
-                    $("#dash_TotalParticipants").text(totalParticipants);
-                    $("#dash_TotalCollection").text(formatMoney(totalCollection));
-                    $("#dash_TotalDue").text(formatMoney(totalDue));
-                    $("#dash_TotalRefund").text(formatMoney(totalRefund));
-                    $("#dash_TotalExpense").text(formatMoney(totalExpense));
-                    $("#dash_NetCourseIncome").text(formatMoney(netIncome));
+                            const activeParticipantsCount = enrollList.length > 0 ? activeParticipants.length : (data.TotalParticipants ?? 0);
+
+                            const totalCollection = data.TotalCollected ?? data.totalCollected ?? data.TotalPaid ?? 0;
+                            const totalRefund = data.TotalRefund ?? data.totalRefund ?? 0;
+                            const totalExpense = data.TotalExpense ?? data.totalExpense ?? 0;
+                            const officialPaid = data.TotalOfficialPaid ?? data.totalOfficialPaid ?? 0;
+
+                            let activeDueTotal = 0;
+                            if (enrollList.length > 0) {
+                                activeParticipants.forEach(e => {
+                                    const fee = e.TotalCourseFee ?? e.CourseFee ?? e.TotalFee ?? 0;
+                                    let paid = e.TotalPaid ?? e.PaidAmount ?? e.Paid ?? 0;
+                                    if ((paid === 0 || paid === undefined || paid === null) && Array.isArray(e.Payments) && e.Payments.length > 0) {
+                                        paid = e.Payments.reduce((s, p) => s + (p.Amount || 0), 0);
+                                    }
+                                    activeDueTotal += Math.max(0, fee - paid);
+                                });
+                            } else {
+                                activeDueTotal = data.TotalDue ?? 0;
+                            }
+
+                            let netIncome = data.NetBalance ?? data.NetCourseIncome ?? (totalCollection - totalRefund - totalExpense - officialPaid);
+
+                            $("#dash_TotalCourses").text(totalCourses);
+                            $("#dash_TotalBatches").text(totalBatches);
+                            $("#dash_TotalParticipants").text(activeParticipantsCount);
+                            $("#dash_TotalCollection").text(formatMoney(totalCollection));
+                            $("#dash_TotalDue").text(formatMoney(activeDueTotal));
+                            $("#dash_TotalRefund").text(formatMoney(totalRefund));
+                            $("#dash_TotalExpense").text(formatMoney(totalExpense));
+                            $("#dash_NetCourseIncome").text(formatMoney(netIncome));
+                        },
+                        error: handleAjaxError
+                    });
+
+                    // 2. Segment Summary Table
+                    $.ajax({
+                        url: _BaseURL + "/CourseManagement/GetCourseSummaryBySegment",
+                        type: "GET",
+                        dataType: "json",
+                        success: function (res) {
+                            const list = extractList(res);
+                            const regularList = list.filter(item => {
+                                const cName = item.CourseName || item.courseName || item.Name || item.name || '';
+                                return !cName.toUpperCase().includes('OFFICIAL') && !cName.toUpperCase().includes('OFFICAL');
+                            });
+
+                            let html = "";
+                            if (regularList.length === 0) {
+                                html = `<tr><td colspan="8" class="text-center py-4 text-muted">No segment data recorded yet.</td></tr>`;
+                            } else {
+                                regularList.forEach(item => {
+                                    const cName = item.CourseName || item.courseName || item.Name || item.name || 'General';
+                                    const cId = item.CourseId || item.courseId || 0;
+
+                                    let pCount = item.ParticipantCount ?? item.participantCount ?? 0;
+                                    if (enrollList.length > 0) {
+                                        const segActiveList = activeParticipants.filter(e => isParticipantMatchSegment(e, cId, cName));
+                                        pCount = segActiveList.length;
+                                    }
+
+                                    const collected = item.TotalCollected ?? item.totalCollected ?? item.TotalPaid ?? 0;
+                                    const due = item.TotalDue ?? 0;
+                                    const refund = item.TotalRefund ?? item.totalRefund ?? 0;
+                                    const expense = item.TotalExpense ?? item.totalExpense ?? 0;
+                                    const officialPaid = item.TotalOfficialPaid ?? item.totalOfficialPaid ?? 0;
+                                    let netInc = item.NetIncome ?? item.netIncome ?? (collected - refund - expense - officialPaid);
+
+                                    html += `
+                                        <tr>
+                                            <td class="font-weight-bold text-primary">${cName}</td>
+                                            <td class="text-center font-weight-bold">${pCount}</td>
+                                            <td class="text-end text-success font-weight-bold">${formatMoney(collected)}</td>
+                                            <td class="text-end text-warning">${formatMoney(due)}</td>
+                                            <td class="text-end text-danger">${formatMoney(refund)}</td>
+                                            <td class="text-end text-secondary">${formatMoney(expense)}</td>
+                                            <td class="text-end text-info">${formatMoney(officialPaid)}</td>
+                                            <td class="text-end font-weight-bold ${netInc >= 0 ? 'text-success' : 'text-danger'}">${formatMoney(netInc)}</td>
+                                        </tr>
+                                    `;
+                                });
+                            }
+                            $("#dash_SegmentTable tbody").html(html);
+                        }
+                    });
                 },
                 error: handleAjaxError
             });
 
-            // Load Segment Summary
+            // Load Officials from CourseOfficial table
             $.ajax({
-                url: _BaseURL + "/CourseManagement/GetCourseSummaryBySegment",
+                url: _BaseURL + "/CourseManagement/GetAllCourseOfficial",
                 type: "GET",
                 dataType: "json",
                 success: function (res) {
-                    const list = extractList(res);
-                    let html = "";
-                    if (list.length === 0) {
-                        html = `<tr><td colspan="8" class="text-center py-4 text-muted">No segment data recorded yet.</td></tr>`;
-                    } else {
-                        list.forEach(item => {
-                            const cName = item.CourseName || item.courseName || item.Name || item.name || 'General';
-                            const pCount = item.ParticipantCount ?? item.participantCount ?? item.TotalParticipants ?? item.totalParticipants ?? 0;
-                            const collected = item.TotalCollected ?? item.totalCollected ?? item.TotalCollection ?? item.totalCollection ?? item.TotalPaid ?? item.totalPaid ?? 0;
-                            const due = item.TotalDue ?? item.totalDue ?? 0;
-                            const refund = item.TotalRefund ?? item.totalRefund ?? 0;
-                            const expense = item.TotalExpense ?? item.totalExpense ?? 0;
-                            const officialPaid = item.TotalOfficialPaid ?? item.totalOfficialPaid ?? item.OfficialPaid ?? 0;
-                            
-                            let netInc = item.NetIncome ?? item.netIncome ?? item.NetCourseIncome ?? item.netCourseIncome;
-                            if (netInc === undefined || netInc === null || isNaN(netInc)) {
-                                netInc = collected - refund - expense - officialPaid;
-                            }
-
-                            html += `
-                                <tr>
-                                    <td class="font-weight-bold text-primary">${cName}</td>
-                                    <td class="text-center">${pCount}</td>
-                                    <td class="text-end text-success font-weight-bold">${formatMoney(collected)}</td>
-                                    <td class="text-end text-warning">${formatMoney(due)}</td>
-                                    <td class="text-end text-danger">${formatMoney(refund)}</td>
-                                    <td class="text-end text-secondary">${formatMoney(expense)}</td>
-                                    <td class="text-end text-info">${formatMoney(officialPaid)}</td>
-                                    <td class="text-end font-weight-bold ${netInc >= 0 ? 'text-success' : 'text-danger'}">${formatMoney(netInc)}</td>
-                                </tr>
-                            `;
-                        });
-                    }
-                    $("#dash_SegmentTable tbody").html(html);
-                }
+                    renderOfficialsTable(res, "#dash_OfficialsTable tbody", "#dash_OfficialsSection");
+                },
+                error: function () { $("#dash_OfficialsSection").hide(); }
             });
         }
     }
@@ -714,9 +899,9 @@ $(document).ready(function () {
     }
 
     // ==========================================
-    // 4. PARTICIPANTS / ENROLLMENT PAGE
+    // 4. PARTICIPANTS / ENROLLMENT PAGE & OFFICIALS PAGE
     // ==========================================
-    if (controller_name === "coursemanagement" && action_name === "participants") {
+    if (controller_name === "coursemanagement" && (action_name === "participants" || action_name === "officials")) {
         let currentPage = 1;
         const pageSize = 10;
 
@@ -790,11 +975,23 @@ $(document).ready(function () {
             });
         }
 
+        function isOfficialCourseItem(item) {
+            const name = (item.CourseName || item.Course?.CourseName || item.BatchName || item.CourseCode || item.Course?.CourseCode || '').toString().toUpperCase();
+            return name.includes("OFFICIAL") || name.includes("OFFICAL");
+        }
+
         function bindEnrollmentTable(list, page, totalRecords) {
             const $tbody = $("#tbl_Enrollments tbody");
             $tbody.empty();
 
-            if (list.length === 0) {
+            let filteredList = list;
+            if (action_name === "participants") {
+                filteredList = list.filter(item => !isOfficialCourseItem(item));
+            } else if (action_name === "officials") {
+                filteredList = list.filter(item => isOfficialCourseItem(item));
+            }
+
+            if (filteredList.length === 0) {
                 $tbody.html('<tr><td colspan="11" class="text-center py-4 text-muted">No enrollments found.</td></tr>');
                 $("#enrollRecordInfo").text("Showing 0 records");
                 $("#enrollPagination").empty();
@@ -804,7 +1001,7 @@ $(document).ready(function () {
             let html = "";
             const startIndex = (page - 1) * pageSize;
 
-            list.forEach((item) => {
+            filteredList.forEach((item) => {
                 let statusClass = "bg-primary";
                 if (item.EnrollmentStatus === "CONFIRMED" || item.Status === "CONFIRMED") statusClass = "bg-success";
                 else if (item.EnrollmentStatus === "CANCELLED" || item.Status === "CANCELLED") statusClass = "bg-danger";
@@ -823,10 +1020,12 @@ $(document).ready(function () {
                 if ((totalPaid === 0 || totalPaid === undefined || totalPaid === null) && Array.isArray(item.Payments) && item.Payments.length > 0) {
                     totalPaid = item.Payments.reduce((sum, p) => sum + (p.Amount || 0), 0);
                 }
-                const totalDue = item.TotalDue !== undefined && item.TotalDue !== null ? item.TotalDue : Math.max(0, totalCourseFee - totalPaid);
+                const totalDue = isCancelled ? 0 : (item.TotalDue !== undefined && item.TotalDue !== null ? item.TotalDue : Math.max(0, totalCourseFee - totalPaid));
 
                 let computedPaymentStatus = item.PaymentStatus || item.paymentStatus;
-                if (!computedPaymentStatus || computedPaymentStatus === "PENDING") {
+                if (isCancelled) {
+                    computedPaymentStatus = "CANCELLED";
+                } else if (!computedPaymentStatus || computedPaymentStatus === "PENDING") {
                     if (totalCourseFee > 0 && totalDue <= 0 && totalPaid >= totalCourseFee) {
                         computedPaymentStatus = "COMPLETED";
                     } else if (totalPaid > 0 && totalDue > 0) {
@@ -841,9 +1040,13 @@ $(document).ready(function () {
                 let payClass = "bg-secondary";
                 if (computedPaymentStatus === "COMPLETED") payClass = "bg-success";
                 else if (computedPaymentStatus === "PARTIAL") payClass = "bg-warning text-dark";
+                else if (computedPaymentStatus === "CANCELLED") payClass = "bg-danger";
+
+                const rowClass = isCancelled ? "cancelled-row" : "";
+                const rowStyle = isCancelled ? "background-color: #fef2f2 !important;" : "";
 
                 html += `
-                    <tr>
+                    <tr class="${rowClass}" style="${rowStyle}">
                         <td><span class="badge bg-light text-dark border font-monospace">${item.RegistrationNumber || 'REG-#' + (item.CourseEnrollmentId || item.EnrollmentId)}</span></td>
                         <td class="font-weight-bold text-dark">${participantName}</td>
                         <td class="small">${phone}<br/><span class="text-muted">${email}</span></td>
@@ -877,7 +1080,7 @@ $(document).ready(function () {
             });
 
             $tbody.html(html);
-            $("#enrollRecordInfo").text(`Showing ${startIndex + 1} to ${Math.min(startIndex + pageSize, totalRecords)} of ${totalRecords} entries`);
+            $("#enrollRecordInfo").text(`Showing ${filteredList.length > 0 ? (startIndex + 1) : 0} to ${startIndex + filteredList.length} of ${totalRecords} entries`);
 
             renderPaginationLocal("#enrollPagination", page, totalRecords, pageSize, function (newPage) {
                 currentPage = newPage;
@@ -944,7 +1147,11 @@ $(document).ready(function () {
             $("#txt_InitialTxnRef").val("");
 
             $(".paymentUpdatediv").find("input, select, textarea, button").prop("disabled", false);
-            $("#enrollModalTitle").html('<i class="fa fa-user-plus"></i> New Participant Enrollment');
+            if (action_name === "officials") {
+                $("#enrollModalTitle").html('<i class="fa fa-user-secret"></i> New Official Enrollment');
+            } else {
+                $("#enrollModalTitle").html('<i class="fa fa-user-plus"></i> New Participant Enrollment');
+            }
         }
 
         function editEnrollment(id) {
@@ -1038,7 +1245,11 @@ $(document).ready(function () {
                             $(".paymentUpdatediv").find("input, select, textarea, button").prop("disabled", false);
                         }
 
-                        $("#enrollModalTitle").html('<i class="fa fa-pencil"></i> Edit Participant Enrollment');
+                        if (action_name === "officials") {
+                            $("#enrollModalTitle").html('<i class="fa fa-pencil"></i> Edit Official Enrollment');
+                        } else {
+                            $("#enrollModalTitle").html('<i class="fa fa-pencil"></i> Edit Participant Enrollment');
+                        }
                         $("#enrollModal").modal("show");
                     } else {
                         toastr.warning("Could not load enrollment details.", "Warning");
@@ -1057,8 +1268,9 @@ $(document).ready(function () {
             const phone = $("#txt_PersonPhone").val().trim();
             const batchId = parseInt($("#ddl_EnrollBatch").val()) || 0;
 
+            const isOfficial = action_name === "officials";
             if (!name || !phone || !batchId) {
-                toastr.warning("Participant Name, Phone and Course Batch are required.", "Validation Error");
+                toastr.warning(`${isOfficial ? "Official" : "Participant"} Name, Phone and Course Batch are required.`, "Validation Error");
                 return;
             }
 
@@ -1160,6 +1372,12 @@ $(document).ready(function () {
             }
 
             const isEdit = enrollId > 0;
+            if (isEdit && dto.EnrollmentStatus === "CANCELLED") {
+                $("#enrollModal").modal("hide");
+                confirmCancelEnrollment(enrollId, name);
+                return;
+            }
+
             const endpoint = isEdit ? "/CourseManagement/UpdateEnrollment" : "/CourseManagement/CreateEnrollment";
 
             showLoader();
@@ -1171,7 +1389,7 @@ $(document).ready(function () {
                 success: function (res) {
                     hideLoader();
                     if (isSuccessResponse(res)) {
-                        toastr.success(isEdit ? "Enrollment updated!" : "Participant enrolled successfully!", "Success");
+                        toastr.success(isEdit ? "Enrollment updated!" : (isOfficial ? "Official enrolled successfully!" : "Participant enrolled successfully!"), "Success");
                         $("#enrollModal").modal("hide");
                         loadEnrollments(currentPage);
                     } else {
@@ -1306,7 +1524,7 @@ $(document).ready(function () {
             if (maxDue > 0 && entered > maxDue) {
                 $(this).addClass("is-invalid");
                 $("#pay_Amount_Validation")
-                    .text(`Payment amount (₹${entered.toFixed(2)}) cannot exceed due amount (₹${maxDue.toFixed(2)}).`)
+                    .text(`Payment amount (â‚¹${entered.toFixed(2)}) cannot exceed due amount (â‚¹${maxDue.toFixed(2)}).`)
                     .removeClass("d-none");
             } else {
                 $(this).removeClass("is-invalid");
@@ -1333,9 +1551,9 @@ $(document).ready(function () {
             if (maxDue > 0 && amount > maxDue) {
                 $("#pay_Amount").addClass("is-invalid");
                 $("#pay_Amount_Validation")
-                    .text(`Payment amount (₹${amount.toFixed(2)}) cannot exceed due amount (₹${maxDue.toFixed(2)}).`)
+                    .text(`Payment amount (â‚¹${amount.toFixed(2)}) cannot exceed due amount (â‚¹${maxDue.toFixed(2)}).`)
                     .removeClass("d-none");
-                toastr.warning(`Payment amount (₹${amount.toFixed(2)}) cannot exceed due amount (₹${maxDue.toFixed(2)}).`, "Validation Error");
+                toastr.warning(`Payment amount (â‚¹${amount.toFixed(2)}) cannot exceed due amount (â‚¹${maxDue.toFixed(2)}).`, "Validation Error");
                 return;
             }
 
@@ -1371,45 +1589,77 @@ $(document).ready(function () {
         }
 
         function confirmCancelEnrollment(enrollmentId, participantName) {
-            Swal.fire({
-                title: "Cancel Enrollment?",
-                text: `Are you sure you want to cancel enrollment for ${participantName}? The API will calculate retention and refund amount.`,
-                icon: "warning",
-                input: 'text',
-                inputPlaceholder: 'Enter cancellation reason...',
-                showCancelButton: true,
-                confirmButtonColor: "#dc3545",
-                confirmButtonText: "Yes, Cancel Enrollment"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const reason = result.value || "Cancelled by Admin";
-                    showLoader();
-                    $.ajax({
-                        url: _BaseURL + "/CourseManagement/CancelEnrollment",
-                        type: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify({
-                            EnrollmentId: enrollmentId,
-                            Reason: reason,
-                            RefundMode: "CASH"
-                        }),
-                        success: function (res) {
-                            hideLoader();
-                            if (isSuccessResponse(res)) {
-                                const refundInfo = extractObject(res);
-                                let msg = "Enrollment cancelled successfully!";
-                                if (refundInfo && refundInfo.RefundAmount !== undefined) {
-                                    msg += ` Calculated Refund: ${formatMoney(refundInfo.RefundAmount)}`;
-                                }
-                                Swal.fire("Cancelled", msg, "success");
-                                loadEnrollments(currentPage);
-                            } else {
-                                toastr.error(res.Response || "Cancellation failed.", "Error");
-                            }
-                        },
-                        error: handleAjaxError
+            showLoader();
+            $.ajax({
+                url: `${_BaseURL}/CourseManagement/GetEnrollmentDetails?id=${enrollmentId}`,
+                type: "GET",
+                dataType: "json",
+                success: function (res) {
+                    hideLoader();
+                    const data = extractObject(res) || {};
+                    const e = data.Enrollment || data.enrollment || data;
+                    const b = data.Batch || data.batch || e.Batch || e.batch || {};
+
+                    let totalPaid = e.TotalPaid ?? e.PaidAmount ?? e.Paid ?? 0;
+                    if ((totalPaid === 0 || totalPaid === undefined) && Array.isArray(e.Payments) && e.Payments.length > 0) {
+                        totalPaid = e.Payments.reduce((sum, p) => sum + (p.Amount || 0), 0);
+                    }
+                    const retentionSetting = b.CancellationRetentionAmount ?? e.CancellationRetentionAmount ?? 2000;
+
+                    const calc = calculateRetentionAndRefund(totalPaid, retentionSetting);
+
+                    let htmlMsg = `<div class="text-start fs-6">
+                        <p class="mb-2">Are you sure you want to cancel enrollment for <strong>${participantName}</strong>?</p>
+                        <div class="bg-light p-3 rounded border mb-3">
+                            <div><strong>Total Paid Amount:</strong> ${formatMoney(calc.totalPaid)}</div>
+                            <div><strong>Non-Refundable Retention Amount:</strong> <span class="text-warning fw-bold">${formatMoney(calc.retentionAmount)}</span></div>
+                            <div><strong>Calculated Refund Amount:</strong> <span class="text-danger fw-bold">${formatMoney(calc.refundAmount)}</span></div>
+                        </div>
+                    </div>`;
+
+                    Swal.fire({
+                        title: "Cancel Enrollment & Process Refund",
+                        html: htmlMsg,
+                        icon: "warning",
+                        input: 'text',
+                        inputPlaceholder: 'Enter cancellation reason...',
+                        showCancelButton: true,
+                        confirmButtonColor: "#dc3545",
+                        confirmButtonText: "Yes, Cancel Enrollment"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const reason = result.value || "Cancelled by Admin";
+                            showLoader();
+                            $.ajax({
+                                url: _BaseURL + "/CourseManagement/CancelEnrollment",
+                                type: "POST",
+                                contentType: "application/json",
+                                data: JSON.stringify({
+                                    EnrollmentId: enrollmentId,
+                                    Reason: reason,
+                                    RefundMode: "CASH",
+                                    TotalPaid: calc.totalPaid,
+                                    RetentionAmount: calc.retentionAmount,
+                                    RefundAmount: calc.refundAmount
+                                }),
+                                success: function (res) {
+                                    hideLoader();
+                                    if (isSuccessResponse(res)) {
+                                        let msg = `Enrollment cancelled successfully!<br/>`;
+                                        msg += `Non-Refundable Retention: <b>${formatMoney(calc.retentionAmount)}</b><br/>`;
+                                        msg += `Refund Amount: <b>${formatMoney(calc.refundAmount)}</b>`;
+                                        Swal.fire("Cancelled", msg, "success");
+                                        loadEnrollments(currentPage);
+                                    } else {
+                                        toastr.error(res.Response || "Cancellation failed.", "Error");
+                                    }
+                                },
+                                error: handleAjaxError
+                            });
+                        }
                     });
-                }
+                },
+                error: handleAjaxError
             });
         }
     }
@@ -1522,11 +1772,17 @@ $(document).ready(function () {
         }
 
         function bindPaymentsTable(list, page, totalRecords) {
-            currentPaymentsList = list || [];
+            // Only show candidates who have completed payment (amount > 0)
+            const filteredList = (list || []).filter(item => {
+                const amt = item.Amount !== undefined && item.Amount !== null ? parseFloat(item.Amount) : (item.PaymentAmount !== undefined ? parseFloat(item.PaymentAmount) : 0);
+                return amt > 0;
+            });
+
+            currentPaymentsList = filteredList;
             const $tbody = $("#tbl_PaymentsList tbody");
             $tbody.empty();
 
-            if (list.length === 0) {
+            if (filteredList.length === 0) {
                 $tbody.html('<tr><td colspan="10" class="text-center py-4 text-muted">No payments found.</td></tr>');
                 $("#paymentRecordInfo").text("Showing 0 records");
                 $("#paymentPagination").empty();
@@ -1536,7 +1792,7 @@ $(document).ready(function () {
             let html = "";
             const startIndex = (page - 1) * pageSize;
 
-            list.forEach((item, index) => {
+            filteredList.forEach((item, index) => {
                 const paymentId = item.CoursePaymentId || item.PaymentId || item.Id || item.id || 0;
                 const pName = item.ParticipantName || item.FullName || item.Name || item.PersonName || item.Person?.FullName || item.person?.FullName || '-';
                 const regNo = item.RegistrationNumber || item.RegNo || item.RegistrationNo || (item.EnrollmentId ? 'REG-#' + item.EnrollmentId : '-');
@@ -1571,7 +1827,8 @@ $(document).ready(function () {
             });
 
             $tbody.html(html);
-            $("#paymentRecordInfo").text(`Showing ${startIndex + 1} to ${Math.min(startIndex + pageSize, totalRecords)} of ${totalRecords} entries`);
+            const filteredTotal = filteredList.length < pageSize ? startIndex + filteredList.length : totalRecords;
+            $("#paymentRecordInfo").text(`Showing ${startIndex + 1} to ${Math.min(startIndex + pageSize, filteredTotal)} of ${filteredTotal} entries`);
 
             renderPaginationLocal("#paymentPagination", page, totalRecords, pageSize, function (newPage) {
                 currentPage = newPage;
@@ -1641,9 +1898,9 @@ $(document).ready(function () {
             const courseId = $("#refund_FilterCourse").val();
             const year = $("#refund_FilterYear").val();
             const mode = $("#refund_FilterMode").val();
-            const search = $("#refund_Search").val();
+            const search = $("#refund_Search").val().trim().toLowerCase();
 
-            let url = `${_BaseURL}/CourseManagement/GetAllRefund?pageNumber=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
+            let url = `${_BaseURL}/CourseManagement/GetAllRefund?pageNumber=1&pageSize=1000&search=${encodeURIComponent(search)}`;
             if (courseId) url += `&courseId=${courseId}`;
             if (year) url += `&year=${year}`;
             if (mode) url += `&refundMode=${encodeURIComponent(mode)}`;
@@ -1653,13 +1910,171 @@ $(document).ready(function () {
                 type: "GET",
                 dataType: "json",
                 success: function (res) {
-                    hideLoader();
-                    const list = extractList(res);
-                    const totalRecords = res.TotalItem || res.TotalRecords || res.totalRecords || list.length;
-                    bindRefundsTable(list, page, totalRecords);
+                    let refundApiList = extractList(res);
+
+                    let enrollUrl = `${_BaseURL}/CourseManagement/GetAllEnrollment?pageNumber=1&pageSize=1000&status=CANCELLED`;
+                    if (courseId) enrollUrl += `&courseId=${courseId}`;
+                    if (year) enrollUrl += `&year=${year}`;
+
+                    $.ajax({
+                        url: enrollUrl,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (enrollRes) {
+                            hideLoader();
+                            const allEnrollments = extractList(enrollRes);
+
+                            // STRICT FILTER: Only enrollments whose status is CANCELLED
+                            const cancelledEnrollments = allEnrollments.filter(e => {
+                                const st = (e.EnrollmentStatus || e.Status || '').toString().toUpperCase();
+                                return st === "CANCELLED";
+                            });
+
+                            let combinedRefundList = [];
+                            const processedEnrollmentIds = new Set();
+
+                            cancelledEnrollments.forEach(e => {
+                                const eId = e.CourseEnrollmentId || e.EnrollmentId;
+                                if (eId) {
+                                    processedEnrollmentIds.add(eId);
+
+                                    const matchingApiRefund = refundApiList.find(r => (r.EnrollmentId || r.CourseEnrollmentId) == eId);
+
+                                    let totalPaid = e.TotalPaid ?? e.PaidAmount ?? e.Paid ?? 0;
+                                    if ((totalPaid === 0 || totalPaid === undefined) && Array.isArray(e.Payments) && e.Payments.length > 0) {
+                                        totalPaid = e.Payments.reduce((s, p) => s + (p.Amount || 0), 0);
+                                    }
+                                    const retentionSetting = e.CancellationRetentionAmount ?? e.CourseBatch?.CancellationRetentionAmount ?? 2000;
+                                    const calc = calculateRetentionAndRefund(totalPaid, retentionSetting);
+
+                                    combinedRefundList.push({
+                                        CourseRefundId: matchingApiRefund ? (matchingApiRefund.CourseRefundId || matchingApiRefund.Id || 0) : 0,
+                                        EnrollmentId: eId,
+                                        RegistrationNumber: e.RegistrationNumber || matchingApiRefund?.RegistrationNumber || ('REG-#' + eId),
+                                        ParticipantName: e.ParticipantName || e.FullName || e.Name || e.Person?.FullName || matchingApiRefund?.ParticipantName || '-',
+                                        CourseName: e.CourseName || e.Course?.CourseName || matchingApiRefund?.CourseName || '-',
+                                        CourseYear: e.CourseYear || e.Year || matchingApiRefund?.CourseYear || '-',
+                                        RefundDate: matchingApiRefund?.RefundDate || e.UpdatedAt || e.RegistrationDate || new Date().toISOString(),
+                                        TotalPaid: matchingApiRefund?.TotalPaid ?? calc.totalPaid,
+                                        RetentionAmount: matchingApiRefund?.RetentionAmount ?? calc.retentionAmount,
+                                        RefundAmount: matchingApiRefund?.RefundAmount ?? calc.refundAmount,
+                                        RefundMode: matchingApiRefund?.RefundMode || 'CASH',
+                                        Reason: matchingApiRefund?.Reason || e.Remarks || 'Cancelled by Admin',
+                                        TransactionReference: matchingApiRefund?.TransactionReference || '-'
+                                    });
+                                }
+                            });
+
+                            refundApiList.forEach(r => {
+                                const eId = r.EnrollmentId || r.CourseEnrollmentId;
+                                if (eId && !processedEnrollmentIds.has(eId)) {
+                                    const matchingEnrollment = allEnrollments.find(e => (e.CourseEnrollmentId || e.EnrollmentId) == eId);
+                                    const st = matchingEnrollment ? (matchingEnrollment.EnrollmentStatus || matchingEnrollment.Status || '').toString().toUpperCase() : 'CANCELLED';
+
+                                    if (st === 'CANCELLED') {
+                                        processedEnrollmentIds.add(eId);
+                                        combinedRefundList.push(r);
+                                    }
+                                }
+                            });
+
+                            if (mode) {
+                                combinedRefundList = combinedRefundList.filter(item => (item.RefundMode || 'CASH').toUpperCase() === mode.toUpperCase());
+                            }
+
+                            if (search) {
+                                combinedRefundList = combinedRefundList.filter(item => {
+                                    const name = (item.ParticipantName || '').toLowerCase();
+                                    const reg = (item.RegistrationNumber || '').toLowerCase();
+                                    const reason = (item.Reason || '').toLowerCase();
+                                    return name.includes(search) || reg.includes(search) || reason.includes(search);
+                                });
+                            }
+
+                            const totalRecords = combinedRefundList.length;
+                            const startIndex = (page - 1) * pageSize;
+                            const paginatedList = combinedRefundList.slice(startIndex, startIndex + pageSize);
+                            bindRefundsTable(paginatedList, page, totalRecords);
+                        },
+                        error: function () {
+                            hideLoader();
+                            bindRefundsTable([], page, 0);
+                        }
+                    });
                 },
                 error: handleAjaxError
             });
+        }
+
+        function renderPaymentHistoryTable($container, payments, participantName) {
+            $container.attr("data-loaded", "true");
+            if (!payments || payments.length === 0) {
+                $container.html('<div class="alert alert-light text-muted border mb-0 small"><i class="fa fa-info-circle me-1"></i>No payment transactions recorded for this candidate.</div>');
+                return;
+            }
+
+            let totalPaidSum = 0;
+            let rowsHtml = '';
+            payments.forEach((p, idx) => {
+                const amt = p.Amount ?? p.PaidAmount ?? p.AmountPaid ?? 0;
+                totalPaidSum += parseFloat(amt) || 0;
+                const pDate = p.PaymentDate || p.Date || p.CreatedAt || '-';
+                const mode = p.PaymentMode || p.Mode || 'CASH';
+                const ref = p.TransactionReference || p.ReceiptNumber || p.TransactionId || p.Remarks || '-';
+                const st = p.PaymentStatus || p.Status || 'COMPLETED';
+
+                let badgeClass = 'bg-success';
+                if (st === 'PENDING') badgeClass = 'bg-warning text-dark';
+                else if (st === 'CANCELLED' || st === 'FAILED') badgeClass = 'bg-danger';
+
+                rowsHtml += `
+                    <tr>
+                        <td class="text-center font-weight-bold">${idx + 1}</td>
+                        <td><i class="fa fa-calendar-check-o me-1 text-muted"></i>${formatDateDisplay(pDate)}</td>
+                        <td class="text-end font-weight-bold text-success">${formatMoney(amt)}</td>
+                        <td class="text-center"><span class="badge bg-secondary">${mode}</span></td>
+                        <td><span class="font-monospace small text-dark">${ref}</span></td>
+                        <td class="text-center"><span class="badge ${badgeClass}">${st}</span></td>
+                    </tr>
+                `;
+            });
+
+            const cardHtml = `
+                <div class="card shadow-sm border p-3 bg-white rounded">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <h6 class="font-weight-bold text-primary mb-0">
+                            <i class="fa fa-history me-2"></i>Payment Breakdown ${participantName ? 'for ' + participantName : ''}
+                        </h6>
+                        <span class="badge bg-primary fs-6">Total Payments: ${payments.length} (${formatMoney(totalPaidSum)})</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-striped align-middle mb-0 small">
+                            <thead class="bg-dark text-white">
+                                <tr>
+                                    <th class="text-center" style="width: 50px;">#</th>
+                                    <th>Payment Date</th>
+                                    <th class="text-end">Amount (₹)</th>
+                                    <th class="text-center">Payment Mode</th>
+                                    <th>Receipt / Txn Ref</th>
+                                    <th class="text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light font-weight-bold">
+                                    <td colspan="2" class="text-end">Total Amount Paid:</td>
+                                    <td class="text-end text-success fs-6">${formatMoney(totalPaidSum)}</td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            $container.html(cardHtml);
         }
 
         function bindRefundsTable(list, page, totalRecords) {
@@ -1677,24 +2092,81 @@ $(document).ready(function () {
             const startIndex = (page - 1) * pageSize;
 
             list.forEach((item) => {
+                const totalPaid = item.TotalPaid ?? item.totalPaid ?? item.PaidAmount ?? 0;
+                const retentionAmt = item.RetentionAmount ?? item.retentionAmount ?? 0;
+                const refundAmt = item.RefundAmount !== undefined && item.RefundAmount !== null 
+                    ? item.RefundAmount 
+                    : Math.max(0, totalPaid - retentionAmt);
+                const enrollmentId = item.EnrollmentId || item.CourseEnrollmentId || 0;
+
                 html += `
-                    <tr>
-                        <td>${formatDateDisplay(item.RefundDate)}</td>
-                        <td><span class="badge bg-light text-dark border font-monospace">${item.RegistrationNumber || 'REG-#' + item.EnrollmentId}</span></td>
+                    <tr class="refund-expand-row" data-enrollment-id="${enrollmentId}" title="Click to view candidate payment history">
+                        <td><i class="fa fa-chevron-right me-2 text-primary expand-icon"></i>${formatDateDisplay(item.RefundDate || item.CreatedAt)}</td>
+                        <td><span class="badge bg-light text-dark border font-monospace">${item.RegistrationNumber || 'REG-#' + enrollmentId}</span></td>
                         <td class="font-weight-bold text-dark">${item.ParticipantName || '-'}</td>
                         <td>${item.CourseName || '-'}<br/><span class="badge bg-light text-muted border">${item.CourseYear || '-'}</span></td>
-                        <td class="text-end">${formatMoney(item.TotalPaid)}</td>
-                        <td class="text-end text-warning font-weight-bold">${formatMoney(item.RetentionAmount)}</td>
-                        <td class="text-end text-danger font-weight-bold">${formatMoney(item.RefundAmount)}</td>
+                        <td class="text-end font-weight-bold">${formatMoney(totalPaid)}</td>
+                        <td class="text-end text-warning font-weight-bold">${formatMoney(retentionAmt)}</td>
+                        <td class="text-end text-danger font-weight-bold">${formatMoney(refundAmt)}</td>
                         <td class="text-center"><span class="badge bg-secondary">${item.RefundMode || 'CASH'}</span></td>
                         <td class="small">${item.Reason || '-'}</td>
                         <td><span class="font-monospace small">${item.TransactionReference || '-'}</span></td>
+                    </tr>
+                    <tr id="refund-details-${enrollmentId}" class="refund-details-row d-none bg-light">
+                        <td colspan="10" class="p-3">
+                            <div class="refund-details-content" data-loaded="false">
+                                <div class="text-center py-3 text-muted">
+                                    <i class="fa fa-spinner fa-spin me-2"></i>Loading candidate payment history...
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
 
             $tbody.html(html);
             $("#refundRecordInfo").text(`Showing ${startIndex + 1} to ${Math.min(startIndex + pageSize, totalRecords)} of ${totalRecords} entries`);
+
+            $(".refund-expand-row").off("click").on("click", function () {
+                const $row = $(this);
+                const enrollmentId = $row.data("enrollment-id");
+                const $detailsRow = $(`#refund-details-${enrollmentId}`);
+                const $icon = $row.find(".expand-icon");
+                const $content = $detailsRow.find(".refund-details-content");
+
+                if ($detailsRow.hasClass("d-none")) {
+                    $(".refund-details-row").addClass("d-none");
+                    $(".expand-icon").removeClass("fa-chevron-down").addClass("fa-chevron-right");
+
+                    $detailsRow.removeClass("d-none");
+                    $icon.removeClass("fa-chevron-right").addClass("fa-chevron-down");
+
+                    if ($content.attr("data-loaded") !== "true") {
+                        const item = list.find(x => (x.EnrollmentId || x.CourseEnrollmentId) == enrollmentId);
+                        if (item && Array.isArray(item.Payments) && item.Payments.length > 0) {
+                            renderPaymentHistoryTable($content, item.Payments, item.ParticipantName);
+                        } else if (enrollmentId > 0) {
+                            $.ajax({
+                                url: `${_BaseURL}/CourseManagement/GetEnrollmentPayments?enrollmentId=${enrollmentId}`,
+                                type: "GET",
+                                dataType: "json",
+                                success: function (res) {
+                                    const payments = extractList(res);
+                                    renderPaymentHistoryTable($content, payments, item ? item.ParticipantName : '');
+                                },
+                                error: function () {
+                                    $content.html('<div class="alert alert-warning mb-0 small"><i class="fa fa-exclamation-circle me-1"></i>Could not load payment history.</div>');
+                                }
+                            });
+                        } else {
+                            $content.html('<div class="text-muted small p-2"><i class="fa fa-info-circle me-1"></i>No payment history records found.</div>');
+                        }
+                    }
+                } else {
+                    $detailsRow.addClass("d-none");
+                    $icon.removeClass("fa-chevron-down").addClass("fa-chevron-right");
+                }
+            });
 
             renderPaginationLocal("#refundPagination", page, totalRecords, pageSize, function (newPage) {
                 currentPage = newPage;
@@ -1706,7 +2178,7 @@ $(document).ready(function () {
     // ==========================================
     // 7. OFFICIALS MANAGEMENT PAGE
     // ==========================================
-    if (controller_name === "coursemanagement" && action_name === "officials") {
+    if (controller_name === "coursemanagement" && action_name === "officials_legacy") {
         let currentPage = 1;
         const pageSize = 10;
 
@@ -2191,29 +2663,53 @@ $(document).ready(function () {
             loadReportsData();
         });
 
-        function renderSegmentTable(segments) {
-            let segHtml = "";
-            if (!segments || segments.length === 0) {
+        function isOfficialSegment(name) {
+            const n = (name || '').toUpperCase();
+            return n.includes('OFFICIAL') || n.includes('OFFICAL');
+        }
+
+        function buildSegmentDue(seg) {
+            const collected = seg.TotalCollected ?? seg.totalCollected ?? seg.TotalCollection ?? seg.totalCollection ?? seg.TotalPaid ?? seg.totalPaid ?? 0;
+            // SP OPERATION_ID=30 returns ExpectedIncome (fee for non-cancelled) — use it for due calc
+            const expectedIncome = seg.ExpectedIncome ?? seg.expectedIncome ?? seg.TotalFee ?? seg.totalFee ?? seg.TotalCourseFee ?? seg.totalCourseFee ?? 0;
+            let due = seg.TotalDue ?? seg.totalDue ?? 0;
+            if (expectedIncome > 0) {
+                due = Math.max(0, expectedIncome - collected);
+            }
+            return due;
+        }
+
+        function renderSegmentTable(segments, enrollList) {
+            const regularSegs = (segments || []).filter(s => !isOfficialSegment(s.CourseName || s.courseName || s.Name || s.name || ''));
+            const activeParticipants = (enrollList || []).filter(isParticipantActive);
+
+            let segHtml = '';
+            if (regularSegs.length === 0) {
                 segHtml = '<tr><td colspan="8" class="text-center py-4 text-muted">No segment summary available.</td></tr>';
             } else {
-                segments.forEach(seg => {
+                regularSegs.forEach(seg => {
                     const cName = seg.CourseName || seg.courseName || seg.Name || seg.name || 'Segment';
-                    const pCount = seg.ParticipantCount ?? seg.participantCount ?? seg.TotalParticipants ?? seg.totalParticipants ?? 0;
+                    const cId = seg.CourseId || seg.courseId || 0;
+
+                    let pCount = seg.ParticipantCount ?? seg.participantCount ?? seg.TotalParticipants ?? seg.totalParticipants ?? 0;
+                    if (enrollList && enrollList.length > 0) {
+                        const segActiveList = activeParticipants.filter(e => isParticipantMatchSegment(e, cId, cName));
+                        pCount = segActiveList.length;
+                    }
+
                     const collected = seg.TotalCollected ?? seg.totalCollected ?? seg.TotalCollection ?? seg.totalCollection ?? seg.TotalPaid ?? seg.totalPaid ?? 0;
-                    const due = seg.TotalDue ?? seg.totalDue ?? 0;
+                    const due = buildSegmentDue(seg);
                     const refund = seg.TotalRefund ?? seg.totalRefund ?? 0;
                     const expense = seg.TotalExpense ?? seg.totalExpense ?? 0;
                     const officialPaid = seg.TotalOfficialPaid ?? seg.totalOfficialPaid ?? seg.OfficialPaid ?? 0;
-                    
-                    let netInc = seg.NetIncome ?? seg.netIncome ?? seg.NetCourseIncome ?? seg.netCourseIncome;
+                    let netInc = seg.NetIncome ?? seg.netIncome ?? seg.NetCollection ?? seg.netCollection ?? seg.NetCourseIncome ?? seg.netCourseIncome;
                     if (netInc === undefined || netInc === null || isNaN(netInc)) {
                         netInc = collected - refund - expense - officialPaid;
                     }
-
                     segHtml += `
                         <tr>
                             <td class="font-weight-bold text-primary">${cName}</td>
-                            <td class="text-center">${pCount}</td>
+                            <td class="text-center font-weight-bold">${pCount}</td>
                             <td class="text-end text-success font-weight-bold">${formatMoney(collected)}</td>
                             <td class="text-end text-warning">${formatMoney(due)}</td>
                             <td class="text-end text-danger">${formatMoney(refund)}</td>
@@ -2227,7 +2723,24 @@ $(document).ready(function () {
             $("#rep_SegmentTable tbody").html(segHtml);
         }
 
-        function renderYearTable(years) {
+        function loadOfficialsForReport(year, courseId) {
+            let offQuery = "?pageSize=10000";
+            if (year) offQuery += `&year=${year}`;
+            if (courseId) offQuery += `&courseId=${courseId}`;
+
+            $.ajax({
+                url: _BaseURL + "/CourseManagement/GetAllCourseOfficial" + offQuery,
+                type: "GET",
+                dataType: "json",
+                success: function (res) {
+                    renderOfficialsTable(res, "#rep_OfficialsTable tbody", "#rep_OfficialsSection");
+                },
+                error: function () { $("#rep_OfficialsSection").hide(); }
+            });
+        }
+
+        function renderYearTable(years, enrollList) {
+            const activeParticipants = (enrollList || []).filter(isParticipantActive);
             let yrHtml = "";
             if (!years || years.length === 0) {
                 yrHtml = '<tr><td colspan="7" class="text-center py-4 text-muted">No year-wise records found.</td></tr>';
@@ -2235,7 +2748,19 @@ $(document).ready(function () {
                 years.forEach(yr => {
                     const cYear = yr.CourseYear || yr.courseYear || yr.Year || yr.year || '-';
                     const cName = yr.CourseName || yr.courseName || yr.Name || yr.name || 'All Courses';
-                    const pCount = yr.ParticipantCount ?? yr.participantCount ?? yr.TotalParticipants ?? yr.totalParticipants ?? 0;
+                    const cId = yr.CourseId || yr.courseId || 0;
+
+                    let pCount = yr.ParticipantCount ?? yr.participantCount ?? yr.TotalParticipants ?? yr.totalParticipants ?? 0;
+                    if (enrollList && enrollList.length > 0) {
+                        const yrActiveList = activeParticipants.filter(e => {
+                            const eYear = e.CourseYear || e.Year || e.BatchYear || 0;
+                            const matchYear = !cYear || cYear === '-' || parseInt(eYear) === parseInt(cYear) || !eYear;
+                            const matchCourse = (cName === 'All Courses' || !cName) ? true : isParticipantMatchSegment(e, cId, cName);
+                            return matchYear && matchCourse;
+                        });
+                        pCount = yrActiveList.length;
+                    }
+
                     const collected = yr.TotalCollected ?? yr.totalCollected ?? yr.TotalCollection ?? yr.totalCollection ?? yr.TotalPaid ?? yr.totalPaid ?? 0;
                     const refund = yr.TotalRefund ?? yr.totalRefund ?? 0;
                     const expense = yr.TotalExpense ?? yr.totalExpense ?? 0;
@@ -2280,134 +2805,140 @@ $(document).ready(function () {
 
             const query = queryParams.length > 0 ? "?" + queryParams.join("&") : "";
 
-            // 1. Overall Financial Report & Summary
+            let enrollQuery = "?pageSize=5000";
+            if (year) enrollQuery += `&year=${year}`;
+            if (courseId) enrollQuery += `&courseId=${courseId}`;
+
             $.ajax({
-                url: _BaseURL + "/CourseManagement/GetCourseFinancialReport" + query,
+                url: _BaseURL + "/CourseManagement/GetAllEnrollment" + enrollQuery,
                 type: "GET",
                 dataType: "json",
-                success: function (res) {
-                    hideLoader();
-                    const r = extractObject(res) || {};
-                    const s = r.Summary || r.summary || r;
+                success: function (enrollRes) {
+                    const reportEnrollList = extractList(enrollRes);
 
-                    const regTotal = s.TotalRegistrations ?? s.totalRegistrations ?? s.TotalParticipants ?? s.totalParticipants ?? 0;
-                    let regConfirmed = s.ConfirmedCount ?? s.confirmedCount ?? s.Confirmed ?? s.confirmed ?? 0;
-                    let regCancelled = s.CancelledCount ?? s.cancelledCount ?? s.Cancelled ?? s.cancelled ?? 0;
-                    let regRegistered = s.RegisteredCount ?? s.registeredCount ?? s.Registered ?? s.registered ?? 0;
-                    let regCompleted = s.CompletedCount ?? s.completedCount ?? s.Completed ?? s.completed ?? 0;
-                    let regWaiting = s.WaitingCount ?? s.waitingCount ?? s.Waiting ?? s.waiting ?? 0;
+                    // 1. Overall Financial Report & Summary
+                    $.ajax({
+                        url: _BaseURL + "/CourseManagement/GetCourseFinancialReport" + query,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (res) {
+                            hideLoader();
+                            const r = extractObject(res) || {};
+                            const s = r.Summary || r.summary || r;
 
-                    const finCollection = s.TotalCollection ?? s.totalCollection ?? s.TotalCollected ?? s.totalCollected ?? s.TotalPaid ?? s.totalPaid ?? 0;
-                    const finRefund = s.TotalRefund ?? s.totalRefund ?? 0;
-                    const finExpense = s.TotalExpense ?? s.totalExpense ?? 0;
-                    const finOfficialPaid = s.TotalOfficialPaid ?? s.totalOfficialPaid ?? s.OfficialPaid ?? 0;
-                    
-                    let netIncome = s.NetCourseIncome ?? s.netCourseIncome ?? s.NetIncome ?? s.netIncome;
-                    if (netIncome === undefined || netIncome === null || isNaN(netIncome)) {
-                        netIncome = finCollection - finRefund - finExpense - finOfficialPaid;
-                    }
+                            let regTotal = s.TotalRegistrations ?? s.totalRegistrations ?? s.TotalParticipants ?? s.totalParticipants ?? 0;
+                            let regConfirmed = s.ConfirmedCount ?? s.confirmedCount ?? s.Confirmed ?? s.confirmed ?? 0;
+                            let regCancelled = s.CancelledCount ?? s.cancelledCount ?? s.Cancelled ?? s.cancelled ?? 0;
+                            let regRegistered = s.RegisteredCount ?? s.registeredCount ?? s.Registered ?? s.registered ?? 0;
+                            let regCompleted = s.CompletedCount ?? s.completedCount ?? s.Completed ?? s.completed ?? 0;
+                            let regWaiting = s.WaitingCount ?? s.waitingCount ?? s.Waiting ?? s.waiting ?? 0;
 
-                    $("#rep_RegTotal").text(regTotal);
-                    $("#rep_RegConfirmed").text(regConfirmed);
-                    $("#rep_RegCancelled").text(regCancelled);
-                    $("#rep_RegRegistered").text(regRegistered);
-                    $("#rep_RegCompleted").text(regCompleted);
-                    $("#rep_RegWaiting").text(regWaiting);
+                            if (reportEnrollList && reportEnrollList.length > 0) {
+                                let countConf = 0, countCanc = 0, countReg = 0, countComp = 0, countWait = 0;
+                                reportEnrollList.forEach(eItem => {
+                                    const st = (eItem.EnrollmentStatus || eItem.Status || eItem.enrollmentStatus || eItem.status || 'REGISTERED').toString().toUpperCase().trim();
+                                    if (st === "CONFIRMED") countConf++;
+                                    else if (st === "CANCELLED" || st === "CANCELED") countCanc++;
+                                    else if (st === "COMPLETED") countComp++;
+                                    else if (st === "WAITING") countWait++;
+                                    else countReg++;
+                                });
 
-                    $("#rep_FinCollection").text(formatMoney(finCollection));
-                    $("#rep_FinRefund").text(formatMoney(finRefund));
-                    $("#rep_FinExpense").text(formatMoney(finExpense));
-                    $("#rep_FinOfficialPaid").text(formatMoney(finOfficialPaid));
-                    $("#rep_NetCourseIncome").text(formatMoney(netIncome));
-
-                    // If status counts are zero or total is zero, fetch enrollment list to calculate breakdown dynamically
-                    if ((regConfirmed + regCancelled + regRegistered + regCompleted + regWaiting === 0) || regTotal === 0) {
-                        let enrollQuery = "?pageSize=1000";
-                        if (year) enrollQuery += `&year=${year}`;
-                        if (courseId) enrollQuery += `&courseId=${courseId}`;
-
-                        $.ajax({
-                            url: _BaseURL + "/CourseManagement/GetAllEnrollment" + enrollQuery,
-                            type: "GET",
-                            dataType: "json",
-                            success: function (enrollRes) {
-                                const enrollList = extractList(enrollRes);
-                                if (enrollList && enrollList.length > 0) {
-                                    let countConf = 0, countCanc = 0, countReg = 0, countComp = 0, countWait = 0;
-                                    enrollList.forEach(eItem => {
-                                        const st = (eItem.EnrollmentStatus || eItem.Status || 'REGISTERED').toUpperCase();
-                                        if (st === "CONFIRMED") countConf++;
-                                        else if (st === "CANCELLED") countCanc++;
-                                        else if (st === "COMPLETED") countComp++;
-                                        else if (st === "WAITING") countWait++;
-                                        else countReg++;
-                                    });
-
-                                    $("#rep_RegTotal").text(enrollList.length);
-                                    $("#rep_RegConfirmed").text(countConf);
-                                    $("#rep_RegCancelled").text(countCanc);
-                                    $("#rep_RegRegistered").text(countReg);
-                                    $("#rep_RegCompleted").text(countComp);
-                                    $("#rep_RegWaiting").text(countWait);
-                                }
+                                regTotal = reportEnrollList.length;
+                                regConfirmed = countConf;
+                                regCancelled = countCanc;
+                                regRegistered = countReg;
+                                regCompleted = countComp;
+                                regWaiting = countWait;
                             }
-                        });
-                    }
 
-                    // Segment-Wise Table
-                    const segments = extractList(r.SegmentSummaries || r.segmentSummaries || r.segments);
-                    if (segments.length > 0) {
-                        renderSegmentTable(segments);
-                    } else {
-                        // Secondary call for Segment Summary
-                        let segQuery = "";
-                        let segParams = [];
-                        if (year) segParams.push(`year=${year}`);
-                        if (dateFrom) segParams.push(`dateFrom=${dateFrom}`);
-                        if (dateTo) segParams.push(`dateTo=${dateTo}`);
-                        if (segParams.length > 0) segQuery = "?" + segParams.join("&");
-
-                        $.ajax({
-                            url: _BaseURL + "/CourseManagement/GetCourseSummaryBySegment" + segQuery,
-                            type: "GET",
-                            dataType: "json",
-                            success: function (segRes) {
-                                const segList = extractList(segRes);
-                                renderSegmentTable(segList);
-                            },
-                            error: function () {
-                                renderSegmentTable([]);
+                            const finCollection = s.TotalCollection ?? s.totalCollection ?? s.TotalCollected ?? s.totalCollected ?? s.TotalPaid ?? s.totalPaid ?? 0;
+                            const finRefund = s.TotalRefund ?? s.totalRefund ?? 0;
+                            const finExpense = s.TotalExpense ?? s.totalExpense ?? 0;
+                            const finOfficialPaid = s.TotalOfficialPaid ?? s.totalOfficialPaid ?? s.OfficialPaid ?? 0;
+                            
+                            let netIncome = s.NetCourseIncome ?? s.netCourseIncome ?? s.NetIncome ?? s.netIncome;
+                            if (netIncome === undefined || netIncome === null || isNaN(netIncome)) {
+                                netIncome = finCollection - finRefund - finExpense - finOfficialPaid;
                             }
-                        });
-                    }
+
+                            $("#rep_RegTotal").text(regTotal);
+                            $("#rep_RegConfirmed").text(regConfirmed);
+                            $("#rep_RegCancelled").text(regCancelled);
+                            $("#rep_RegRegistered").text(regRegistered);
+                            $("#rep_RegCompleted").text(regCompleted);
+                            $("#rep_RegWaiting").text(regWaiting);
+
+                            $("#rep_FinCollection").text(formatMoney(finCollection));
+                            $("#rep_FinRefund").text(formatMoney(finRefund));
+                            $("#rep_FinExpense").text(formatMoney(finExpense));
+                            $("#rep_FinOfficialPaid").text(formatMoney(finOfficialPaid));
+                            $("#rep_NetCourseIncome").text(formatMoney(netIncome));
+
+                            // Segment-Wise Table
+                            const segments = extractList(r.SegmentSummaries || r.segmentSummaries || r.segments);
+                            if (segments.length > 0) {
+                                renderSegmentTable(segments, reportEnrollList);
+                            } else {
+                                let segQuery = "";
+                                let segParams = [];
+                                if (year) segParams.push(`year=${year}`);
+                                if (dateFrom) segParams.push(`dateFrom=${dateFrom}`);
+                                if (dateTo) segParams.push(`dateTo=${dateTo}`);
+                                if (segParams.length > 0) segQuery = "?" + segParams.join("&");
+
+                                $.ajax({
+                                    url: _BaseURL + "/CourseManagement/GetCourseSummaryBySegment" + segQuery,
+                                    type: "GET",
+                                    dataType: "json",
+                                    success: function (segRes) {
+                                        const segList = extractList(segRes);
+                                        renderSegmentTable(segList, reportEnrollList);
+                                    },
+                                    error: function () {
+                                        renderSegmentTable([], reportEnrollList);
+                                    }
+                                });
+                            }
+                        },
+                        error: handleAjaxError
+                    });
+
+                    // 2. Year-Wise Summary
+                    $.ajax({
+                        url: _BaseURL + "/CourseManagement/GetYearWiseCourseSummary" + query,
+                        type: "GET",
+                        dataType: "json",
+                        success: function (res) {
+                            const years = extractList(res);
+                            if (years.length > 0) {
+                                renderYearTable(years, reportEnrollList);
+                            } else {
+                                $.ajax({
+                                    url: _BaseURL + "/CourseManagement/GetYearWiseCourseSummary",
+                                    type: "GET",
+                                    dataType: "json",
+                                    success: function (yRes) {
+                                        renderYearTable(extractList(yRes), reportEnrollList);
+                                    },
+                                    error: function () {
+                                        renderYearTable([], reportEnrollList);
+                                    }
+                                });
+                            }
+                        }
+                    });
                 },
-                error: handleAjaxError
-            });
-
-            // 2. Year-Wise Summary
-            $.ajax({
-                url: _BaseURL + "/CourseManagement/GetYearWiseCourseSummary" + query,
-                type: "GET",
-                dataType: "json",
-                success: function (res) {
-                    const years = extractList(res);
-                    if (years.length > 0) {
-                        renderYearTable(years);
-                    } else {
-                        $.ajax({
-                            url: _BaseURL + "/CourseManagement/GetYearWiseCourseSummary",
-                            type: "GET",
-                            dataType: "json",
-                            success: function (yRes) {
-                                renderYearTable(extractList(yRes));
-                            },
-                            error: function () {
-                                renderYearTable([]);
-                            }
-                        });
-                    }
+                error: function () {
+                    hideLoader();
+                    renderSegmentTable([], []);
+                    renderYearTable([], []);
                 }
             });
+
+            // 3. Officials Summary
+            loadOfficialsForReport(year, courseId);
         }
     }
+
 });

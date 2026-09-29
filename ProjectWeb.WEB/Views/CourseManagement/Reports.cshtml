@@ -225,7 +225,7 @@
                 </div>
             </div>
 
-            <!-- SEGMENT-WISE REPORT TABLE -->
+            <!-- SEGMENT-WISE REPORT TABLE (Regular Courses only) -->
             <div class="about-table-card animate-fade-in mb-4">
                 <div class="p-3 border-bottom">
                     <h5 class="mb-0 font-weight-bold text-primary"><i class="fa fa-pie-chart me-2"></i>Segment-Wise Course Breakdown</h5>
@@ -247,6 +247,35 @@
                         <tbody>
                             <tr>
                                 <td colspan="8" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading segment report...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- COURSE OFFICIALS BREAKDOWN TABLE -->
+            <div class="about-table-card animate-fade-in mb-4" id="rep_OfficialsSection" style="display:none;">
+                <div class="p-3 border-bottom" style="background: linear-gradient(135deg, #667eea10, #764ba210);">
+                    <h5 class="mb-0 font-weight-bold" style="color: #667eea;"><i class="fa fa-shield me-2"></i>Course Officials Breakdown</h5>
+                    <p class="text-muted small mb-0 mt-1">Honorarium & payment records for course officials, grouped by course</p>
+                </div>
+                <div class="table-responsive-container">
+                    <table class="table about-custom-table align-middle" id="rep_OfficialsTable">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 180px;">Course Official</th>
+                                <th style="min-width: 100px;" class="text-center">Officials</th>
+                                <th style="min-width: 120px;" class="text-end">Collected (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Due (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Refund (₹)</th>
+                                <th style="min-width: 110px;" class="text-end">Expense (₹)</th>
+                                <th style="min-width: 120px;" class="text-end">Official Paid (₹)</th>
+                                <th style="min-width: 130px;" class="text-end font-weight-bold">Net Income (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading officials report...</td>
                             </tr>
                         </tbody>
                     </table>
