@@ -68,35 +68,55 @@
         }
 
 
-
-        <!-- Registration Section -->
-        <section class="registration-section">
-            <h2>Register Your Interest</h2>
-            <form class="registration-form" id="activityInterestForm" action="#" method="post">
-                <input type="hidden" id="clubActivityId" name="clubActivityId" value="@Model.ActivityDetailsDto?.ActivityId" />
-                <div class="form-group">
-                    <label for="name">Full Name</label>
-                    <input type="text" id="name" name="name" placeholder="John Doe" required>
+        @if (Model.ActivityDetailsDto?.FormAdd == true)
+        {
+            <!-- Registration Section -->
+            <section class="registration-section" style="text-align: center;">
+                <h2>Register Your Interest</h2>
+                <div style="margin-top: 1.5rem;">
+                    <a href="@Url.Action("OnlineRegistrationForm", "Home", new { id = Model.ActivityDetailsDto?.ActivityId, startDate = Model.ActivityDetailsDto?.StartDate, endDate = Model.ActivityDetailsDto?.EndDate })" 
+                       onclick="if ('@Model.ActivityDetailsDto?.StartDate') { sessionStorage.setItem('cc_activity_start_date', '@Model.ActivityDetailsDto?.StartDate'); sessionStorage.setItem('cc_activity_end_date', '@Model.ActivityDetailsDto?.EndDate'); } window.location.href=this.href;" 
+                       class="submit-btn" id="btnRegistrationForm" 
+                       data-start-date="@Model.ActivityDetailsDto?.StartDate" 
+                       data-end-date="@Model.ActivityDetailsDto?.EndDate"
+                       style="display: inline-block; text-decoration: none; padding: 14px 40px; font-weight: 700; letter-spacing: 1px; color: #000;">
+                        Registration Form
+                    </a>
                 </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="john@example.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Phone Number</label>
-                    <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" required>
-                </div>
-                <div class="form-group">
-                    <label for="subject">Activity</label>
-                    <input type="text" id="subject" name="subject" value="@(Model.ActivityDetailsDto?.Title ?? "Himalayan Base Camp Expedition")" readonly>
-                </div>
-                <div class="form-group full-width">
-                    <label for="message">Message / Notes</label>
-                    <textarea id="message" name="message" rows="4" placeholder="Mention any previous climbing experience..."></textarea>
-                </div>
-                <button type="submit" class="submit-btn" id="btnSubmitInterest">Submit Application</button>
-            </form>
-        </section>
+            </section>
+        }
+        else
+        {
+            <!-- Registration Section -->
+            <section class="registration-section">
+                <h2>Register Your Interest</h2>
+                <form class="registration-form" id="activityInterestForm" action="#" method="post">
+                    <input type="hidden" id="clubActivityId" name="clubActivityId" value="@Model.ActivityDetailsDto?.ActivityId" />
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Activity</label>
+                        <input type="text" id="subject" name="subject" value="@(Model.ActivityDetailsDto?.Title ?? "Himalayan Base Camp Expedition")" readonly>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="message">Message / Notes</label>
+                        <textarea id="message" name="message" rows="4" placeholder="Mention any previous climbing experience..."></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" id="btnSubmitInterest">Submit Application</button>
+                </form>
+            </section>
+        }
+       
 
     </div>
 </div>

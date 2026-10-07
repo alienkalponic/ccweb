@@ -1,0 +1,924 @@
+@model ProjectWeb.Domain.Model.MultipleModel
+@inject ProjectWeb.Application.Common.Repository.Master.IUnitOfWork unitOfWork
+@{
+    Layout = null;
+
+    var activity = Model?.ActivityDetailsDto;
+    if (activity == null)
+    {
+        string? queryId = Context.Request.Query["id"];
+        if (string.IsNullOrEmpty(queryId))
+        {
+            queryId = Context.Request.Query["activityId"];
+        }
+        if (int.TryParse(queryId, out int actId))
+        {
+            try
+            {
+                var res = await unitOfWork.ContentManagement.ActivityDetailsGetByActivityId<ProjectWeb.Domain.Utility.APIResponse>(actId);
+                if (res != null && res.Success == true && res.Response != null)
+                {
+                    activity = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ActivityDetails.ActivityDetailsDto>>(Convert.ToString(res.Response)!)?.FirstOrDefault();
+                }
+            }
+            catch { }
+        }
+
+        if (activity == null)
+        {
+            try
+            {
+                var allRes = await unitOfWork.ContentManagement.ActivityDetailsGetAll<ProjectWeb.Domain.Utility.APIResponse>("20", "1", "");
+                if (allRes != null && allRes.Success == true && allRes.Response != null)
+                {
+                    var list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<ProjectWeb.Domain.DTO.ActivityDetails.ActivityDetailsDto>>(Convert.ToString(allRes.Response)!);
+                    activity = list?.FirstOrDefault(x => x.FormAdd == true) ?? list?.FirstOrDefault();
+                }
+            }
+            catch { }
+        }
+    }
+
+    // Default dates
+    DateTime startDate = new DateTime(DateTime.Now.Year, 12, 28);
+    DateTime endDate = new DateTime(DateTime.Now.Year, 12, 31);
+    bool hasDates = false;
+
+    string? qStartDate = Context.Request.Query["startDate"];
+    string? qEndDate = Context.Request.Query["endDate"];
+
+    if (!string.IsNullOrEmpty(qStartDate) && DateTime.TryParse(qStartDate, out var qsDate))
+    {
+        startDate = qsDate;
+        hasDates = true;
+    }
+    else if (activity != null && !string.IsNullOrEmpty(activity.StartDate) && DateTime.TryParse(activity.StartDate, out var sDate))
+    {
+        startDate = sDate;
+        hasDates = true;
+    }
+
+    if (!string.IsNullOrEmpty(qEndDate) && DateTime.TryParse(qEndDate, out var qeDate))
+    {
+        endDate = qeDate;
+    }
+    else if (activity != null && !string.IsNullOrEmpty(activity.EndDate) && DateTime.TryParse(activity.EndDate, out var eDate))
+    {
+        endDate = eDate;
+    }
+    else if (hasDates)
+    {
+        endDate = startDate;
+    }
+
+    // 1 day before course start date for reporting (25th replacement)
+    var reportingDate = startDate.AddDays(-1);
+    // 1 day after course end date for return date
+    var returnDate = endDate.AddDays(1);
+    var courseYear = hasDates ? startDate.Year : DateTime.Now.Year;
+
+    string GetDayWithSuffix(DateTime dt)
+    {
+        int day = dt.Day;
+        string suffix = "th";
+        if (day % 100 < 11 || day % 100 > 13)
+        {
+            switch (day % 10)
+            {
+                case 1: suffix = "st"; break;
+                case 2: suffix = "nd"; break;
+                case 3: suffix = "rd"; break;
+            }
+        }
+        return $"{day}{suffix}";
+    }
+
+    string reportingDateText = $"{GetDayWithSuffix(reportingDate)} {reportingDate.ToString("MMMM yyyy")}";
+    string returnDateText = $"{GetDayWithSuffix(returnDate)} {returnDate.ToString("MMMM yyyy")}";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Registration Form @courseYear - Climbers' Circle</title>
+    <link rel="icon" type="image/png" href="~/Assets/images/CCLogo1.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f1f3f6;
+            font-family: "Times New Roman", Times, Georgia, serif;
+            color: #000000;
+            line-height: 1.3;
+        }
+
+        /* Top Action Bar (Hidden on print) */
+        .top-action-bar {
+            background: #ffffff;
+            border-bottom: 1px solid #d1d5db;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .action-brand {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-brand img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary-action {
+            background-color: #0d6efd;
+            color: #ffffff;
+        }
+
+        .btn-primary-action:hover {
+            background-color: #0b5ed7;
+            color: #ffffff;
+        }
+
+        .btn-outline-action {
+            background-color: #ffffff;
+            color: #4b5563;
+            border-color: #d1d5db;
+        }
+
+        .btn-outline-action:hover {
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+
+        /* Page Container (Exact A4 Document Look) */
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 24px auto;
+            background: #ffffff;
+            padding: 14mm 16mm 14mm 16mm;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            position: relative;
+        }
+
+        /* Header Layout */
+        .form-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+
+        .header-logo-wrap {
+            flex-shrink: 0;
+            width: 82px;
+            text-align: center;
+        }
+
+        .header-logo-wrap img {
+            width: 82px;
+            height: 82px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .header-details-wrap {
+            flex-grow: 1;
+        }
+
+        .org-name {
+            font-family: "Times New Roman", Times, Georgia, serif;
+            font-size: 34px;
+            font-weight: bold;
+            margin: 0 0 2px 0;
+            color: #000000;
+            line-height: 1.1;
+        }
+
+        .org-address {
+            font-size: 14.5px;
+            margin: 0 0 2px 0;
+            color: #111111;
+        }
+
+        .org-contact {
+            font-size: 14.5px;
+            margin: 0 0 8px 0;
+            color: #111111;
+        }
+
+        .doc-title {
+            font-family: "Times New Roman", Times, Georgia, serif;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            color: #000000;
+            line-height: 1.2;
+        }
+
+        .minor-notice {
+            font-size: 13.5px;
+            color: #111111;
+            margin: 8px 0 12px 0;
+            font-style: normal;
+        }
+
+        /* Form Row Alignment & Inputs */
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .field-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #000000;
+            white-space: nowrap;
+            margin-right: 6px;
+        }
+
+        .sub-desc {
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        /* The signature pale-blue/lavender box from Image 2 */
+        .form-box {
+            background-color: #eaeffa;
+            border: 1.5px solid #1a1a1a;
+            height: 27px;
+            padding: 2px 6px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            color: #000000;
+            outline: none;
+            box-sizing: border-box;
+            border-radius: 2px;
+        }
+
+        .form-box:focus {
+            background-color: #f4f7fd;
+            border-color: #0d6efd;
+        }
+
+        .flex-fill {
+            flex: 1 1 auto;
+            width: 100%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        /* Toggle Boxes (Veg / Non-Veg, Yes / No) */
+        .toggle-box {
+            background-color: #eaeffa;
+            border: 1.5px solid #1a1a1a;
+            height: 27px;
+            line-height: 24px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: #111111;
+            box-sizing: border-box;
+            border-radius: 2px;
+            cursor: pointer;
+            user-select: none;
+            display: inline-block;
+        }
+
+        .toggle-box.selected {
+            background-color: #0d6efd;
+            color: #ffffff;
+            border-color: #0d6efd;
+            font-weight: bold;
+        }
+
+        /* Checkbox items for Courses */
+        .course-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            row-gap: 6px;
+            column-gap: 20px;
+            flex-grow: 1;
+        }
+
+        .course-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .course-check-box {
+            width: 38px;
+            height: 26px;
+            background-color: #eaeffa;
+            border: 1.5px solid #1a1a1a;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000000;
+            flex-shrink: 0;
+        }
+
+        .course-check-box.checked::after {
+            content: "✓";
+            color: #000000;
+            font-weight: bold;
+        }
+
+        /* Signatures */
+        .sig-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 250px;
+            margin-left: auto;
+            text-align: center;
+        }
+
+        .sig-line {
+            width: 100%;
+            border-top: 1px solid #000000;
+            margin-bottom: 3px;
+        }
+
+        .sig-desc {
+            font-size: 12px;
+            color: #111111;
+            line-height: 1.2;
+        }
+
+        /* Blue Separator */
+        .blue-rule {
+            border: none;
+            border-top: 2px solid #007bff;
+            margin: 12px 0 10px 0;
+        }
+
+        .reg-confirmation-title {
+            font-size: 14.5px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .fees-label {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .nb-notice {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Page 2 Styles (Declaration & Details) */
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+
+        .declaration-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0 15px 0;
+            text-decoration: underline;
+        }
+
+        .declaration-text {
+            font-size: 14px;
+            text-align: justify;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .dotted-line {
+            border-bottom: 1px dotted #000000;
+            flex-grow: 1;
+            height: 18px;
+            margin: 0 4px;
+        }
+
+        .items-list {
+            columns: 2;
+            -webkit-columns: 2;
+            -moz-columns: 2;
+            column-gap: 30px;
+            margin: 8px 0;
+            padding-left: 18px;
+            font-size: 13.5px;
+            line-height: 1.4;
+        }
+
+        .items-list li {
+            margin-bottom: 4px;
+        }
+
+        .info-highlight {
+            padding: 8px 12px;
+            margin: 10px 0;
+            font-size: 13.5px;
+            border-radius: 3px;
+            line-height: 1.4;
+        }
+
+        .info-highlight.cyan {
+            background-color: #e0f7fa;
+            border: 1px solid #80deea;
+        }
+
+        .info-highlight.yellow {
+            background-color: #fff9c4;
+            border: 1px solid #fff176;
+        }
+
+        /* Print Media Styles */
+        @@media print {
+            body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .top-action-bar {
+                display: none !important;
+            }
+
+            .page-container {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 10mm 15mm !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-height: auto !important;
+            }
+
+            .form-box {
+                background-color: #eaeffa !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Bar (Print / PDF / Back) -->
+    <div class="top-action-bar">
+        <div class="action-brand">
+            <img src="~/Assets/images/logo.jpeg" onerror="this.src='/Assets/images/CCLogo1.png';" alt="Climbers' Circle" />
+            <span>Climbers' Circle &mdash; Online Registration Form</span>
+        </div>
+        <div class="action-buttons">
+            <a href="/" class="btn-action btn-outline-action">
+                <i class="fa fa-arrow-left"></i> Back to Website
+            </a>
+            <button type="button" onclick="window.print()" class="btn-action btn-primary-action">
+                <i class="fa fa-print"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- PAGE 1: Course Registration Form 2025 (EXACT MATCH TO ORIGINAL DESIGN) -->
+    <div class="page-container">
+        
+        <!-- Header -->
+        <div class="form-header">
+            <div class="header-logo-wrap">
+                <img src="~/Assets/images/logo.jpeg" onerror="this.src='/Assets/images/CCLogo1.png';" alt="Logo" />
+            </div>
+            <div class="header-details-wrap">
+                <h1 class="org-name">Climbers' Circle</h1>
+                <p class="org-address">1923 Chattra Samity, Raja Subodh Mullick Square, Kolkata-700013</p>
+                <p class="org-contact">support@climberscircle.org &nbsp;I&nbsp; www.climberscircle.org</p>
+                <h2 class="doc-title">Course Registration Form <span id="lblCurrentYear">@courseYear</span></h2>
+            </div>
+        </div>
+
+        <p class="minor-notice">
+            Parents or guardian of minors must fill up and sign the form. (Please return to us as soon as possible.)
+        </p>
+
+        <!-- Form Rows -->
+        <!-- Row 1: Name -->
+        <div class="form-row">
+            <span class="field-label" style="min-width: 190px;">Name <span class="sub-desc">(in BLOCK Letters)</span></span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 2: Father's / Mother's Name -->
+        <div class="form-row">
+            <span class="field-label" style="min-width: 275px;">Father’s/ Mother’s Name <span class="sub-desc">(in BLOCK Letters)</span></span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 3: Address Line 1 -->
+        <div class="form-row">
+            <span class="field-label" style="min-width: 70px;">Address</span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 4: Address Line 2 -->
+        <div class="form-row">
+            <span class="field-label" style="min-width: 70px;"></span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 5: Contact Numbers -->
+        <div class="form-row">
+            <span class="field-label">Candidate’s Contact No.</span>
+            <input type="text" class="form-box" style="width: 180px;" />
+            <span class="field-label" style="margin-left: 12px;">Guardian’s Contact No.</span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 6: Gender, DOB, Age, Blood Group -->
+        <div class="form-row">
+            <span class="field-label">Gender</span>
+            <input type="text" class="form-box" style="width: 60px;" />
+            <span class="field-label" style="margin-left: 10px;">Date of Birth</span>
+            <input type="text" class="form-box text-center" placeholder="mm/dd/yyyy" style="width: 125px;" />
+            <span class="field-label" style="margin-left: 10px;">Age</span>
+            <input type="text" class="form-box" style="width: 65px;" />
+            <span class="field-label" style="margin-left: 10px;">Blood Group</span>
+            <input type="text" class="form-box flex-fill" style="max-width: 95px;" />
+        </div>
+
+        <!-- Row 7: Profession, Email -->
+        <div class="form-row">
+            <span class="field-label">Profession</span>
+            <input type="text" class="form-box" style="width: 240px;" />
+            <span class="field-label" style="margin-left: 15px;">Email</span>
+            <input type="text" class="form-box flex-fill" />
+        </div>
+
+        <!-- Row 8: Mother Tongue, Food Habit, Weight -->
+        <div class="form-row">
+            <span class="field-label">Mother Tongue</span>
+            <input type="text" class="form-box" style="width: 95px;" />
+            <span class="field-label" style="margin-left: 15px;">Food Habit</span>
+            <div class="toggle-box" style="width: 65px;" onclick="toggleOption(this, 'food')">Veg</div>
+            <div class="toggle-box" style="width: 75px; margin-left: 6px;" onclick="toggleOption(this, 'food')">Non-Veg</div>
+            <span class="field-label" style="margin-left: 15px;">Weight</span>
+            <input type="text" class="form-box" style="width: 110px;" />
+            <span class="field-label" style="margin-left: 4px;">Kg.</span>
+        </div>
+
+        <!-- Row 9: Height, Preferable journey time -->
+        <div class="form-row">
+            <span class="field-label">Height</span>
+            <input type="text" class="form-box" style="width: 75px;" />
+            <span class="field-label" style="margin-left: 4px; margin-right: 8px;">ft</span>
+            <input type="text" class="form-box" style="width: 75px;" />
+            <span class="field-label" style="margin-left: 4px;">inch</span>
+            <span class="field-label" style="margin-left: 20px;">Preferable journey time</span>
+            <input type="text" class="form-box" style="width: 90px;" />
+            <input type="text" class="form-box" style="width: 90px; margin-left: 6px;" />
+        </div>
+
+        <!-- Row 10: Physical Problem -->
+        <div class="form-row">
+            <span class="field-label">Physical Problem (if any)</span>
+            <input type="text" class="form-box flex-fill text-center" placeholder="Mention in brief if you have otherwise filled Not applicable" style="font-weight: bold; color: #555555; font-size: 13px;" />
+        </div>
+
+        <!-- Row 11: Previous Experience -->
+        <div class="form-row">
+            <span class="field-label flex-fill">Previous Experience in Camping/ Rock Climbing/ Mountaineering/ Trekking</span>
+            <div class="toggle-box" style="width: 48px;" onclick="toggleOption(this, 'exp')">Yes</div>
+            <div class="toggle-box" style="width: 48px; margin-left: 6px;" onclick="toggleOption(this, 'exp')">No</div>
+        </div>
+
+        <!-- Row 12: Course Applied For -->
+        <div class="form-row" style="align-items: flex-start; margin-top: 6px;">
+            <span class="field-label" style="min-width: 145px; padding-top: 4px;">Course applied For</span>
+            <div class="course-grid">
+                <div class="course-option" onclick="toggleCheckbox(this)">
+                    <div class="course-check-box"></div>
+                    <span>Adventure Camping</span>
+                </div>
+                <div class="course-option" onclick="toggleCheckbox(this)">
+                    <div class="course-check-box"></div>
+                    <span>Basic Rock Climbing</span>
+                </div>
+                <div class="course-option" onclick="toggleCheckbox(this)">
+                    <div class="course-check-box"></div>
+                    <span>Trekking for Seniors</span>
+                </div>
+                <div class="course-option" onclick="toggleCheckbox(this)">
+                    <div class="course-check-box"></div>
+                    <span>Practice Rope</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participant / Guardian Signature -->
+        <div class="sig-container" style="margin-top: 14px; margin-bottom: 8px;">
+            <div class="sig-line"></div>
+            <div class="sig-desc">
+                Signature of Participant and or Guardian<br>in case of a minor
+            </div>
+        </div>
+
+        <!-- Blue Rule -->
+        <hr class="blue-rule" />
+
+        <!-- Registration Confirmation -->
+        <div class="reg-confirmation-title">REGISTRATION CONFIRMATION</div>
+        <div class="fees-label">Registration Fees | Rs. 4000</div>
+
+        <div class="form-row" style="margin-top: 6px;">
+            <span class="field-label">Minimum Advance Received</span>
+            <input type="text" class="form-box text-center font-bold" value="2000/-" style="width: 200px; font-size: 15px;" />
+            <span class="field-label" style="margin-left: 25px;">Balance Received</span>
+            <input type="text" class="form-box" style="width: 110px;" />
+        </div>
+
+        <div class="nb-notice">NB: In case of cancellation advance payment will not be refunded.</div>
+
+        <!-- Club Official Signature -->
+        <div class="sig-container" style="margin-top: 26px;">
+            <div class="sig-line" style="width: 260px;"></div>
+            <div class="sig-desc">Signature of Club Official</div>
+        </div>
+
+    </div>
+
+    <!-- PAGE 2: Declaration & Joining Details (Clean Document Styling) -->
+    <div class="page-container page-break">
+        
+        <div class="declaration-title">DECLARATION FORM</div>
+
+        <p class="declaration-text">
+            I agree to follow the discipline, rules, and instructions of the organizing authorities. Incommensurate with the inherent risks, hazards, and dangers associated with outdoor activities in which I will engage, I confirm that I am physically and mentally capable of participating in such activity. My participation is voluntary and I will assume responsibility for personal injury, accidents, illness, and damage to or loss of personal property as the result of any incident or accident that case may be. I will not hold the organizers responsible for any injury or accident beyond their control.
+        </p>
+
+        <div class="form-row" style="margin: 14px 0; font-style: italic;">
+            <span>I,</span>
+            <div class="dotted-line"></div>
+            <span>(full name in capital letter)</span>
+        </div>
+        <p style="font-style: italic; margin-top: 6px;">hereby declare that I have read the above form carefully and understood the same.</p>
+
+        <div class="sig-container" style="margin-top: 20px;">
+            <div class="sig-line" style="width: 240px;"></div>
+            <div class="sig-desc" style="font-style: italic;">Participant’s Signature</div>
+        </div>
+
+        <div class="form-row" style="margin-top: 15px; width: 45%; font-style: italic;">
+            <span>Date:</span>
+            <div class="dotted-line"></div>
+        </div>
+        <div class="form-row" style="margin-top: 8px; width: 45%; font-style: italic;">
+            <span>Place:</span>
+            <div class="dotted-line"></div>
+        </div>
+
+        <div style="font-size: 15px; font-weight: bold; line-height: 1.5; margin-top: 20px; border-left: 3px solid #000; padding-left: 10px;">
+            NB: We are very strict in maintaining discipline. Our Rock climbing course is a serious rock climbing training program. There will be no personal free time. No scope for leisure or amusement. Mobile phones will not be allowed from 5:30 am till 9:30 pm during the course.
+        </div>
+
+        <!-- Emergency Details -->
+        <h3 style="font-size: 18px; margin: 24px 0 10px 0; text-decoration: underline;">In Case of Emergency</h3>
+        <div class="form-row">
+            <span class="field-label" style="min-width: 140px;">Contact Name:</span>
+            <div class="dotted-line"></div>
+        </div>
+        <div class="form-row">
+            <span class="field-label" style="min-width: 220px;">Relationship with participant:</span>
+            <div class="dotted-line"></div>
+        </div>
+        <div class="form-row">
+            <span class="field-label" style="min-width: 140px;">Contact Number:</span>
+            <div class="dotted-line"></div>
+        </div>
+        <div class="form-row">
+            <span class="field-label" style="min-width: 140px;">Contact Address:</span>
+            <div class="dotted-line"></div>
+        </div>
+        <div class="form-row">
+            <span class="field-label" style="min-width: 140px;"></span>
+            <div class="dotted-line"></div>
+        </div>
+
+        <!-- Important Details -->
+        <h3 style="font-size: 18px; margin: 24px 0 6px 0; text-decoration: underline;">Important Details</h3>
+        <p style="font-size: 14px; margin-bottom: 6px;">List of items that you need to bring along with you:</p>
+
+        <ul class="items-list">
+            <li>One Rucksack / Bag</li>
+            <li>One Knapsack / Day-bag</li>
+            <li>Polythene sheet (2.5 m. long) <i>(only for Adventure Camping)</i></li>
+            <li>Foam mattress</li>
+            <li>Sleeping bag or single blanket</li>
+            <li>Two cotton shirts or ‘T’ shirts (Full sleeve)</li>
+            <li>Two cotton trousers / Track Pants</li>
+            <li>Undergarments</li>
+            <li>One full sleeve sweater</li>
+            <li>Windproof jacket / cheater</li>
+            <li>Woollen cap</li>
+            <li>Three pairs of cotton socks</li>
+            <li>Walking / Running shoes &amp; Slippers</li>
+            <li>One rice plate / mess tin</li>
+            <li>Spoon, Plastic Mug / Cup, water bottle</li>
+            <li>Toothpaste, brush, Soap &amp; Cold cream</li>
+            <li>Torch (with extra cell)</li>
+            <li>One exercise book or lightweight Diary &amp; Pen</li>
+            <li>Basic personal medicines</li>
+            <li>Safety pin, needle and thread</li>
+            <li>Mosquito repellent cream</li>
+        </ul>
+
+        <!-- Joining Details -->
+        <h3 style="font-size: 18px; margin: 20px 0 8px 0; text-decoration: underline;">Joining Details</h3>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 6px 0;">
+            Participants are requested to report to the Club officials in front of the Enquiry booth at <b>Howrah Station (New Complex)</b> &mdash; Contact Person: <b>Tanmay (9903416262) / Santosh (8337018081) / Prabir (9831002109)</b> on <b><span id="lblReportingDate">@reportingDateText</span> at 10.00 PM</b> along with their luggage.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 6px 0;">
+            <b>Note:</b> No dinner will be provided on <span id="lblNoteDate"><b>@reportingDateText (night)</b></span> by the Club.
+        </p>
+        <p style="font-size: 14px; line-height: 1.5; margin: 0 0 10px 0;">
+            <b>Date of return:</b> At Howrah Station on <b><span id="lblReturnDate">@returnDateText</span> at approx. 4:30 AM</b>.
+        </p>
+
+        <div class="online-payment-box" style="display: flex; align-items: center; justify-content: space-between; background-color: #e0f7fa; border: 1.5px solid #80deea; border-radius: 6px; padding: 10px 18px; margin: 12px 0;">
+            <div>
+                <div style="font-size: 15px; font-weight: bold; color: #006064; margin-bottom: 4px;">
+                    Online Payment (GPay / PhonePe / Any UPI)
+                </div>
+                <div style="font-size: 14.5px; font-weight: 600; color: #111;">
+                    Name: Dipta Bhandary
+                </div>
+                <div style="font-size: 13.5px; color: #333; margin-top: 2px;">
+                    Number: <b>8420480075</b>
+                </div>
+                <div style="font-size: 13px; color: #444; margin-top: 2px;">
+                    UPI ID: <b>bhandarydipta-2@okicici</b>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <img src="~/Assets/images/dipta_qr.jpg" alt="Dipta QR Code" style="width: 105px; height: 105px; object-fit: contain; border-radius: 6px; border: 1px solid #b2ebf2; background: #ffffff; padding: 3px; display: block;" />
+                <span style="font-size: 11px; color: #555; display: block; margin-top: 3px;">Scan &amp; Pay</span>
+            </div>
+        </div>
+        <div class="info-highlight yellow">
+            <b>Bank Transfer:</b> CLIMBERS CIRCLE &bull; PUNJAB NATIONAL BANK &bull; NEW MARKET BRANCH &bull; IFSC: <b>PUNB0009300</b> &bull; A/C NO: <b>0093000109098326</b>
+        </div>
+
+    </div>
+
+    <!-- Small Script for Interactive Toggles on Screen -->
+    <script>
+        function toggleOption(el, group) {
+            const siblings = el.parentElement.querySelectorAll('.toggle-box');
+            siblings.forEach(s => s.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function toggleCheckbox(el) {
+            const box = el.querySelector('.course-check-box');
+            if (box) {
+                box.classList.toggle('checked');
+            }
+        }
+
+        function getDaySuffix(day) {
+            if (day >= 11 && day <= 13) return day + "th";
+            switch (day % 10) {
+                case 1: return day + "st";
+                case 2: return day + "nd";
+                case 3: return day + "rd";
+                default: return day + "th";
+            }
+        }
+
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        function formatDynamicDateStr(d) {
+            return getDaySuffix(d.getDate()) + " " + months[d.getMonth()] + " " + d.getFullYear();
+        }
+
+        function applyDynamicDates(sDateStr, eDateStr) {
+            if (!sDateStr) return;
+            const sDate = new Date(sDateStr);
+            if (isNaN(sDate.getTime())) return;
+
+            let eDate = eDateStr ? new Date(eDateStr) : new Date(sDate);
+            if (isNaN(eDate.getTime())) eDate = new Date(sDate);
+
+            // 1 day before start date for reporting
+            const repDate = new Date(sDate);
+            repDate.setDate(repDate.getDate() - 1);
+
+            // 1 day after end date for return date
+            const retDate = new Date(eDate);
+            retDate.setDate(retDate.getDate() + 1);
+
+            const repFormatted = formatDynamicDateStr(repDate);
+            const retFormatted = formatDynamicDateStr(retDate);
+            const yr = sDate.getFullYear();
+
+            const repSpan = document.getElementById("lblReportingDate");
+            if (repSpan) repSpan.textContent = repFormatted;
+
+            const noteSpan = document.getElementById("lblNoteDate");
+            if (noteSpan) noteSpan.innerHTML = "<b>" + repFormatted + " (night)</b>";
+
+            const retSpan = document.getElementById("lblReturnDate");
+            if (retSpan) retSpan.textContent = retFormatted;
+
+            const yrSpan = document.getElementById("lblCurrentYear");
+            if (yrSpan) yrSpan.textContent = yr;
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Check sessionStorage
+            const sDateSaved = sessionStorage.getItem("cc_activity_start_date");
+            const eDateSaved = sessionStorage.getItem("cc_activity_end_date");
+            if (sDateSaved) {
+                applyDynamicDates(sDateSaved, eDateSaved);
+            }
+
+            // 2. Check URL query parameters
+            const params = new URLSearchParams(window.location.search);
+            const pStartDate = params.get("startDate");
+            const pEndDate = params.get("endDate");
+            const actId = params.get("id") || params.get("activityId");
+
+            if (pStartDate) {
+                applyDynamicDates(pStartDate, pEndDate);
+            } else if (actId && !sDateSaved) {
+                fetch('/api/content/Get-activity-details-by-activitie-id/' + actId)
+                    .then(res => res.json())
+                    .then(data => {
+                        const item = Array.isArray(data.response) ? data.response[0] : (Array.isArray(data) ? data[0] : null);
+                        if (item && item.startDate) {
+                            applyDynamicDates(item.startDate, item.endDate);
+                        }
+                    })
+                    .catch(function () {});
+            }
+        });
+    </script>
+
+</body>
+</html>

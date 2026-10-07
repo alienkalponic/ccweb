@@ -1194,7 +1194,7 @@ $(document).ready(function () {
             $("#txt_PhysicalProblem").val("");
 
             $("#ddl_EnrollBatch").val("").trigger("change");
-            $("#txt_RegistrationDate").val(new Date().toISOString().substring(0, 10));
+            const _today = new Date(); const _todayStr = _today.getFullYear() + '-' + String(_today.getMonth() + 1).padStart(2, '0') + '-' + String(_today.getDate()).padStart(2, '0'); $("#txt_RegistrationDate").val(_todayStr);
             $("#ddl_EnrollStatus").val("REGISTERED");
             $("#txt_ReferencePerson").val("");
             $("#chk_FormSubmitted").prop("checked", false);
@@ -1656,6 +1656,9 @@ $(document).ready(function () {
                 .removeClass("is-invalid");
             $("#pay_Amount_Validation").addClass("d-none");
 
+            const _payToday = new Date();
+            const _payTodayStr = _payToday.getFullYear() + '-' + String(_payToday.getMonth() + 1).padStart(2, '0') + '-' + String(_payToday.getDate()).padStart(2, '0');
+            $("#pay_PaymentDate").val(_payTodayStr);
             $("#pay_PaymentReceiver").val("");
             $("#pay_TransactionReference").val("");
             $("#pay_Remarks").val("");

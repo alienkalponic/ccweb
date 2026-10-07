@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
     font-family: 'Playfair Display', serif;
     src: url(http://www.anaveer.in/honda/font/MYRIADPRO-REGULAR.OTF) format("truetype");
 }
@@ -320,6 +320,7 @@ a {
     justify-content: center; /* centers horizontally */
     align-items: center;
     transition: box-shadow 0.45s cubic-bezier(.22, .61, .36, 1), transform 0.45s cubic-bezier(.22, .61, .36, 1);
+    cursor: pointer;
     /*    will-change: transform;*/
 }
 

@@ -1,4 +1,4 @@
-﻿@model ProjectWeb.Domain.Model.MultipleModel
+@model ProjectWeb.Domain.Model.MultipleModel
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Home Page";
@@ -159,9 +159,20 @@
 				{
 					foreach (var item in Model.ClubActivityDtos)
 					{
-						<div class="swiper-slide slide-card" style="background-image: url('@($"{projectApiUrl}{item.ImageUrl}")')">
+						var detailsUrl = item.IsActive == true ? Url.Action("ActivityInfoDetails", "Home", new { id = item.ActivityId }) : "#";
+						<div class="swiper-slide slide-card" 
+						     data-href="@detailsUrl" 
+						     style="background-image: url('@($"{projectApiUrl}{item.ImageUrl}")'); cursor: pointer;">
 							<div>
-								<a href="@Url.Action("ActivityInfoDetails", "Home", new { id = item.ActivityId })" class="know-more-btn">Know more</a>
+								@if(item.IsActive==true)
+								{
+									<a href="@detailsUrl" class="know-more-btn">Know more</a>
+								}
+								else
+								{
+									<a href="#" class="know-more-btn">Comming Soon</a>
+								}
+
 								<p class="card-title" style="color:ghostwhite">@item.Title</p>
 							</div>
 						</div>

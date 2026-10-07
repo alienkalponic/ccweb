@@ -32,6 +32,7 @@ namespace ProjectWeb.Domain.DTO.ActivityDetails
 
         public bool IsActive { get; set; }
         public string? SectionName { get; set; }
+        public bool? FormAdd { get; set; }
 
 
         public List<ActivityDetailsImageDto>? Images { get; set; }

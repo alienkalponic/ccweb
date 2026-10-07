@@ -191,5 +191,37 @@ namespace ProjectWeb.WEB.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public async Task<IActionResult> OnlineRegistrationForm(int? id)
+        {
+            MultipleModel mmm = new MultipleModel();
+            try
+            {
+                if (id.HasValue && id.Value > 0)
+                {
+                    APIResponse response = await _unitOfWork.ContentManagement.ActivityDetailsGetByActivityId<APIResponse>(id.Value);
+                    if (response != null && response.Success == true && response.Response != null)
+                    {
+                        mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(response.Response)!)?.FirstOrDefault();
+                    }
+                }
+
+                if (mmm.ActivityDetailsDto == null)
+                {
+                    APIResponse allResponse = await _unitOfWork.ContentManagement.ActivityDetailsGetAll<APIResponse>("20", "1", "");
+                    if (allResponse != null && allResponse.Success == true && allResponse.Response != null)
+                    {
+                        var list = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(allResponse.Response)!);
+                        mmm.ActivityDetailsDto = list?.FirstOrDefault(x => x.FormAdd == true) ?? list?.FirstOrDefault();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching activity details for OnlineRegistrationForm");
+            }
+
+            return View(mmm);
+        }
     }
 }

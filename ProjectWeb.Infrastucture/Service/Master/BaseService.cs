@@ -390,11 +390,27 @@ namespace ProjectWeb.Infrastucture.Service.Master
                             _logger.LogWarning("[SendAsync] API 400 from {Url}: {Body}", apiRequest.Url, apiContent);
 
                             finalApiResponse.StatusCode = HttpStatusCode.BadRequest;
-                            finalApiResponse.ErrorMassage = new List<string>
-                    {
-                        "Bad Request (400)",
-                        apiContent
-                    };
+                            finalApiResponse.Success = false;
+                            try
+                            {
+                                var errObj = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                if (errObj != null && (errObj.ErrorMassage?.Count > 0 || errObj.Response != null))
+                                {
+                                    finalApiResponse.ErrorMassage = errObj.ErrorMassage ?? new List<string>();
+                                    finalApiResponse.Response = errObj.Response
+                                        ?? (errObj.ErrorMassage != null && errObj.ErrorMassage.Count > 0 ? string.Join("; ", errObj.ErrorMassage) : "Bad Request (400)");
+                                }
+                                else
+                                {
+                                    finalApiResponse.ErrorMassage = new List<string> { "Bad Request (400)", apiContent };
+                                    finalApiResponse.Response = "Bad Request (400)";
+                                }
+                            }
+                            catch
+                            {
+                                finalApiResponse.ErrorMassage = new List<string> { "Bad Request (400)", apiContent };
+                                finalApiResponse.Response = "Bad Request (400)";
+                            }
                             break;
 
                         default:
@@ -431,11 +447,27 @@ namespace ProjectWeb.Infrastucture.Service.Master
                                     httpResponseMessage.StatusCode, apiRequest.Url, apiContent);
 
                                 finalApiResponse.StatusCode = httpResponseMessage.StatusCode;
-                                finalApiResponse.ErrorMassage = new List<string>
-                        {
-                            $"Error: {httpResponseMessage.StatusCode}",
-                            apiContent
-                        };
+                                finalApiResponse.Success = false;
+                                try
+                                {
+                                    var errObj = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                    if (errObj != null && (errObj.ErrorMassage?.Count > 0 || errObj.Response != null))
+                                    {
+                                        finalApiResponse.ErrorMassage = errObj.ErrorMassage ?? new List<string>();
+                                        finalApiResponse.Response = errObj.Response
+                                            ?? (errObj.ErrorMassage != null && errObj.ErrorMassage.Count > 0 ? string.Join("; ", errObj.ErrorMassage) : $"Error: {httpResponseMessage.StatusCode}");
+                                    }
+                                    else
+                                    {
+                                        finalApiResponse.ErrorMassage = new List<string> { $"Error: {httpResponseMessage.StatusCode}", apiContent };
+                                        finalApiResponse.Response = $"Error: {httpResponseMessage.StatusCode}";
+                                    }
+                                }
+                                catch
+                                {
+                                    finalApiResponse.ErrorMassage = new List<string> { $"Error: {httpResponseMessage.StatusCode}", apiContent };
+                                    finalApiResponse.Response = $"Error: {httpResponseMessage.StatusCode}";
+                                }
                             }
                             break;
                     }

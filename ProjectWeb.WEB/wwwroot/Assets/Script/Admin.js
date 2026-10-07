@@ -1915,8 +1915,8 @@ $(document).ready(function () {
             resetActivityDetailsModal();
             $("#addActivitydetailsModal").modal("show");
             $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Activity Details');
-            $("#btnSaveDescription").removeClass("d-none");
-            $("#btnUpdateDescription").addClass("d-none");
+            $("#btnSaveactivitydetails").removeClass("d-none");
+            $("#btnUpdateactivitydetails").addClass("d-none");
         });
 
         // Close Modal
@@ -2071,8 +2071,8 @@ $(document).ready(function () {
 
             // Reset UI state
             $("#addModalTitle").html('<i class="fa fa-plus"></i> Add Activity Details');
-            $("#btnSaveDescription").removeClass("d-none");
-            $("#btnUpdateDescription").addClass("d-none");
+            $("#btnSaveactivitydetails").removeClass("d-none");
+            $("#btnUpdateactivitydetails").addClass("d-none");
         }
 
         function loadActivityDetails(pageNumber = 1) {
@@ -2277,13 +2277,18 @@ $(document).ready(function () {
             const duration = $("#txtDuration").val().trim();
             const Fee = $("#txtFee").val().trim();
 
+            const sectionId = $("#ddlSection").val();
+            const displayOrder = parseInt($("#numDisplayOrder").val());
+
             let errors = [];
             if (!title) errors.push("Title is required.");
+            if (!sectionId || parseInt(sectionId) <= 0) errors.push("Section is required.");
+            if (isNaN(displayOrder) || displayOrder <= 0) errors.push("Display Order must be a positive number greater than 0.");
             if (!StartDate) errors.push("Start Date is required.");
-            if (!EndDate) errors.push("End Date is required.")
-            if (!location) errors.push("Location is required.")
-            if (!duration) errors.push("Duration is required.")
-            if (!Fee) errors.push("Fee is required.")
+            if (!EndDate) errors.push("End Date is required.");
+            if (!location) errors.push("Location is required.");
+            if (!duration) errors.push("Duration is required.");
+            if (!Fee) errors.push("Fee is required.");
             if (isQuillEmpty) errors.push("Activity Details is required.");
             if (!isUpdate && selectedFiles.length === 0) {
                 $("#imageError").removeClass("d-none");
@@ -2428,7 +2433,25 @@ $(document).ready(function () {
                         $("#addActivitydetailsModal").modal('hide');
                         loadActivityDetails(currentPage); // Reload table data via AJAX — no page reload needed
                     } else {
-                        const errorMsg = res.Response || res.response || res.Message || res.message || "Operation failed.";
+                        let errorMsg = res.Response || res.response || res.Message || res.message;
+                        if (!errorMsg && res.ErrorMassage && res.ErrorMassage.length > 0) {
+                            try {
+                                const parsed = JSON.parse(res.ErrorMassage[1] || res.ErrorMassage[0]);
+                                if (parsed.ErrorMassage && parsed.ErrorMassage.length > 0) {
+                                    errorMsg = parsed.ErrorMassage.join("<br/>");
+                                } else if (parsed.Response || parsed.response) {
+                                    errorMsg = parsed.Response || parsed.response;
+                                }
+                            } catch (e) {
+                                errorMsg = res.ErrorMassage.filter(m => m !== "Bad Request (400)").join("<br/>") || res.ErrorMassage.join("<br/>");
+                            }
+                        }
+                        if (!errorMsg && res.errorMassage && res.errorMassage.length > 0) {
+                            errorMsg = res.errorMassage.join("<br/>");
+                        }
+                        if (!errorMsg) {
+                            errorMsg = "Operation failed.";
+                        }
                         toastr.warning(errorMsg, "Warning");
                         console.warn("[submitActivityDetailsUpdate] API returned success=false:", res);
                     }

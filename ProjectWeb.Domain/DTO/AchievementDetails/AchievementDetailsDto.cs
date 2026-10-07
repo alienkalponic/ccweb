@@ -13,5 +13,6 @@ namespace ProjectWeb.Domain.DTO.AchievementDetails
         public string? Title { get; set; }
         public string? SubTitle { get; set; }
         public bool? IsActive { get; set; }
+        public bool? FormAdd { get; set; }
     }
 }

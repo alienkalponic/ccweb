@@ -84,8 +84,8 @@
                 <div class="modal-body p-4">
                     <form id="addactivitydetailsForm" novalidate onsubmit="return false;">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" id="ImagesJson" name="@Model.CreateActivityDetailsDto??.ImagesJson" />
-                        <input type="hidden" id="hdn_activitydetailsId" name="@Model.UpdateActivityDetailsDto?.ActivitieDetailsId" />
+                        <input type="hidden" id="ImagesJson" name="@Model.CreateActivityDetailsDto?.ImagesJson" />
+                        <input type="hidden" id="hdn_activitydetailsId" value="0" name="@Model.UpdateActivityDetailsDto?.ActivitieDetailsId" />
                         <div class="row g-3">
                             <!-- Title -->
                             <div class="col-md-12 mb-3">
