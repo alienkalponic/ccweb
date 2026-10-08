@@ -889,5 +889,25 @@ namespace ProjectWeb.WEB.Controllers
                 return new List<T>();
             }
         }
+
+        // ==========================================
+        // COURSE ACCOUNTANT / PAYMENT RECEIVER AJAX API PROXIES
+        // ==========================================
+
+        [Authorize(Roles = "Developer,Administrator,2")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllCourseAccountantWise()
+        {
+            APIResponse response = await _unitOfWork.CourseManagement.GetAllCourseAccountantWise<APIResponse>();
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetAllCourseExpenseCategoryWise(bool? isActive = null)
+        {
+            APIResponse response = await _unitOfWork.CourseManagement.GetAllCourseExpenseCategoryWise<APIResponse>(isActive);
+            return Content(JsonConvert.SerializeObject(response), "application/json");
+        }
     }
 }

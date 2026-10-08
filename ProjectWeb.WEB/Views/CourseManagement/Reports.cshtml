@@ -100,6 +100,110 @@
         .about-custom-table tbody tr:hover {
             background-color: #f8fafc !important;
         }
+
+        /* --- Payment Receiver KPI Cards Grid & Aesthetics --- */
+        .receiver-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 1.25rem;
+            width: 100%;
+        }
+        .receiver-kpi-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 1.15rem 1.25rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.25s ease;
+        }
+        .receiver-kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+        .receiver-kpi-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background-color: var(--kpi-border, #10b981);
+            border-radius: 12px 0 0 12px;
+        }
+        .receiver-kpi-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .receiver-kpi-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .receiver-kpi-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+        .receiver-kpi-amount {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0.2rem 0 0.65rem 0;
+            line-height: 1.2;
+        }
+        .receiver-kpi-breakdown {
+            margin-top: 0.5rem;
+            padding-top: 0.65rem;
+            border-top: 1px dashed #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            text-align: center;
+        }
+        .receiver-kpi-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .receiver-kpi-stat-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+        }
+        .receiver-kpi-stat-value {
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        @@media (max-width: 767.98px) {
+            .receiver-kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .receiver-kpi-amount {
+                font-size: 1.35rem;
+            }
+        }
     </style>
 }
 
@@ -296,45 +400,15 @@
                             <label class="small text-muted font-weight-bold mb-0 text-nowrap"><i class="fa fa-filter me-1"></i>Filter Receiver:</label>
                             <select id="rep_ReceiverFilter" class="form-control form-select-sm" style="min-width: 170px; border-radius: 6px; font-weight: 600;">
                                 <option value="">All Receivers</option>
-                                <option value="1">Dipto</option>
-                                <option value="2">Bank</option>
-                                <option value="3">Prabir</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <!-- Receiver KPI Cards -->
-                <div class="p-3 border-bottom">
-                    <div class="row g-3 text-center">
-                        <div class="col-lg-3 col-md-6 col-6">
-                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #10b981 !important;">
-                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-briefcase me-1 text-success"></i>Total In-Hand</div>
-                                <div class="h4 mb-0 font-weight-bold text-success mt-1" id="rep_CardTotalAmt">₹0.00</div>
-                                <div class="text-muted small mt-1" id="rep_CardTotalTxns">0 transactions</div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-6">
-                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #3b82f6 !important;">
-                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-user me-1 text-primary"></i>Dipto (In-Hand)</div>
-                                <div class="h4 mb-0 font-weight-bold text-primary mt-1" id="rep_CardDiptoAmt">₹0.00</div>
-                                <div class="text-muted small mt-1" id="rep_CardDiptoTxns">0 transactions</div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-6">
-                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #6366f1 !important;">
-                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-university me-1" style="color: #4f46e5;"></i>Bank (In-Hand)</div>
-                                <div class="h4 mb-0 font-weight-bold mt-1" style="color: #4f46e5;" id="rep_CardBankAmt">₹0.00</div>
-                                <div class="text-muted small mt-1" id="rep_CardBankTxns">0 transactions</div>
-                            </div>
-                        </div>
-                        <div class="col-lg-3 col-md-6 col-6">
-                            <div class="p-3 rounded border bg-light h-100" style="border-left: 4px solid #f59e0b !important;">
-                                <div class="text-muted small font-weight-bold text-uppercase"><i class="fa fa-user me-1 text-warning"></i>Prabir (In-Hand)</div>
-                                <div class="h4 mb-0 font-weight-bold text-warning mt-1" id="rep_CardPrabirAmt">₹0.00</div>
-                                <div class="text-muted small mt-1" id="rep_CardPrabirTxns">0 transactions</div>
-                            </div>
-                        </div>
+                <div class="p-3 border-bottom bg-light">
+                    <div class="receiver-kpi-grid" id="rep_ReceiverCardsRow">
+                        <!-- KPI Cards rendered dynamically via CourseManagement.js -->
                     </div>
                 </div>
 

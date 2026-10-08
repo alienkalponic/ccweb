@@ -70,5 +70,15 @@ namespace ProjectWeb.Application.Common.Repository
         Task<T> GetCourseSummaryBySegment<T>(int? year = null, DateTime? dateFrom = null, DateTime? dateTo = null);
         Task<T> GetYearWiseCourseSummary<T>(int? fromYear = null, int? toYear = null);
         Task<T> GetCourseFinancialReport<T>(long? courseId = null, int? year = null, DateTime? dateFrom = null, DateTime? dateTo = null);
+
+        // ==========================================
+        // COURSE ACCOUNTANT / PAYMENT RECEIVER
+        // ==========================================
+        Task<T> GetAllCourseAccountantWise<T>();
+
+        // ==========================================
+        // COURSE EXPENSE CATEGORY
+        // ==========================================
+        Task<T> GetAllCourseExpenseCategoryWise<T>(bool? isActive = null);
     }
 }

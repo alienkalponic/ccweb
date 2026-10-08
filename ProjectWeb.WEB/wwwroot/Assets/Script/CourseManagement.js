@@ -36,17 +36,32 @@ $(document).ready(function () {
         }
     }
 
-    // Helper: Payment Receiver ID → Display Name
-    // Master receiver list — future master table এর সাথে link করার জন্য ID গুলো string হিসেবে save হবে
-    const PAYMENT_RECEIVERS = {
+    // Helper: Dynamic Course Accountant / Payment Receiver System
+    let PAYMENT_RECEIVERS = {
         "1": "Dipto",
         "2": "Bank",
         "3": "Prabir"
     };
+    let cachedCourseAccountants = [];
+    let isAccountantsLoaded = false;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return $('<div>').text(str).html();
+    }
+
     function getReceiverName(idOrValue) {
         if (!idOrValue) return '-';
         const key = String(idOrValue).trim();
-        return PAYMENT_RECEIVERS[key] || idOrValue; // fallback: stored value দেখাবে যদি ID match না হয়
+        if (PAYMENT_RECEIVERS[key]) return PAYMENT_RECEIVERS[key];
+        if (cachedCourseAccountants && cachedCourseAccountants.length > 0) {
+            const found = cachedCourseAccountants.find(a =>
+                String(a.courseAccountantId ?? a.CourseAccountantId ?? a.id ?? "").trim() === key ||
+                String(a.name ?? a.Name ?? "").trim().toLowerCase() === key.toLowerCase()
+            );
+            if (found) return found.name || found.Name;
+        }
+        return idOrValue; // fallback: stored value দেখাবে যদি ID match না হয়
     }
 
     // Helper: Non-refundable retention amount and refund calculator
@@ -297,12 +312,14 @@ $(document).ready(function () {
                 if (action_name === "participants") {
                     list = list.filter(c => {
                         const name = (c.CourseName || c.Name || c.CourseCode || '').toString().toUpperCase();
-                        return !name.includes("OFFICIAL") && !name.includes("OFFICAL");
+                        const cId = parseInt(c.CourseId || c.Id || c.id || 0);
+                        return cId !== 5 && !name.includes("OFFICIAL") && !name.includes("OFFICAL");
                     });
                 } else if (action_name === "officials") {
                     list = list.filter(c => {
                         const name = (c.CourseName || c.Name || c.CourseCode || '').toString().toUpperCase();
-                        return name.includes("OFFICIAL") || name.includes("OFFICAL");
+                        const cId = parseInt(c.CourseId || c.Id || c.id || 0);
+                        return cId === 5 || name.includes("OFFICIAL") || name.includes("OFFICAL");
                     });
                 }
                 selectors.forEach(selector => {
@@ -336,12 +353,14 @@ $(document).ready(function () {
                 if (action_name === "participants") {
                     list = list.filter(b => {
                         const name = (b.CourseName || b.Course?.CourseName || b.Name || '').toString().toUpperCase();
-                        return !name.includes("OFFICIAL") && !name.includes("OFFICAL");
+                        const cId = parseInt(b.CourseId || b.Course?.CourseId || 0);
+                        return cId !== 5 && !name.includes("OFFICIAL") && !name.includes("OFFICAL");
                     });
                 } else if (action_name === "officials") {
                     list = list.filter(b => {
                         const name = (b.CourseName || b.Course?.CourseName || b.Name || '').toString().toUpperCase();
-                        return name.includes("OFFICIAL") || name.includes("OFFICAL");
+                        const cId = parseInt(b.CourseId || b.Course?.CourseId || 0);
+                        return cId === 5 || name.includes("OFFICIAL") || name.includes("OFFICAL");
                     });
                 }
                 selectors.forEach(selector => {
@@ -359,6 +378,210 @@ $(document).ready(function () {
             }
         });
     }
+
+    // Helper: Dynamic Course Accountants / Payment Receivers API Loader
+    function loadPaymentReceivers(callback) {
+        $.ajax({
+            url: _BaseURL + "/CourseManagement/GetAllCourseAccountantWise",
+            type: "GET",
+            dataType: "json",
+            success: function (res) {
+                let list = extractList(res);
+                if (Array.isArray(list) && list.length > 0) {
+                    const activeList = list.filter(item => item.isActive !== false && item.IsActive !== false);
+                    cachedCourseAccountants = activeList.length > 0 ? activeList : list;
+
+                    // Update PAYMENT_RECEIVERS lookup map
+                    cachedCourseAccountants.forEach(acc => {
+                        const id = String(acc.courseAccountantId ?? acc.CourseAccountantId ?? acc.id ?? "").trim();
+                        const name = acc.name || acc.Name || "";
+                        if (id && name) {
+                            PAYMENT_RECEIVERS[id] = name;
+                        }
+                    });
+                    isAccountantsLoaded = true;
+                    populateAllReceiverDropdowns();
+                }
+                if (callback) callback(cachedCourseAccountants);
+            },
+            error: function (xhr, status, error) {
+                console.warn("Could not load dynamic course accountants, fallback to defaults:", error);
+                if (callback) callback(cachedCourseAccountants);
+            }
+        });
+    }
+
+    function populateReceiverDropdown(selector, placeholder, defaultVal) {
+        const $el = $(selector);
+        if ($el.length === 0) return;
+        const currentVal = (defaultVal !== undefined && defaultVal !== null && defaultVal !== "") ? defaultVal : ($el.val() || "");
+        $el.empty();
+        if (placeholder !== null && placeholder !== undefined) {
+            $el.append(`<option value="">${placeholder}</option>`);
+        }
+
+        const accountants = (cachedCourseAccountants && cachedCourseAccountants.length > 0)
+            ? cachedCourseAccountants
+            : Object.keys(PAYMENT_RECEIVERS).map(k => ({ courseAccountantId: k, name: PAYMENT_RECEIVERS[k] }));
+
+        accountants.forEach(acc => {
+            const id = String(acc.courseAccountantId ?? acc.CourseAccountantId ?? acc.id ?? "").trim();
+            const name = acc.name || acc.Name || "";
+            if (id && name) {
+                $el.append(`<option value="${id}">${name}</option>`);
+            }
+        });
+
+        if (currentVal) {
+            const valStr = String(currentVal).trim();
+            if ($el.find(`option[value="${valStr}"]`).length > 0) {
+                $el.val(valStr);
+            } else {
+                const matched = accountants.find(a => String(a.name || a.Name || "").trim().toLowerCase() === valStr.toLowerCase());
+                if (matched) {
+                    const mId = String(matched.courseAccountantId ?? matched.CourseAccountantId ?? matched.id ?? "").trim();
+                    $el.val(mId);
+                } else {
+                    $el.append(`<option value="${valStr}">${valStr}</option>`);
+                    $el.val(valStr);
+                }
+            }
+        }
+    }
+
+    function populateAllReceiverDropdowns() {
+        populateReceiverDropdown("#txt_InitialPaymentReceiver", "-- Select Receiver --");
+        populateReceiverDropdown("#pay_PaymentReceiver", "-- Select Receiver --");
+        populateReceiverDropdown("#editpay_PaymentReceiver", "-- Select Receiver --");
+        populateReceiverDropdown("#txt_PaidBy", "-- Select Paid By --");
+        populateReceiverDropdown("#rep_ReceiverFilter", "All Receivers");
+    }
+
+    // Always pre-load receivers on script ready
+    loadPaymentReceivers();
+
+    // Helper: Dynamic Course Expense Categories API Loader
+    let cachedExpenseCategories = [];
+    let isExpenseCategoriesLoaded = false;
+
+    function loadExpenseCategoriesWise(callback) {
+        if (isExpenseCategoriesLoaded && cachedExpenseCategories && cachedExpenseCategories.length > 0) {
+            if (callback) callback(cachedExpenseCategories);
+            return;
+        }
+
+        function handleCategoryResult(list) {
+            if (Array.isArray(list) && list.length > 0) {
+                const activeList = list.filter(item => item.isActive !== false && item.IsActive !== false);
+                cachedExpenseCategories = activeList.length > 0 ? activeList : list;
+                isExpenseCategoriesLoaded = true;
+                populateAllExpenseCategoryDropdowns();
+            }
+            if (callback) callback(cachedExpenseCategories);
+        }
+
+        // 1. Try CourseManagement proxy endpoint first
+        $.ajax({
+            url: _BaseURL + "/CourseManagement/GetAllCourseExpenseCategoryWise?isActive=true",
+            type: "GET",
+            dataType: "json",
+            success: function (res) {
+                let list = extractList(res);
+                if (Array.isArray(list) && list.length > 0) {
+                    handleCategoryResult(list);
+                } else {
+                    fallbackSettingsManagementEndpoint();
+                }
+            },
+            error: function () {
+                fallbackSettingsManagementEndpoint();
+            }
+        });
+
+        function fallbackSettingsManagementEndpoint() {
+            // 2. Try SettingsManagement proxy endpoint
+            $.ajax({
+                url: _BaseURL + "/SettingsManagement/GetAllCourseExpenseCategories?isActive=true",
+                type: "GET",
+                dataType: "json",
+                success: function (res2) {
+                    let list2 = extractList(res2);
+                    if (Array.isArray(list2) && list2.length > 0) {
+                        handleCategoryResult(list2);
+                    } else {
+                        fallbackDirectAPI();
+                    }
+                },
+                error: function () {
+                    fallbackDirectAPI();
+                }
+            });
+        }
+
+        function fallbackDirectAPI() {
+            // 3. Try direct ProjectAPI if defined
+            const directUrl = (typeof _ProjectAPI !== "undefined" && _ProjectAPI) ? _ProjectAPI : "";
+            if (directUrl) {
+                $.ajax({
+                    url: directUrl.replace(/\/+$/, "") + "/api/CourseManagement/get-all-course-expense-category?isActive=true",
+                    type: "GET",
+                    dataType: "json",
+                    success: function (res3) {
+                        let list3 = extractList(res3);
+                        handleCategoryResult(list3);
+                    },
+                    error: function () {
+                        if (callback) callback(cachedExpenseCategories);
+                    }
+                });
+            } else {
+                if (callback) callback(cachedExpenseCategories);
+            }
+        }
+    }
+
+    function populateAllExpenseCategoryDropdowns() {
+        populateExpenseCategoryDropdown("#expense_FilterCategory", "All Categories");
+        populateExpenseCategoryDropdown("#ddl_ExpenseCategory", "-- Select Expense Category --");
+    }
+
+    function populateExpenseCategoryDropdown(selector, placeholder, defaultVal) {
+        const $el = $(selector);
+        if ($el.length === 0) return;
+        const currentVal = defaultVal !== undefined && defaultVal !== null ? String(defaultVal).trim() : ($el.val() || "").trim();
+        $el.empty();
+        if (placeholder) {
+            $el.append(`<option value="">${placeholder}</option>`);
+        }
+
+        if (cachedExpenseCategories && cachedExpenseCategories.length > 0) {
+            cachedExpenseCategories.forEach(cat => {
+                const name = cat.name || cat.Name || "";
+                if (name) {
+                    $el.append(`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`);
+                }
+            });
+        } else {
+            // If not yet loaded, trigger load and populate upon resolution
+            loadExpenseCategoriesWise(function() {
+                if (cachedExpenseCategories && cachedExpenseCategories.length > 0) {
+                    populateExpenseCategoryDropdown(selector, placeholder, currentVal);
+                }
+            });
+        }
+
+        if (currentVal) {
+            if ($el.find(`option[value="${currentVal}"]`).length > 0) {
+                $el.val(currentVal);
+            } else {
+                $el.append(`<option value="${escapeHtml(currentVal)}">${escapeHtml(currentVal)}</option>`);
+                $el.val(currentVal);
+            }
+        }
+    }
+
+    // Always pre-load expense categories on script ready
+    loadExpenseCategoriesWise();
 
     // ==========================================
     // 1. DASHBOARD SUMMARY PAGE (index)
@@ -931,10 +1154,19 @@ $(document).ready(function () {
         let currentPage = 1;
         const pageSize = 10;
 
-        loadCourseDropdowns(["#enroll_FilterCourse"]);
+        loadCourseDropdowns(["#enroll_FilterCourse"], function (courseList) {
+            if (action_name === "officials") {
+                if (courseList && courseList.length > 0) {
+                    const firstId = courseList[0].CourseId || courseList[0].Id || courseList[0].id || 5;
+                    $("#enroll_FilterCourse").val(firstId);
+                } else {
+                    $("#enroll_FilterCourse").val("5");
+                }
+            }
+            loadEnrollments(currentPage);
+        });
         loadBatchDropdowns(["#ddl_EnrollBatch"]);
-
-        loadEnrollments(currentPage);
+        populateAllReceiverDropdowns();
 
         $("#btnAddNewEnrollment").on("click", function () {
             resetEnrollmentModal();
@@ -946,8 +1178,26 @@ $(document).ready(function () {
             loadEnrollments(currentPage);
         });
 
+        $("#enroll_FilterCourse, #enroll_FilterYear, #enroll_FilterStatus, #enroll_FilterPaymentStatus, #enroll_FilterFormSubmitted").on("change", function () {
+            currentPage = 1;
+            loadEnrollments(currentPage);
+        });
+
+        $("#enroll_Search").on("keypress", function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                currentPage = 1;
+                loadEnrollments(currentPage);
+            }
+        });
+
         $("#btnResetEnrollment").on("click", function () {
-            $("#enroll_FilterCourse").val("");
+            if (action_name === "officials") {
+                const optVal = $("#enroll_FilterCourse option:not([value='']):first").val() || "5";
+                $("#enroll_FilterCourse").val(optVal);
+            } else {
+                $("#enroll_FilterCourse").val("");
+            }
             $("#enroll_FilterYear").val("");
             $("#enroll_FilterStatus").val("");
             $("#enroll_FilterPaymentStatus").val("");
@@ -988,7 +1238,7 @@ $(document).ready(function () {
 
         function loadEnrollments(page) {
             showLoader();
-            const courseId = $("#enroll_FilterCourse").val();
+            let courseId = $("#enroll_FilterCourse").val();
             const year = $("#enroll_FilterYear").val();
             const status = $("#enroll_FilterStatus").val();
             const paymentStatus = $("#enroll_FilterPaymentStatus").val();
@@ -996,6 +1246,11 @@ $(document).ready(function () {
             const dateFrom = $("#enroll_DateFrom").val();
             const dateTo = $("#enroll_DateTo").val();
             const formSubmitted = $("#enroll_FilterFormSubmitted").val();
+
+            if (action_name === "officials" && !courseId) {
+                const optVal = $("#enroll_FilterCourse option:not([value='']):first").val();
+                courseId = optVal || 5;
+            }
 
             let url = `${_BaseURL}/CourseManagement/GetAllEnrollment?pageNumber=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
             if (courseId) url += `&courseId=${courseId}`;
@@ -1021,7 +1276,10 @@ $(document).ready(function () {
         }
 
         function isOfficialCourseItem(item) {
-            const name = (item.CourseName || item.Course?.CourseName || item.BatchName || item.CourseCode || item.Course?.CourseCode || '').toString().toUpperCase();
+            if (!item) return false;
+            const cId = parseInt(item.CourseId || item.Course?.CourseId || item.CourseBatch?.CourseId || 0);
+            if (cId === 5) return true;
+            const name = (item.CourseName || item.Course?.CourseName || item.BatchName || item.CourseBatch?.CourseName || item.CourseBatch?.Course?.CourseName || item.CourseCode || item.Course?.CourseCode || '').toString().toUpperCase();
             return name.includes("OFFICIAL") || name.includes("OFFICAL");
         }
 
@@ -1034,6 +1292,9 @@ $(document).ready(function () {
                 filteredList = list.filter(item => !isOfficialCourseItem(item));
             } else if (action_name === "officials") {
                 filteredList = list.filter(item => isOfficialCourseItem(item));
+                if (filteredList.length === 0 && list.length > 0) {
+                    filteredList = list;
+                }
             }
 
             if (filteredList.length === 0) {
@@ -1202,6 +1463,7 @@ $(document).ready(function () {
 
             $("#txt_InitialPaymentAmount").val("");
             $("#ddl_InitialPaymentMode").val("CASH");
+            populateReceiverDropdown("#txt_InitialPaymentReceiver", "-- Select Receiver --");
             $("#txt_InitialPaymentReceiver").val("");
             $("#txt_InitialTxnRef").val("");
 
@@ -1291,7 +1553,7 @@ $(document).ready(function () {
 
                             $("#txt_InitialPaymentAmount").val(payAmt);
                             $("#ddl_InitialPaymentMode").val(payMode);
-                            $("#txt_InitialPaymentReceiver").val(payReceiver);
+                            populateReceiverDropdown("#txt_InitialPaymentReceiver", "-- Select Receiver --", payReceiver);
                             $("#txt_InitialTxnRef").val(payRef);
 
                             // Disable initial payment inputs in Edit mode since payment ID is already generated
@@ -1659,6 +1921,7 @@ $(document).ready(function () {
             const _payToday = new Date();
             const _payTodayStr = _payToday.getFullYear() + '-' + String(_payToday.getMonth() + 1).padStart(2, '0') + '-' + String(_payToday.getDate()).padStart(2, '0');
             $("#pay_PaymentDate").val(_payTodayStr);
+            populateReceiverDropdown("#pay_PaymentReceiver", "-- Select Receiver --");
             $("#pay_PaymentReceiver").val("");
             $("#pay_TransactionReference").val("");
             $("#pay_Remarks").val("");
@@ -2066,6 +2329,7 @@ $(document).ready(function () {
         let currentPaymentsList = [];
 
         loadCourseDropdowns(["#paylist_FilterCourse"]);
+        populateReceiverDropdown("#editpay_PaymentReceiver", "-- Select Receiver --");
         loadPayments(currentPage);
 
         $("#btnFilterPaymentsList").on("click", function () {
@@ -2254,7 +2518,7 @@ $(document).ready(function () {
                 $("#editpay_PaymentDate").val(pDate);
                 $("#editpay_Amount").val(amt);
                 $("#editpay_PaymentMode").val(pMode.toUpperCase());
-                $("#editpay_PaymentReceiver").val(receiver);
+                populateReceiverDropdown("#editpay_PaymentReceiver", "-- Select Receiver --", receiver);
                 $("#editpay_TransactionReference").val(ref);
                 $("#editpay_Remarks").val(remarks);
 
@@ -2833,6 +3097,11 @@ $(document).ready(function () {
 
         loadCourseDropdowns(["#expense_FilterCourse"]);
         loadBatchDropdowns(["#ddl_ExpenseBatch"]);
+        populateReceiverDropdown("#txt_PaidBy", "-- Select Paid By --");
+        loadExpenseCategoriesWise(function() {
+            populateExpenseCategoryDropdown("#expense_FilterCategory", "All Categories");
+            populateExpenseCategoryDropdown("#ddl_ExpenseCategory", "-- Select Category --");
+        });
         loadExpenses(currentPage);
 
         $("#btnAddNewExpense").on("click", function () {
@@ -2945,9 +3214,10 @@ $(document).ready(function () {
             $("#hdn_CourseExpenseId").val("0");
             $("#ddl_ExpenseBatch").val("");
             $("#txt_ExpenseDate").val(new Date().toISOString().substring(0, 10));
-            $("#ddl_ExpenseCategory").val("Food & Catering");
+            populateExpenseCategoryDropdown("#ddl_ExpenseCategory", "-- Select Category --");
             $("#txt_ExpenseAmount").val("");
-            $("#txt_PaidBy").val("1");
+            populateReceiverDropdown("#txt_PaidBy", "-- Select Paid By --");
+            $("#txt_PaidBy").val("");
             $("#ddl_ExpensePaymentMode").val("CASH");
             $("#txt_ExpenseDescription").val("");
             $("#txt_ExpenseRemarks").val("");
@@ -2967,9 +3237,12 @@ $(document).ready(function () {
                         $("#hdn_CourseExpenseId").val(ex.CourseExpenseId);
                         $("#ddl_ExpenseBatch").val(ex.CourseBatchId);
                         $("#txt_ExpenseDate").val(ex.ExpenseDate ? ex.ExpenseDate.substring(0, 10) : "");
-                        $("#ddl_ExpenseCategory").val(ex.ExpenseCategory);
+                        populateExpenseCategoryDropdown("#ddl_ExpenseCategory", "-- Select Category --");
+                        if (ex.ExpenseCategory) {
+                            $("#ddl_ExpenseCategory").val(ex.ExpenseCategory);
+                        }
                         $("#txt_ExpenseAmount").val(ex.Amount);
-                        $("#txt_PaidBy").val(ex.PaidBy || "1");
+                        populateReceiverDropdown("#txt_PaidBy", "-- Select Paid By --", ex.PaidBy);
                         $("#ddl_ExpensePaymentMode").val(ex.PaymentMode || "CASH");
                         $("#txt_ExpenseDescription").val(ex.Description);
                         $("#txt_ExpenseRemarks").val(ex.Remarks);
@@ -3047,6 +3320,7 @@ $(document).ready(function () {
         var reportAllOfficials = [];
 
         loadCourseDropdowns(["#report_FilterCourse"]);
+        populateReceiverDropdown("#rep_ReceiverFilter", "All Receivers");
         loadReportsData();
 
         $("#btnFilterReports").off("click").on("click", function (e) {
@@ -3427,21 +3701,26 @@ $(document).ready(function () {
         }
 
         function getPaymentReceiverInfo(item) {
-            const raw = item.PaymentReceiver || item.Paymentreceiver || item.Receiver || '';
+            const raw = item.PaymentReceiver || item.Paymentreceiver || item.Receiver || item.PaidBy || item.paidBy || '';
             const s = String(raw).trim();
-            if (s === "1" || s.toLowerCase() === "dipto") {
-                return { id: "1", name: "Dipto", icon: "fa-user text-primary" };
+            if (!s) {
+                return { id: "unassigned", name: "Unassigned", icon: "fa-question-circle text-muted" };
             }
-            if (s === "2" || s.toLowerCase() === "bank") {
-                return { id: "2", name: "Bank", icon: "fa-university text-indigo" };
-            }
-            if (s === "3" || s.toLowerCase() === "prabir") {
-                return { id: "3", name: "Prabir", icon: "fa-user text-warning" };
-            }
-            if (s) {
-                return { id: s, name: getReceiverName(s) || s, icon: "fa-user text-secondary" };
-            }
-            return { id: "unassigned", name: "Unassigned", icon: "fa-question-circle text-muted" };
+            let foundAcc = cachedCourseAccountants.find(a =>
+                String(a.courseAccountantId ?? a.CourseAccountantId ?? a.id ?? "").trim() === s ||
+                String(a.name ?? a.Name ?? "").trim().toLowerCase() === s.toLowerCase()
+            );
+            const id = foundAcc ? String(foundAcc.courseAccountantId ?? foundAcc.CourseAccountantId ?? foundAcc.id ?? "").trim() : s;
+            const displayName = foundAcc ? (foundAcc.name || foundAcc.Name) : getReceiverName(s);
+
+            let icon = "fa-user text-secondary";
+            const lower = displayName.toLowerCase();
+            if (lower.includes("bank")) icon = "fa-university text-indigo";
+            else if (lower.includes("dipto")) icon = "fa-user text-primary";
+            else if (lower.includes("prabir")) icon = "fa-user text-warning";
+            else icon = "fa-user-circle text-info";
+
+            return { id: id, name: displayName, icon: icon };
         }
 
         function loadPaymentReceiverSummary(year, courseId, dateFrom, dateTo) {
@@ -3521,11 +3800,22 @@ $(document).ready(function () {
             let totalTxnsAll = reportAllPayments.length;
             const enrollmentReceiverPayments = {};
 
-            const groupMap = {
-                "1": { id: "1", name: "Dipto", icon: "fa-user text-primary", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 },
-                "2": { id: "2", name: "Bank", icon: "fa-university text-indigo", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 },
-                "3": { id: "3", name: "Prabir", icon: "fa-user text-warning", count: 0, total: 0, refund: 0, expense: 0, inHand: 0 }
-            };
+            const groupMap = {};
+            const accountantsList = (cachedCourseAccountants && cachedCourseAccountants.length > 0)
+                ? cachedCourseAccountants
+                : Object.keys(PAYMENT_RECEIVERS).map(k => ({ courseAccountantId: k, name: PAYMENT_RECEIVERS[k] }));
+
+            accountantsList.forEach(acc => {
+                const aId = String(acc.courseAccountantId ?? acc.CourseAccountantId ?? acc.id ?? "").trim();
+                const aName = acc.name || acc.Name || "";
+                let icon = "fa-user text-secondary";
+                const lower = aName.toLowerCase();
+                if (lower.includes("bank")) icon = "fa-university text-indigo";
+                else if (lower.includes("dipto")) icon = "fa-user text-primary";
+                else if (lower.includes("prabir")) icon = "fa-user text-warning";
+                else icon = "fa-user-circle text-info";
+                groupMap[aId] = { id: aId, name: aName, icon: icon, count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+            });
 
             // 1. Accumulate positive payments by receiver
             reportAllPayments.forEach(p => {
@@ -3660,14 +3950,27 @@ $(document).ready(function () {
             $("#rep_CardTotalAmt").text(formatMoney(totalInHandAll));
             $("#rep_CardTotalTxns").text(`${totalTxnsAll} txns • Col: ${formatMoney(totalCollectedAll)} • Ref: ${formatMoney(totalRefundAll)} • Exp: ${formatMoney(totalExpenseAll)}`);
 
-            $("#rep_CardDiptoAmt").text(formatMoney(groupMap["1"].inHand));
-            $("#rep_CardDiptoTxns").text(`${groupMap["1"].count} txns • Col: ${formatMoney(groupMap["1"].total)} • Ref: ${formatMoney(groupMap["1"].refund)} • Exp: ${formatMoney(groupMap["1"].expense)}`);
+            // Also keep backward compatible for static card IDs if present
+            if (groupMap["1"]) {
+                $("#rep_CardDiptoAmt").text(formatMoney(groupMap["1"].inHand));
+                $("#rep_CardDiptoTxns").text(`${groupMap["1"].count} txns • Col: ${formatMoney(groupMap["1"].total)} • Ref: ${formatMoney(groupMap["1"].refund)} • Exp: ${formatMoney(groupMap["1"].expense)}`);
+            }
+            if (groupMap["2"]) {
+                $("#rep_CardBankAmt").text(formatMoney(groupMap["2"].inHand));
+                $("#rep_CardBankTxns").text(`${groupMap["2"].count} txns • Col: ${formatMoney(groupMap["2"].total)} • Ref: ${formatMoney(groupMap["2"].refund)} • Exp: ${formatMoney(groupMap["2"].expense)}`);
+            }
+            if (groupMap["3"]) {
+                $("#rep_CardPrabirAmt").text(formatMoney(groupMap["3"].inHand));
+                $("#rep_CardPrabirTxns").text(`${groupMap["3"].count} txns • Col: ${formatMoney(groupMap["3"].total)} • Ref: ${formatMoney(groupMap["3"].refund)} • Exp: ${formatMoney(groupMap["3"].expense)}`);
+            }
 
-            $("#rep_CardBankAmt").text(formatMoney(groupMap["2"].inHand));
-            $("#rep_CardBankTxns").text(`${groupMap["2"].count} txns • Col: ${formatMoney(groupMap["2"].total)} • Ref: ${formatMoney(groupMap["2"].refund)} • Exp: ${formatMoney(groupMap["2"].expense)}`);
-
-            $("#rep_CardPrabirAmt").text(formatMoney(groupMap["3"].inHand));
-            $("#rep_CardPrabirTxns").text(`${groupMap["3"].count} txns • Col: ${formatMoney(groupMap["3"].total)} • Ref: ${formatMoney(groupMap["3"].refund)} • Exp: ${formatMoney(groupMap["3"].expense)}`);
+            renderDynamicReceiverCards(groupMap, {
+                inHand: totalInHandAll,
+                collected: totalCollectedAll,
+                refund: totalRefundAll,
+                expense: totalExpenseAll,
+                count: totalTxnsAll
+            });
 
             // 6. Build rows to display in Summary Table
             let groupsToDisplay = [];
@@ -3676,9 +3979,15 @@ $(document).ready(function () {
                     groupsToDisplay.push(groupMap[selectedFilter]);
                 }
             } else {
-                groupsToDisplay = [groupMap["1"], groupMap["2"], groupMap["3"]];
+                accountantsList.forEach(acc => {
+                    const aId = String(acc.courseAccountantId ?? acc.CourseAccountantId ?? acc.id ?? "").trim();
+                    if (groupMap[aId]) {
+                        groupsToDisplay.push(groupMap[aId]);
+                    }
+                });
                 Object.keys(groupMap).forEach(key => {
-                    if (key !== "1" && key !== "2" && key !== "3" && (groupMap[key].count > 0 || groupMap[key].refund > 0 || groupMap[key].expense > 0)) {
+                    if (!accountantsList.some(a => String(a.courseAccountantId ?? a.CourseAccountantId ?? a.id ?? "").trim() === key) &&
+                        (groupMap[key].count > 0 || groupMap[key].refund > 0 || groupMap[key].expense > 0)) {
                         groupsToDisplay.push(groupMap[key]);
                     }
                 });
@@ -3808,6 +4117,105 @@ $(document).ready(function () {
                 `;
             });
             $tbody.html(html);
+        }
+
+        function renderDynamicReceiverCards(groupMap, totals) {
+            const $container = $("#rep_ReceiverCardsRow");
+            if ($container.length === 0) return;
+            $container.empty();
+
+            const totInHand = totals ? totals.inHand : 0;
+            const totCount = totals ? totals.count : 0;
+            const totCol = totals ? totals.collected : 0;
+            const totRef = totals ? totals.refund : 0;
+            const totExp = totals ? totals.expense : 0;
+
+            // 1. Total In-Hand Card
+            const totalCardHtml = `
+                <div class="receiver-kpi-card" style="--kpi-border: #10b981;">
+                    <div class="receiver-kpi-header">
+                        <span class="receiver-kpi-title text-success">
+                            <i class="fa fa-briefcase me-1"></i> Total In-Hand
+                        </span>
+                        <span class="receiver-kpi-badge font-monospace">${totCount} txns</span>
+                    </div>
+                    <div class="receiver-kpi-amount text-success" id="rep_CardTotalAmt">
+                        ${formatMoney(totInHand)}
+                    </div>
+                    <div class="receiver-kpi-breakdown">
+                        <div class="receiver-kpi-stat-item">
+                            <span class="receiver-kpi-stat-label">Collected</span>
+                            <span class="receiver-kpi-stat-value text-success">${formatMoney(totCol)}</span>
+                        </div>
+                        <div class="receiver-kpi-stat-item">
+                            <span class="receiver-kpi-stat-label">Refund</span>
+                            <span class="receiver-kpi-stat-value text-danger">${formatMoney(totRef)}</span>
+                        </div>
+                        <div class="receiver-kpi-stat-item">
+                            <span class="receiver-kpi-stat-label">Expense</span>
+                            <span class="receiver-kpi-stat-value text-secondary">${formatMoney(totExp)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $container.append(totalCardHtml);
+
+            // 2. Dynamic Receiver Cards
+            const palette = [
+                { border: "#3b82f6", text: "#2563eb", icon: "fa-user" },
+                { border: "#6366f1", text: "#4f46e5", icon: "fa-university" },
+                { border: "#f59e0b", text: "#d97706", icon: "fa-user" },
+                { border: "#06b6d4", text: "#0891b2", icon: "fa-user" },
+                { border: "#ec4899", text: "#db2777", icon: "fa-user" },
+                { border: "#8b5cf6", text: "#7c3aed", icon: "fa-user" }
+            ];
+
+            const accountantsList = (cachedCourseAccountants && cachedCourseAccountants.length > 0)
+                ? cachedCourseAccountants
+                : Object.keys(PAYMENT_RECEIVERS).map(k => ({ courseAccountantId: k, name: PAYMENT_RECEIVERS[k] }));
+
+            let idx = 0;
+            accountantsList.forEach(acc => {
+                const aId = String(acc.courseAccountantId ?? acc.CourseAccountantId ?? acc.id ?? "").trim();
+                const aName = acc.name || acc.Name || "";
+                const g = groupMap[aId] || { id: aId, name: aName, count: 0, total: 0, refund: 0, expense: 0, inHand: 0 };
+
+                const theme = palette[idx % palette.length];
+                let icon = theme.icon;
+                if (aName.toLowerCase().includes("bank")) icon = "fa-university";
+
+                const cardAmtColor = g.inHand >= 0 ? theme.text : "#ef4444";
+
+                const cardHtml = `
+                    <div class="receiver-kpi-card" style="--kpi-border: ${theme.border};">
+                        <div class="receiver-kpi-header">
+                            <span class="receiver-kpi-title" style="color: ${theme.text};">
+                                <i class="fa ${icon} me-1"></i> ${escapeHtml(aName)} (In-Hand)
+                            </span>
+                            <span class="receiver-kpi-badge font-monospace">${g.count} txns</span>
+                        </div>
+                        <div class="receiver-kpi-amount" style="color: ${cardAmtColor};">
+                            ${formatMoney(g.inHand)}
+                        </div>
+                        <div class="receiver-kpi-breakdown">
+                            <div class="receiver-kpi-stat-item">
+                                <span class="receiver-kpi-stat-label">Collected</span>
+                                <span class="receiver-kpi-stat-value text-success">${formatMoney(g.total)}</span>
+                            </div>
+                            <div class="receiver-kpi-stat-item">
+                                <span class="receiver-kpi-stat-label">Refund</span>
+                                <span class="receiver-kpi-stat-value text-danger">${formatMoney(g.refund)}</span>
+                            </div>
+                            <div class="receiver-kpi-stat-item">
+                                <span class="receiver-kpi-stat-label">Expense</span>
+                                <span class="receiver-kpi-stat-value text-secondary">${formatMoney(g.expense)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $container.append(cardHtml);
+                idx++;
+            });
         }
     }
 

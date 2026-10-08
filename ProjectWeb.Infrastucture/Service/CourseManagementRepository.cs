@@ -452,5 +452,26 @@ namespace ProjectWeb.Infrastucture.Service
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/get-course-financial-report" + query.TrimEnd('&', '?')
             }, withBearer: true);
         }
+
+        public async Task<T> GetAllCourseAccountantWise<T>()
+        {
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/get-all-course-accountant-wise",
+                ContentType = StaticDetails.ContentType.Json
+            }, withBearer: true);
+        }
+
+        public async Task<T> GetAllCourseExpenseCategoryWise<T>(bool? isActive = null)
+        {
+            var query = isActive.HasValue ? $"?isActive={isActive.Value}" : "";
+            return await _baseService.SendAsync<T>(new APIRequest
+            {
+                ApiType = StaticDetails.ApiType.GET,
+                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/get-all-course-expense-category" + query,
+                ContentType = StaticDetails.ContentType.Json
+            }, withBearer: false);
+        }
     }
 }

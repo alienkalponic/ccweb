@@ -15,7 +15,7 @@
                 <ul class="sidebar-menu">
 
                     <li>
-                        <a href="@Url.Content("~/Admin/Dashboard")">
+                        <a href="@Url.Content("~/Dashboard/Dashboard")">
                             <i class="fa fa-dashboard"></i> <span>Dashboard</span>
                         </a>
                     </li>
@@ -232,6 +232,25 @@
                         <a href="@Url.Content("~/Admin/faq-management")">
                             <i class="fa fa-question-circle"></i> FAQ Management
                         </a>
+                    </li>
+
+                    <!-- Settings Management -->
+                    <li class="sub-menu">
+                        <a><i class="fa fa-cogs"></i> <span>Settings Management</span></a>
+                        <ul class="sub">
+                            <div>
+                                <li>
+                                    <a href="@Url.Content("~/SettingsManagement/CourseAccountants")">
+                                        <i class="fa fa-university"></i> Course Accountants
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="@Url.Content("~/SettingsManagement/CourseExpenseCategories")">
+                                        <i class="fa fa-tags"></i> Expense Categories
+                                    </a>
+                                </li>
+                            </div>
+                        </ul>
                     </li>
 
                 </ul>
