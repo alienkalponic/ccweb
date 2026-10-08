@@ -80,36 +80,24 @@
                     <form id="bannar_form" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
-                        <!-- Images -->
+                        <!-- Media (Image or Video) -->
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-12">
                                 <div class="form-group">
-                                    <label>Background Image</label>
-                                    <div class="border rounded p-2 text-center">
+                                    <label class="font-weight-bold">Background Media (Image / Video)</label>
+                                    <div class="border rounded p-3 text-center bg-light">
                                         <input type="hidden" id="hdn_BannerId" name="BannerUpdateDto.BannerId" />
-                                        <img id="targetImgback" class="img-fluid mb-2" style="max-height:200px;" />
-                                        <input type="file" class="form-control-file" id="back_img" name="BannerCreateDto.File">
+                                        <div id="mediaPreviewContainer" class="mb-2" style="display:none;">
+                                            <img id="targetImgback" class="img-fluid rounded border shadow-sm" style="max-height:220px; display:none;" />
+                                            <video id="targetVideoback" class="img-fluid rounded border shadow-sm" style="max-height:220px; max-width:100%; display:none;" controls muted playsinline></video>
+                                        </div>
+                                        <input type="file" class="form-control" id="back_img" name="BannerCreateDto.File" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm">
                                     </div>
-                                    <small class="text-danger">
-                                        Size: 600×490px – 650×550px
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fa fa-info-circle text-primary me-1"></i> Supports <strong>Image (JPG, PNG, WEBP)</strong> or <strong>Video (MP4, WEBM)</strong> | Max: 100MB
                                     </small>
                                 </div>
                             </div>
-
-                            @* <div class="col-md-2 text-center">
-                                <label class="d-block">Split?</label>
-                                <input type="checkbox" id="txt_splitimg" value="1">
-                            </div> *@
-
-                            @* <div class="col-md-5">
-                                <div class="form-group">
-                                    <label>Split Image</label>
-                                    <div class="border rounded p-2 text-center">
-                                        <img id="targetImgsplit" class="img-fluid mb-2" style="max-height:200px;" />
-                                        <input type="file" class="form-control-file" id="split_img" name="img2">
-                                    </div>
-                                </div>
-                            </div> *@
                         </div>
 
                         <hr />

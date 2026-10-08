@@ -84,8 +84,10 @@ a {
     background-size: cover;
 }
 
-    .carousel-item img {
+    .carousel-item img,
+    .carousel-item video {
         height: 100%;
+        width: 100%;
         object-fit: cover;
         object-position: center;
     }

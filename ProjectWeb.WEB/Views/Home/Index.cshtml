@@ -24,8 +24,20 @@
 	<div class="carousel-inner">
 		@foreach(var item in Model.BannerDtos!)
 		{
+			var mediaUrl = $"{projectApiUrl}{item.ImageUrl}";
+			var isVideo = !string.IsNullOrEmpty(item.ImageUrl) && (item.ImageUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || item.ImageUrl.EndsWith(".webm", StringComparison.OrdinalIgnoreCase));
 			<div class="carousel-item @(isFirst ? "active" : "")">
-				<img class="d-block w-100" src="@projectApiUrl@item.ImageUrl">
+				@if (isVideo)
+				{
+					<video class="d-block w-100" autoplay muted loop playsinline style="height: 100%; width: 100%; object-fit: cover; object-position: center; pointer-events: none;">
+						<source src="@mediaUrl" type="video/mp4">
+						<source src="@mediaUrl" type="video/webm">
+					</video>
+				}
+				else
+				{
+					<img class="d-block w-100" src="@mediaUrl" alt="@item.Title">
+				}
 				<div class="carousel-caption d-none d-md-block">
 					<p>@item.Caption</p>
 				</div>

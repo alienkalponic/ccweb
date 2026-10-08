@@ -153,9 +153,9 @@ $(document).ready(function () {
             $("#addBannerModal").modal("hide");
         });
 
-        /* ---------- BACKGROUND IMAGE PREVIEW ---------- */
+        /* ---------- BACKGROUND MEDIA (IMAGE / VIDEO) PREVIEW ---------- */
         $("#back_img").on("change", function () {
-            previewImage(this, "#targetImgback");
+            previewMedia(this);
         });
 
         /* ---------- SPLIT IMAGE PREVIEW ---------- */
@@ -166,8 +166,45 @@ $(document).ready(function () {
         $("#img_deleteback").click(function (e) {
             e.preventDefault();
             $("#back_img").val("");
-            $("#targetImgback").attr("src", "");
+            $("#targetImgback").attr("src", "").hide();
+            const $video = $("#targetVideoback");
+            $video.attr("src", "").hide();
+            if ($video[0]) $video[0].pause();
+            $("#mediaPreviewContainer").hide();
         });
+
+        function previewMedia(input) {
+            const $img = $("#targetImgback");
+            const $video = $("#targetVideoback");
+            const $container = $("#mediaPreviewContainer");
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const fileType = file.type ? file.type.toLowerCase() : "";
+                const fileName = file.name ? file.name.toLowerCase() : "";
+                const isVideo = fileType.startsWith("video/") || fileName.match(/\.(mp4|webm)$/i);
+
+                const fileUrl = URL.createObjectURL(file);
+
+                if (isVideo) {
+                    $img.hide().attr("src", "");
+                    $video.attr("src", fileUrl).show();
+                    if ($video[0]) {
+                        $video[0].load();
+                        $video[0].play().catch(function () {});
+                    }
+                } else {
+                    $video.hide().attr("src", "");
+                    if ($video[0]) $video[0].pause();
+                    $img.attr("src", fileUrl).show();
+                }
+                $container.show();
+            } else {
+                $img.hide().attr("src", "");
+                $video.hide().attr("src", "");
+                $container.hide();
+            }
+        }
 
         function previewImage(input, target) {
             if (input.files && input.files[0]) {
@@ -232,13 +269,25 @@ $(document).ready(function () {
             $("#txt_DisplayPriority").val(data.DisplayOrder || data.displayOrder || 0);
             $("#chk_IsActive").prop("checked", data.IsActive === true || data.isActive === true);
 
-            // Image Preview Fix - Using _ProjectAPI from appsettings
-            let imageUrl = data.ImageUrl || data.imageUrl || "";
-            if (imageUrl) {
-                if (imageUrl.startsWith('/')) {
-                    imageUrl = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + imageUrl;
+            // Media Preview Fix (Image or Video)
+            let mediaUrl = data.ImageUrl || data.imageUrl || "";
+            if (mediaUrl) {
+                if (mediaUrl.startsWith('/')) {
+                    mediaUrl = (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + mediaUrl;
                 }
-                $("#targetImgback").attr("src", imageUrl).show();
+                const isVideo = mediaUrl.match(/\.(mp4|webm)$/i);
+                if (isVideo) {
+                    $("#targetImgback").hide().attr("src", "");
+                    $("#targetVideoback").attr("src", mediaUrl).show();
+                } else {
+                    $("#targetVideoback").hide().attr("src", "");
+                    $("#targetImgback").attr("src", mediaUrl).show();
+                }
+                $("#mediaPreviewContainer").show();
+            } else {
+                $("#targetImgback").hide().attr("src", "");
+                $("#targetVideoback").hide().attr("src", "");
+                $("#mediaPreviewContainer").hide();
             }
 
             // Update UI for Update Mode
@@ -281,18 +330,29 @@ $(document).ready(function () {
                 errors.push("Display priority must be a positive number.");
             }
 
-            // Image validation: Required only for new banners
+            // Media validation (Image or Video): Required only for new banners
             if (!isUpdate && !file) {
-                errors.push("Background image is required.");
+                errors.push("Background media (image or video) is required.");
             } else if (file) {
-                const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-                if (!allowedTypes.includes(file.type)) {
-                    errors.push("Invalid file type. Allowed: JPG, JPEG, PNG, WEBP.");
+                const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+                const allowedVideoTypes = ["video/mp4", "video/webm"];
+                const fileType = file.type ? file.type.toLowerCase() : "";
+                const fileName = file.name ? file.name.toLowerCase() : "";
+
+                const isImage = allowedImageTypes.includes(fileType) || fileName.match(/\.(jpe?g|png|webp)$/i);
+                const isVideo = allowedVideoTypes.includes(fileType) || fileName.match(/\.(mp4|webm)$/i);
+
+                if (!isImage && !isVideo) {
+                    errors.push("Invalid file format. Allowed: Images (JPG, PNG, WEBP) or Videos (MP4, WEBM).");
                 }
 
-                const maxSize = 2 * 1024 * 1024; // 2MB
-                if (file.size > maxSize) {
-                    errors.push("File size exceeds 2MB limit.");
+                const maxImageSize = 10 * 1024 * 1024; // 10MB
+                const maxVideoSize = 100 * 1024 * 1024; // 100MB
+
+                if (isImage && file.size > maxImageSize) {
+                    errors.push("Image size exceeds 10MB limit.");
+                } else if (isVideo && file.size > maxVideoSize) {
+                    errors.push("Video size exceeds 100MB limit.");
                 }
             }
 
@@ -376,6 +436,10 @@ $(document).ready(function () {
             $('#bannar_form')[0].reset();
             $("#hdn_BannerId").val(0);
             $('#targetImgback').attr('src', '').hide();
+            const $video = $('#targetVideoback');
+            $video.attr('src', '').hide();
+            if ($video[0]) $video[0].pause();
+            $('#mediaPreviewContainer').hide();
             $('#targetImgsplit').attr('src', '').hide();
 
             $("#addBannerTitle").html('<i class="fa fa-image"></i> Add Banner');
@@ -499,12 +563,27 @@ $(document).ready(function () {
                 const caption = item.Caption || "";
                 const isActive = item.IsActive ? '<span class="label label-success">Active</span>' : '<span class="label label-danger">Inactive</span>';
 
+                const mediaUrl = (imageUrl && imageUrl.startsWith('/') ? (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + imageUrl : imageUrl);
+                const isVideo = imageUrl && (imageUrl.endsWith('.mp4') || imageUrl.endsWith('.webm') || imageUrl.match(/\.(mp4|webm)$/i));
+
+                let previewHtml = "";
+                if (isVideo) {
+                    previewHtml = `
+                        <div class="position-relative d-inline-block">
+                            <video src="${mediaUrl}" style="height: 50px; width: 75px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" muted playsinline preload="metadata"></video>
+                            <span class="badge bg-dark position-absolute bottom-0 end-0 m-1" style="font-size: 8px;"><i class="fa fa-video-camera"></i> Video</span>
+                        </div>
+                    `;
+                } else if (imageUrl) {
+                    previewHtml = `<img src="${mediaUrl}" alt="${title}" style="height: 50px; width: 75px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">`;
+                } else {
+                    previewHtml = `<span class="badge bg-secondary">No Media</span>`;
+                }
+
                 const row = `
                 <tr>
                     <td>${slNo}</td>
-                    <td>
-                        <img src="${(imageUrl && imageUrl.startsWith('/') ? (typeof _ProjectAPI !== 'undefined' ? _ProjectAPI : _BaseURL) + imageUrl : imageUrl)}" alt="${title}" style="height: 50px; border-radius: 4px; border: 1px solid #ddd;">
-                    </td>
+                    <td>${previewHtml}</td>
                     <td>${caption}</td>
                     <td>${displayOrder}</td>
                     <td>${title}</td>
