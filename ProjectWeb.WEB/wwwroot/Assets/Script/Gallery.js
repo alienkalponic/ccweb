@@ -154,6 +154,16 @@ $(document).ready(function () {
             let $datset = $("#detailsimageBind");
             $datset.empty();
 
+            const currentMeta = albumMeta[id] || {
+                title: "Expedition Gallery",
+                category: "ALBUM ARCHIVE",
+                subtitle: "Captured moments from our thrilling adventures"
+            };
+
+            // Set dynamic header titles
+            $("#dynamicAlbumTitle").text(currentMeta.title);
+            $("#dynamicAlbumSubtitle").text(currentMeta.subtitle);
+            $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentMeta.category);
 
             const apiUrl = _BaseURL + "/GalleryContent/GetGalleryDetails?id=" + id;
             toastr.info("Fetching banner details...", "Please wait");
@@ -163,35 +173,38 @@ $(document).ready(function () {
                 url: apiUrl,
                 type: 'GET',
                 dataType: 'json',
-                cache: false,  // Always fetch fresh data for edit modal
+                cache: false,
                 success: function (res) {
                     if (res) {
                         const data = res.Response || res;
+                        var _apiUrl = $("#apiurl").val() || "";
 
-                        //$("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + matchingPhotos.length + ' High-Res Photos');
-
-                        //if (matchingPhotos.length === 0) {
-                        //    $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
-                        //    return;
-                        //}
-                        var _apiUrl = $("#apiurl").val();
-                        $.each(data, function (index, val) {
-                            let photoNumber = index + 1;
-                            var src = _apiUrl + val.ImagePath1;
-                            let htmlCard = `
-                                <div class="gallery-item" data-index="${index}">
-                                    <img src="${src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
-                                    <div class="gallery-item-overlay">
-                                        <div class="gallery-zoom-icon">
-                                            <i class="fa-solid fa-expand"></i>
+                        if (Array.isArray(data) && data.length > 0) {
+                            $("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + data.length + ' High-Res Photos');
+                            $.each(data, function (index, val) {
+                                let photoNumber = index + 1;
+                                var src = _apiUrl + (val.ImagePath1 || val.imagePath1 || val.ImagePath || val.imagePath || "");
+                                let htmlCard = `
+                                    <div class="gallery-item" data-index="${index}" role="button" tabindex="0">
+                                        <img src="${src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
+                                        <div class="gallery-item-overlay">
+                                            <div class="gallery-zoom-icon">
+                                                <i class="fa-solid fa-expand"></i>
+                                            </div>
+                                            <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
                                         </div>
-                                        <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
                                     </div>
-                                </div>
-                            `;
-                            $datset.append(htmlCard);
-                        });
-                       
+                                `;
+                                $datset.append(htmlCard);
+                            });
+
+                            // Initialize Lightbox Modal Controller for the newly loaded images
+                            if (typeof window.initGallery === "function") {
+                                window.initGallery();
+                            }
+                        } else {
+                            $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
+                        }
                     } else {
                         toastr.warning("Could not retrieve banner data.", "Warning");
                     }
@@ -201,50 +214,11 @@ $(document).ready(function () {
                 },
                 complete: function () {
                     hideLoader();
+                    if (typeof window.initGallery === "function") {
+                        window.initGallery();
+                    }
                 }
             });
-
-            const currentMeta = albumMeta[id] || {
-                title: "Expedition Gallery",
-                category: "ALBUM ARCHIVE",
-                subtitle: "Captured moments from our thrilling adventures"
-            };
-
-            // Set dynamic header titles
-
-            //$("#dynamicAlbumTitle").text(currentMeta.title);
-            //$("#dynamicAlbumSubtitle").text(currentMeta.subtitle);
-            //$("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentMeta.category);
-
-            //let matchingPhotos = testimonials.filter(val => val.id === id);
-            
-            //$("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + matchingPhotos.length + ' High-Res Photos');
-
-            //if (matchingPhotos.length === 0) {
-            //    $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
-            //    return;
-            //}
-
-            //$.each(matchingPhotos, function (index, val) {
-            //    let photoNumber = index + 1;
-            //    let htmlCard = `
-            //        <div class="gallery-item" data-index="${index}">
-            //            <img src="${val.src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
-            //            <div class="gallery-item-overlay">
-            //                <div class="gallery-zoom-icon">
-            //                    <i class="fa-solid fa-expand"></i>
-            //                </div>
-            //                <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
-            //            </div>
-            //        </div>
-            //    `;
-            //    $datset.append(htmlCard);
-            //});
-
-            // Initialize Lightbox Modal Controller
-            if (typeof window.initGallery === "function") {
-                window.initGallery();
-            }
         }
     }
 });

@@ -4,49 +4,49 @@
     let currentImageIndex = 0;
     let galleryImages = [];
 
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
-    const lightboxCaption = document.getElementById('lightbox-caption');
-    const lightboxCounter = document.getElementById('lightbox-counter');
-    const lightboxThumbnails = document.getElementById('lightbox-thumbnails');
-    
-    const closeBtn = document.querySelector('.lightbox-close');
-    const prevBtn = document.querySelector('.lightbox-prev');
-    const nextBtn = document.querySelector('.lightbox-next');
+    function getLightboxElements() {
+        return {
+            lightbox: document.getElementById('lightbox'),
+            lightboxImg: document.getElementById('lightbox-img'),
+            lightboxCaption: document.getElementById('lightbox-caption'),
+            lightboxCounter: document.getElementById('lightbox-counter'),
+            lightboxThumbnails: document.getElementById('lightbox-thumbnails'),
+            closeBtn: document.querySelector('.lightbox-close'),
+            prevBtn: document.querySelector('.lightbox-prev'),
+            nextBtn: document.querySelector('.lightbox-next')
+        };
+    }
 
-    // Expose globally to be re-initialized when dynamic photos load
-    window.initGallery = function () {
+    function populateGalleryImages() {
         const galleryItems = document.querySelectorAll('.gallery-item');
-        if (galleryItems.length === 0) return;
+        if (galleryItems.length === 0) return [];
 
-        galleryImages = Array.from(galleryItems).map((item, index) => {
-            const img = item.querySelector('.gallery-item-img');
+        return Array.from(galleryItems).map((item, index) => {
+            const img = item.querySelector('.gallery-item-img') || item.querySelector('img');
             const caption = item.querySelector('.gallery-item-caption');
             return {
-                src: img.src,
-                alt: img.alt || `Photo ${index + 1}`,
-                caption: caption ? caption.textContent : img.alt,
+                src: img ? img.src : '',
+                alt: img ? (img.alt || `Photo ${index + 1}`) : `Photo ${index + 1}`,
+                caption: caption ? caption.textContent.trim() : (img ? img.alt : ''),
                 index: index
             };
         });
+    }
 
-        // Add Click & Touch listeners to gallery photo cards
-        galleryItems.forEach((item, index) => {
-            item.onclick = function (e) {
-                e.preventDefault();
-                openLightbox(index);
-            };
-        });
+    // Expose globally to be re-initialized when dynamic photos load
+    window.initGallery = function () {
+        galleryImages = populateGalleryImages();
+        const els = getLightboxElements();
 
         // Lightbox Control Listeners
-        if (closeBtn) closeBtn.onclick = closeLightbox;
-        if (prevBtn) prevBtn.onclick = showPrevImage;
-        if (nextBtn) nextBtn.onclick = showNextImage;
+        if (els.closeBtn) els.closeBtn.onclick = closeLightbox;
+        if (els.prevBtn) els.prevBtn.onclick = showPrevImage;
+        if (els.nextBtn) els.nextBtn.onclick = showNextImage;
 
         // Close on clicking backdrop outside content
-        if (lightbox) {
-            lightbox.onclick = function (e) {
-                if (e.target === lightbox) {
+        if (els.lightbox) {
+            els.lightbox.onclick = function (e) {
+                if (e.target === els.lightbox) {
                     closeLightbox();
                 }
             };
@@ -61,76 +61,87 @@
     };
 
     function renderThumbnails() {
-        if (!lightboxThumbnails) return;
-        lightboxThumbnails.innerHTML = '';
+        const els = getLightboxElements();
+        if (!els.lightboxThumbnails) return;
+        els.lightboxThumbnails.innerHTML = '';
 
         galleryImages.forEach((imgObj, idx) => {
             const thumb = document.createElement('div');
             thumb.className = `lightbox-thumb ${idx === currentImageIndex ? 'active' : ''}`;
             thumb.innerHTML = `<img src="${imgObj.src}" alt="thumb-${idx}">`;
-            thumb.onclick = function () {
+            thumb.onclick = function (e) {
+                e.stopPropagation();
                 currentImageIndex = idx;
                 updateLightboxImage();
             };
-            lightboxThumbnails.appendChild(thumb);
+            els.lightboxThumbnails.appendChild(thumb);
         });
 
-        // Auto scroll active thumbnail into view
-        const activeThumb = lightboxThumbnails.querySelector('.lightbox-thumb.active');
+        const activeThumb = els.lightboxThumbnails.querySelector('.lightbox-thumb.active');
         if (activeThumb) {
             activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
         }
     }
 
     function openLightbox(index) {
-        if (!lightbox) return;
-        currentImageIndex = index;
+        const els = getLightboxElements();
+        if (!els.lightbox) return;
+
+        galleryImages = populateGalleryImages();
+        if (galleryImages.length === 0) return;
+
+        currentImageIndex = (index >= 0 && index < galleryImages.length) ? index : 0;
         updateLightboxImage();
-        lightbox.classList.add('active');
+        els.lightbox.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
 
     function closeLightbox() {
-        if (!lightbox) return;
-        lightbox.classList.remove('active');
+        const els = getLightboxElements();
+        if (!els.lightbox) return;
+        els.lightbox.classList.remove('active');
         document.body.style.overflow = '';
     }
 
     function showPrevImage() {
+        if (galleryImages.length === 0) return;
         currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
         updateLightboxImage();
     }
 
     function showNextImage() {
+        if (galleryImages.length === 0) return;
         currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
         updateLightboxImage();
     }
 
     function updateLightboxImage() {
         if (galleryImages.length === 0) return;
+        const els = getLightboxElements();
         const currentImage = galleryImages[currentImageIndex];
 
-        if (lightboxImg) {
-            lightboxImg.style.animation = 'none';
-            lightboxImg.offsetHeight; // trigger reflow
-            lightboxImg.style.animation = 'zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            lightboxImg.src = currentImage.src;
-            lightboxImg.alt = currentImage.alt;
+        if (els.lightboxImg) {
+            els.lightboxImg.style.animation = 'none';
+            void els.lightboxImg.offsetHeight; // trigger reflow
+            els.lightboxImg.style.animation = 'zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            els.lightboxImg.src = currentImage.src;
+            els.lightboxImg.alt = currentImage.alt;
         }
 
-        if (lightboxCounter) {
-            lightboxCounter.textContent = `${currentImageIndex + 1} / ${galleryImages.length}`;
+        if (els.lightboxCounter) {
+            els.lightboxCounter.textContent = `${currentImageIndex + 1} / ${galleryImages.length}`;
         }
 
-        if (lightboxCaption) {
-            lightboxCaption.textContent = currentImage.caption || currentImage.alt;
+        if (els.lightboxCaption) {
+            els.lightboxCaption.textContent = currentImage.caption || currentImage.alt;
         }
 
         renderThumbnails();
     }
 
     function handleKeyboard(e) {
-        if (!lightbox || !lightbox.classList.contains('active')) return;
+        const els = getLightboxElements();
+        if (!els.lightbox || !els.lightbox.classList.contains('active')) return;
 
         if (e.key === 'Escape') closeLightbox();
         if (e.key === 'ArrowLeft') showPrevImage();
@@ -158,11 +169,32 @@
     function handleSwipe() {
         const threshold = 40;
         if (touchEndX < touchStartX - threshold) {
-            showNextImage(); // Swiped left -> Next photo
+            showNextImage();
         }
         if (touchEndX > touchStartX + threshold) {
-            showPrevImage(); // Swiped right -> Prev photo
+            showPrevImage();
         }
     }
 
+    // Global Delegated Click Listener: Click anywhere on .gallery-item opens lightbox!
+    document.addEventListener('click', function (e) {
+        const item = e.target.closest('.gallery-item');
+        if (item) {
+            e.preventDefault();
+            const allItems = Array.from(document.querySelectorAll('.gallery-item'));
+            const idx = allItems.indexOf(item);
+            openLightbox(idx >= 0 ? idx : parseInt(item.getAttribute('data-index') || '0', 10));
+        }
+    });
+
+    // Expose helpers globally
+    window.openLightbox = openLightbox;
+    window.closeLightbox = closeLightbox;
+
+    // Run initial setup if items are already in DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initGallery);
+    } else {
+        window.initGallery();
+    }
 })();
