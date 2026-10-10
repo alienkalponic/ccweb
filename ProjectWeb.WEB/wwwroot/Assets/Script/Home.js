@@ -20,29 +20,12 @@ $(document).ready(function () {
     animateActiveSlide();
     let interval = setInterval(animateActiveSlide, 3000);
 
-    // Redirect to Online Registration Form from Activity Details
-    $(document).on('click', '#btnSubmitInterest, #btnRegistrationForm', function (e) {
-        if ($(this).text().trim().toLowerCase().includes('registration form')) {
+    // Smooth scroll to Course Registration Form if anchor clicked
+    $(document).on('click', '#btnRegistrationForm', function (e) {
+        var formEl = document.getElementById('registration-form');
+        if (formEl) {
             e.preventDefault();
-            var startDate = $(this).attr('data-start-date');
-            var endDate = $(this).attr('data-end-date');
-            if (startDate) sessionStorage.setItem('cc_activity_start_date', startDate);
-            if (endDate) sessionStorage.setItem('cc_activity_end_date', endDate);
-
-            var href = $(this).attr('href');
-            if (href && href !== '#' && href.indexOf('javascript') === -1) {
-                window.location.href = href;
-                return;
-            }
-
-            // Extract activity id from path e.g. /Home/ActivityInfoDetails/12
-            var pathParts = window.location.pathname.split('/').filter(Boolean);
-            var lastPart = pathParts[pathParts.length - 1];
-            if (lastPart && !isNaN(lastPart)) {
-                window.location.href = _BaseURL + '/Home/OnlineRegistrationForm?id=' + lastPart;
-            } else {
-                window.location.href = _BaseURL + '/Home/OnlineRegistrationForm';
-            }
+            formEl.scrollIntoView({ behavior: 'smooth' });
         }
     });
 
@@ -58,4 +41,39 @@ $(document).ready(function () {
             window.location.href = url;
         }
     });
+
+    // =========================================================================
+    // Quick Action Strip Scroll & Reload Animation Observer
+    // =========================================================================
+    function initQuickStripAnimation() {
+        const stripEl = document.querySelector('.cc-quick-strip-section');
+        if (!stripEl) return;
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        stripEl.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.15,
+                rootMargin: '0px 0px -40px 0px'
+            });
+
+            observer.observe(stripEl);
+        } else {
+            stripEl.classList.add('is-visible');
+        }
+
+        // Safety fallback: ensure cards are always revealed after brief delay
+        setTimeout(function () {
+            if (stripEl) {
+                stripEl.classList.add('is-visible');
+            }
+        }, 1200);
+    }
+
+    initQuickStripAnimation();
 });

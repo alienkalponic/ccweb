@@ -194,25 +194,20 @@ namespace ProjectWeb.WEB.Controllers
 
         public async Task<IActionResult> OnlineRegistrationForm(int? id)
         {
-            MultipleModel mmm = new MultipleModel();
+            long targetId = id.HasValue && id.Value > 0 ? (long)id.Value : 12;
             try
             {
-                if (id.HasValue && id.Value > 0)
-                {
-                    APIResponse response = await _unitOfWork.ContentManagement.ActivityDetailsGetByActivityId<APIResponse>(id.Value);
-                    if (response != null && response.Success == true && response.Response != null)
-                    {
-                        mmm.ActivityDetailsDto = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(response.Response)!)?.FirstOrDefault();
-                    }
-                }
-
-                if (mmm.ActivityDetailsDto == null)
+                if (targetId == 12 && (!id.HasValue || id.Value <= 0))
                 {
                     APIResponse allResponse = await _unitOfWork.ContentManagement.ActivityDetailsGetAll<APIResponse>("20", "1", "");
                     if (allResponse != null && allResponse.Success == true && allResponse.Response != null)
                     {
                         var list = JsonConvert.DeserializeObject<List<ActivityDetailsDto>>(Convert.ToString(allResponse.Response)!);
-                        mmm.ActivityDetailsDto = list?.FirstOrDefault(x => x.FormAdd == true) ?? list?.FirstOrDefault();
+                        var activeForm = list?.FirstOrDefault(x => x.FormAdd == true);
+                        if (activeForm != null && activeForm.ActivityId > 0)
+                        {
+                            targetId = activeForm.ActivityId;
+                        }
                     }
                 }
             }
@@ -221,7 +216,7 @@ namespace ProjectWeb.WEB.Controllers
                 _logger.LogError(ex, "Error fetching activity details for OnlineRegistrationForm");
             }
 
-            return View(mmm);
+            return Redirect($"/Home/ActivityInfoDetails/{targetId}#registration-form");
         }
     }
 }

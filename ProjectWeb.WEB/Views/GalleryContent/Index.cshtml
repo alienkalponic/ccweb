@@ -479,5 +479,42 @@
         if (searchInput) {
             searchInput.addEventListener("input", filterAlbums);
         }
+
+        // Auto-select filter from URL parameter: ?filter=Expedition or ?category=Expedition or #Expedition
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetFilter = urlParams.get("filter") || urlParams.get("category") || window.location.hash.replace("#", "");
+        if (targetFilter) {
+            const searchKey = targetFilter.toLowerCase().trim();
+            let matchedBtn = null;
+
+            filterBtns.forEach(btn => {
+                const btnFilter = (btn.getAttribute("data-filter") || "").toLowerCase().trim();
+                if (btnFilter === searchKey) {
+                    matchedBtn = btn;
+                }
+            });
+
+            if (!matchedBtn) {
+                filterBtns.forEach(btn => {
+                    const btnFilter = (btn.getAttribute("data-filter") || "").toLowerCase().trim();
+                    if (btnFilter.includes(searchKey) || searchKey.includes(btnFilter)) {
+                        matchedBtn = btn;
+                    }
+                });
+            }
+
+            if (matchedBtn) {
+                filterBtns.forEach(b => b.classList.remove("active"));
+                matchedBtn.classList.add("active");
+                filterAlbums();
+
+                setTimeout(() => {
+                    const albumGrid = document.getElementById("albumGrid");
+                    if (albumGrid) {
+                        albumGrid.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                }, 300);
+            }
+        }
     });
 </script>

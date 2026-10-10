@@ -220,3 +220,930 @@
         padding: 2rem 1.5rem;
     }
 }
+
+/* ==========================================================================
+   THEMED COURSE REGISTRATION FORM (EMBEDDED)
+   ========================================================================== */
+.cc-registration-full {
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 3rem 2.5rem;
+    margin-bottom: 6rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+.cc-reg-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #262626;
+    padding-bottom: 1.5rem;
+}
+
+.cc-reg-brand-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.cc-reg-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #1a1a1a;
+    padding: 4px;
+    border: 1px solid #333;
+}
+
+.cc-reg-badge {
+    display: inline-block;
+    background: rgba(176, 139, 69, 0.15);
+    color: var(--activity-accent);
+    border: 1px solid var(--activity-accent);
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.cc-reg-brand-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin: 0 0 4px 0;
+    color: #ffffff;
+    text-align: left;
+}
+
+.cc-reg-brand-text p {
+    margin: 0 0 2px 0;
+    font-size: 0.88rem;
+    color: #999;
+}
+
+.cc-reg-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.cc-btn-print {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #181818;
+    color: var(--activity-accent);
+    border: 1px solid var(--activity-accent);
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cc-btn-print:hover {
+    background: var(--activity-accent);
+    color: #000;
+}
+
+.cc-reg-notice-bar {
+    background: rgba(176, 139, 69, 0.08);
+    border-left: 3px solid var(--activity-accent);
+    padding: 12px 18px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #e0e0e0;
+    margin-bottom: 2rem;
+}
+
+.cc-form-panel {
+    background: #141414;
+    border: 1px solid #242424;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    transition: border-color 0.2s ease;
+}
+
+.cc-form-panel:hover {
+    border-color: #333;
+}
+
+.cc-panel-title {
+    color: var(--activity-accent);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #222;
+    padding-bottom: 10px;
+}
+
+.cc-panel-title i {
+    font-size: 1.05rem;
+}
+
+/* Grid Layout */
+.cc-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+}
+
+.cc-col-12 { grid-column: span 12; }
+.cc-col-9 { grid-column: span 9; }
+.cc-col-8 { grid-column: span 8; }
+.cc-col-7 { grid-column: span 7; }
+.cc-col-6 { grid-column: span 6; }
+.cc-col-5 { grid-column: span 5; }
+.cc-col-4 { grid-column: span 4; }
+.cc-col-3 { grid-column: span 3; }
+.cc-col-2 { grid-column: span 2; }
+
+.cc-field-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.cc-field-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #bbb;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cc-field-label .cc-sub-desc {
+    text-transform: none;
+    font-weight: normal;
+    color: #777;
+    font-size: 0.75rem;
+}
+
+.cc-input-control {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.cc-input-control:focus {
+    border-color: var(--activity-accent);
+    box-shadow: 0 0 0 2px rgba(176, 139, 69, 0.25);
+    background: #202020;
+}
+
+.cc-input-control::placeholder {
+    color: #666;
+}
+
+/* Toggle Pills */
+.cc-toggle-pills {
+    display: flex;
+    gap: 8px;
+    height: 42px;
+    align-items: center;
+}
+
+.cc-toggle-pill {
+    flex: 1;
+    text-align: center;
+    background: #1a1a1a;
+    border: 1.5px solid #333;
+    color: #aaa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.cc-toggle-pill:hover {
+    border-color: #555;
+    color: #fff;
+}
+
+.cc-toggle-pill.active {
+    background: var(--activity-accent);
+    border-color: var(--activity-accent);
+    color: #000;
+    font-weight: 700;
+}
+
+/* Course Selector Cards */
+.cc-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.cc-course-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #181818;
+    border: 1.5px solid #2f2f2f;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.cc-course-card:hover {
+    border-color: var(--activity-accent);
+    transform: translateY(-2px);
+}
+
+.cc-course-card.checked {
+    background: rgba(176, 139, 69, 0.12);
+    border-color: var(--activity-accent);
+    color: #fff;
+}
+
+.cc-check-indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 1.5px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    color: transparent;
+    background: #111;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.cc-course-card.checked .cc-check-indicator {
+    background: var(--activity-accent);
+    border-color: var(--activity-accent);
+    color: #000;
+}
+
+.cc-course-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #eee;
+}
+
+/* Fees & Confirmation */
+.cc-fee-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.cc-fee-card {
+    background: #181818;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 16px 20px;
+    text-align: center;
+}
+
+.cc-fee-card.highlight {
+    background: rgba(176, 139, 69, 0.08);
+    border-color: var(--activity-accent);
+}
+
+.cc-fee-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.cc-fee-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--activity-accent);
+}
+
+.cc-fee-nb {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-top: 10px;
+}
+
+/* Declaration & Discipline */
+.cc-declaration-box {
+    font-size: 0.94rem;
+    color: #ccc;
+    font-style: italic;
+    line-height: 1.7;
+    background: #181818;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #282828;
+    margin-bottom: 18px;
+    text-align: justify;
+}
+
+.cc-discipline-callout {
+    background: rgba(220, 38, 38, 0.08);
+    border-left: 4px solid #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-left-width: 4px;
+    padding: 16px 20px;
+    border-radius: 4px;
+    color: #fca5a5;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 18px 0;
+}
+
+.cc-discipline-callout strong {
+    color: #fee2e2;
+}
+
+/* Gear Checklist */
+.cc-gear-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.cc-gear-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #181818;
+    border: 1px solid #282828;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    color: #ddd;
+}
+
+.cc-gear-pill i {
+    color: var(--activity-accent);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* Joining & Schedule */
+.cc-schedule-details {
+    background: #181818;
+    border: 1px solid #2e2e2e;
+    border-radius: 6px;
+    padding: 20px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #ccc;
+}
+
+.cc-schedule-details b {
+    color: #ffffff;
+}
+
+.cc-schedule-highlight {
+    color: var(--activity-accent) !important;
+}
+
+/* Payment Section */
+.cc-payment-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 14px;
+}
+
+.cc-upi-card {
+    background: #181818;
+    border: 1px solid #2e2e2e;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.cc-upi-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--activity-accent);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cc-upi-info {
+    font-size: 0.88rem;
+    color: #ccc;
+    line-height: 1.5;
+}
+
+.cc-upi-info b {
+    color: #fff;
+}
+
+.cc-qr-wrap {
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.cc-qr-img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 6px;
+    border: 2px solid var(--activity-accent);
+    display: block;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.cc-qr-img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 6px 24px rgba(176, 139, 69, 0.4);
+}
+
+.cc-qr-label {
+    font-size: 0.76rem;
+    color: var(--activity-accent);
+    display: block;
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.cc-bank-card {
+    background: #181818;
+    border: 1px solid #2e2e2e;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.cc-bank-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--activity-accent);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cc-bank-info {
+    font-size: 0.88rem;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.cc-bank-info b {
+    color: #fff;
+}
+
+/* Action Footer */
+.cc-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #262626;
+    flex-wrap: wrap;
+}
+
+.cc-btn-submit-full {
+    background: var(--activity-accent);
+    color: #000;
+    border: none;
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cc-btn-submit-full:hover {
+    filter: brightness(1.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(176, 139, 69, 0.4);
+}
+
+/* Mobile responsive for full form */
+@media (max-width: 900px) {
+    .cc-registration-full {
+        padding: 2rem 1.25rem;
+    }
+    
+    .cc-col-9, .cc-col-8, .cc-col-7, .cc-col-6, .cc-col-5, .cc-col-4, .cc-col-3, .cc-col-2 {
+        grid-column: span 12;
+    }
+    
+    .cc-payment-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .cc-upi-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+    }
+    
+    .cc-reg-header-top {
+        flex-direction: column;
+    }
+    
+    .cc-form-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .cc-form-actions button, .cc-form-actions a {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   ORIGINAL A4 PRINT DOCUMENT (SHOWN ONLY ON PRINT / PDF)
+   ========================================================================== */
+.cc-print-document {
+    display: none;
+    font-family: "Times New Roman", Times, Georgia, serif;
+    color: #000000;
+    line-height: 1.3;
+}
+
+.cc-print-document * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.cc-print-document .page-container {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 12mm 15mm 12mm 15mm;
+    position: relative;
+    box-shadow: none;
+}
+
+.cc-print-document .form-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.cc-print-document .header-logo-wrap {
+    flex-shrink: 0;
+    width: 82px;
+    text-align: center;
+}
+
+.cc-print-document .header-logo-wrap img {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    display: block;
+}
+
+.cc-print-document .header-details-wrap {
+    flex-grow: 1;
+}
+
+.cc-print-document .org-name {
+    font-family: "Times New Roman", Times, Georgia, serif;
+    font-size: 34px;
+    font-weight: bold;
+    margin: 0 0 2px 0;
+    color: #000000;
+    line-height: 1.1;
+}
+
+.cc-print-document .org-address {
+    font-size: 14.5px;
+    margin: 0 0 2px 0;
+    color: #111111;
+}
+
+.cc-print-document .org-contact {
+    font-size: 14.5px;
+    margin: 0 0 8px 0;
+    color: #111111;
+}
+
+.cc-print-document .doc-title {
+    font-family: "Times New Roman", Times, Georgia, serif;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #000000;
+    line-height: 1.2;
+}
+
+.cc-print-document .minor-notice {
+    font-size: 13.5px;
+    color: #111111;
+    margin: 8px 0 12px 0;
+    font-style: normal;
+}
+
+.cc-print-document .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.cc-print-document .field-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #000000;
+    white-space: nowrap;
+    margin-right: 6px;
+}
+
+.cc-print-document .sub-desc {
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.cc-print-document .form-box {
+    background-color: #eaeffa !important;
+    border: 1.5px solid #1a1a1a !important;
+    height: 27px;
+    padding: 2px 6px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    color: #000000 !important;
+    outline: none;
+    box-sizing: border-box;
+    border-radius: 2px;
+}
+
+.cc-print-document .flex-fill {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+.cc-print-document .text-center {
+    text-align: center;
+}
+
+.cc-print-document .font-bold {
+    font-weight: bold;
+}
+
+.cc-print-document .toggle-box {
+    background-color: #eaeffa !important;
+    border: 1.5px solid #1a1a1a !important;
+    height: 27px;
+    line-height: 24px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #111111;
+    box-sizing: border-box;
+    border-radius: 2px;
+    display: inline-block;
+}
+
+.cc-print-document .toggle-box.selected {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+    border-color: #0d6efd !important;
+    font-weight: bold;
+}
+
+.cc-print-document .course-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 6px;
+    column-gap: 20px;
+    flex-grow: 1;
+}
+
+.cc-print-document .course-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.cc-print-document .course-check-box {
+    width: 38px;
+    height: 26px;
+    background-color: #eaeffa !important;
+    border: 1.5px solid #1a1a1a !important;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000;
+    flex-shrink: 0;
+}
+
+.cc-print-document .course-check-box.checked::after {
+    content: "✓";
+    color: #000000;
+    font-weight: bold;
+}
+
+.cc-print-document .sig-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 250px;
+    margin-left: auto;
+    text-align: center;
+}
+
+.cc-print-document .sig-line {
+    width: 100%;
+    border-top: 1px solid #000000;
+    margin-bottom: 3px;
+}
+
+.cc-print-document .sig-desc {
+    font-size: 12px;
+    color: #111111;
+    line-height: 1.2;
+}
+
+.cc-print-document .blue-rule {
+    border: none;
+    border-top: 2px solid #007bff;
+    margin: 12px 0 10px 0;
+}
+
+.cc-print-document .reg-confirmation-title {
+    font-size: 14.5px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.cc-print-document .fees-label {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.cc-print-document .nb-notice {
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.cc-print-document .page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+}
+
+.cc-print-document .declaration-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin: 20px 0 15px 0;
+    text-decoration: underline;
+}
+
+.cc-print-document .declaration-text {
+    font-size: 14px;
+    text-align: justify;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+
+.cc-print-document .dotted-line {
+    border-bottom: 1px dotted #000000;
+    flex-grow: 1;
+    height: 18px;
+    margin: 0 4px;
+    display: inline-block;
+}
+
+.cc-print-document .items-list {
+    columns: 2;
+    -webkit-columns: 2;
+    -moz-columns: 2;
+    column-gap: 30px;
+    margin: 8px 0;
+    padding-left: 18px;
+    font-size: 13.5px;
+    line-height: 1.4;
+}
+
+.cc-print-document .items-list li {
+    margin-bottom: 4px;
+}
+
+.cc-print-document .online-payment-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #e0f7fa !important;
+    border: 1.5px solid #80deea !important;
+    border-radius: 6px;
+    padding: 10px 18px;
+    margin: 12px 0;
+}
+
+.cc-print-document .info-highlight {
+    padding: 8px 12px;
+    margin: 10px 0;
+    font-size: 13.5px;
+    border-radius: 3px;
+    line-height: 1.4;
+}
+
+.cc-print-document .info-highlight.yellow {
+    background-color: #fff9c4 !important;
+    border: 1px solid #fff176 !important;
+}
+
+/* Print Stylesheet (Hides website & on-screen form; Shows ONLY the exact A4 document) */
+@media print {
+    body, html, .activity-details-page {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: #000000 !important;
+    }
+    
+    header.activity-hero,
+    .activity-showcase,
+    .activity-info-grid,
+    .activity-description,
+    .registration-section,
+    .cc-registration-full,
+    .top-action-bar,
+    nav, footer, .navbar, .global-loader-overlay {
+        display: none !important;
+    }
+    
+    .container-limit, main, .container-fluied {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+    
+    .cc-print-document {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .cc-print-document .page-container {
+        margin: 0 auto !important;
+        padding: 10mm 15mm !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: auto !important;
+        box-shadow: none !important;
+    }
+}

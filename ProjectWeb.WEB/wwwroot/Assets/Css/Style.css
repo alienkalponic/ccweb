@@ -1485,3 +1485,282 @@ height: auto;
 }
 
 /************************About us Page end ******************/
+
+/* ==========================================================================
+   QUICK ACTION STRIP (EXPEDITION | COURSES | EVENTS | E-MAG) - INDIVIDUAL BOXES (TRANSPARENT)
+   ========================================================================== */
+.cc-quick-strip-section {
+    background: transparent;
+    border-top: none;
+    border-bottom: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 10;
+    margin: 0;
+    padding: 32px 20px;
+}
+
+.cc-quick-strip-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+/* Individual Segment Box - Transparent Background with Scroll & Reload Animation */
+.cc-quick-col {
+    background: transparent;
+    border: 1px solid rgba(176, 139, 69, 0.35);
+    border-radius: 12px;
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 230px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none;
+    
+    /* Animation initial state: smooth glide from bottom + scale + blur */
+    opacity: 0;
+    transform: translateY(45px) scale(0.96);
+    filter: blur(5px);
+    transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.85s ease,
+                border-color 0.35s ease,
+                background 0.35s ease,
+                box-shadow 0.35s ease;
+    will-change: transform, opacity, filter;
+}
+
+/* When the section enters viewport or page is reloaded */
+.cc-quick-strip-section.is-visible .cc-quick-col {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+/* Staggered entry delay for each individual box */
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(1) {
+    transition-delay: 0.05s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(2) {
+    transition-delay: 0.20s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(3) {
+    transition-delay: 0.35s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(4) {
+    transition-delay: 0.50s;
+}
+
+.cc-quick-col::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #b08b45, transparent);
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+}
+
+.cc-quick-strip-section.is-visible .cc-quick-col::before {
+    opacity: 0.6;
+    transform: scaleX(1);
+}
+
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(1)::before { transition-delay: 0.3s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(2)::before { transition-delay: 0.45s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(3)::before { transition-delay: 0.6s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(4)::before { transition-delay: 0.75s; }
+
+.cc-quick-col:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: #b08b45;
+    background: rgba(176, 139, 69, 0.07);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(176, 139, 69, 0.2);
+}
+
+.cc-quick-col:hover::before {
+    opacity: 1;
+}
+
+.cc-quick-title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #b08b45 !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cc-quick-desc {
+    color: #cbd5e1;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0 0 16px 0;
+    flex-grow: 1;
+}
+
+.cc-quick-btn-wrap {
+    margin-top: auto;
+}
+
+.cc-quick-btn {
+    display: inline-block;
+    padding: 6px 22px;
+    border: 1.5px solid #b08b45;
+    border-radius: 50px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    background: rgba(176, 139, 69, 0.08);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-quick-btn:hover {
+    background: #b08b45;
+    color: #000000;
+    box-shadow: 0 4px 15px rgba(176, 139, 69, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Courses List */
+.cc-quick-courses-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.cc-quick-courses-list li {
+    margin-bottom: 9px;
+}
+
+.cc-quick-courses-list li:last-child {
+    margin-bottom: 0;
+}
+
+.cc-quick-courses-list li a {
+    display: block;
+    color: #e2e8f0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding-bottom: 7px;
+    border-bottom: 1px dashed rgba(176, 139, 69, 0.35);
+    transition: all 0.25s ease;
+}
+
+.cc-quick-courses-list li a:hover {
+    color: #b08b45;
+    padding-left: 6px;
+    border-bottom-color: #b08b45;
+}
+
+/* Column 4: E-Mag & Follow Us */
+.cc-quick-col-emag {
+    justify-content: flex-start;
+}
+
+.cc-emag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cc-emag-header .cc-quick-title {
+    margin: 0;
+}
+
+.cc-quick-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 12px 0;
+}
+
+.cc-div-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(176, 139, 69, 0.3);
+}
+
+.cc-div-icon {
+    color: #b08b45;
+    font-size: 13px;
+}
+
+.cc-follow-title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #b08b45 !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 10px 0;
+}
+
+.cc-social-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cc-social-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(176, 139, 69, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.cc-social-btn:hover {
+    background: #b08b45;
+    color: #000000;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(176, 139, 69, 0.4);
+    border-color: #b08b45;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1080px) {
+    .cc-quick-strip-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+}
+
+@media (max-width: 640px) {
+    .cc-quick-strip-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .cc-quick-col {
+        padding: 22px 18px;
+        min-height: auto;
+    }
+}
+

@@ -70,20 +70,853 @@
 
         @if (Model.ActivityDetailsDto?.FormAdd == true)
         {
-            <!-- Registration Section -->
-            <section class="registration-section" style="text-align: center;">
-                <h2>Register Your Interest</h2>
-                <div style="margin-top: 1.5rem;">
-                    <a href="@Url.Action("OnlineRegistrationForm", "Home", new { id = Model.ActivityDetailsDto?.ActivityId, startDate = Model.ActivityDetailsDto?.StartDate, endDate = Model.ActivityDetailsDto?.EndDate })" 
-                       onclick="if ('@Model.ActivityDetailsDto?.StartDate') { sessionStorage.setItem('cc_activity_start_date', '@Model.ActivityDetailsDto?.StartDate'); sessionStorage.setItem('cc_activity_end_date', '@Model.ActivityDetailsDto?.EndDate'); } window.location.href=this.href;" 
-                       class="submit-btn" id="btnRegistrationForm" 
-                       data-start-date="@Model.ActivityDetailsDto?.StartDate" 
-                       data-end-date="@Model.ActivityDetailsDto?.EndDate"
-                       style="display: inline-block; text-decoration: none; padding: 14px 40px; font-weight: 700; letter-spacing: 1px; color: #000;">
-                        Registration Form
-                    </a>
+            var actDto = Model.ActivityDetailsDto;
+            DateTime startDate = new DateTime(DateTime.Now.Year, 12, 28);
+            DateTime endDate = new DateTime(DateTime.Now.Year, 12, 31);
+            bool hasDates = false;
+
+            if (actDto != null && !string.IsNullOrEmpty(actDto.StartDate) && DateTime.TryParse(actDto.StartDate, out var sDate))
+            {
+                startDate = sDate;
+                hasDates = true;
+            }
+
+            if (actDto != null && !string.IsNullOrEmpty(actDto.EndDate) && DateTime.TryParse(actDto.EndDate, out var eDate))
+            {
+                endDate = eDate;
+            }
+            else if (hasDates)
+            {
+                endDate = startDate;
+            }
+
+            var reportingDate = startDate.AddDays(-1);
+            var returnDate = endDate.AddDays(1);
+            var courseYear = hasDates ? startDate.Year : DateTime.Now.Year;
+
+            string GetDaySuffix(int day)
+            {
+                if (day % 100 >= 11 && day % 100 <= 13) return $"{day}th";
+                switch (day % 10)
+                {
+                    case 1: return $"{day}st";
+                    case 2: return $"{day}nd";
+                    case 3: return $"{day}rd";
+                    default: return $"{day}th";
+                }
+            }
+
+            string reportingDateText = $"{GetDaySuffix(reportingDate.Day)} {reportingDate:MMMM yyyy}";
+            string returnDateText = $"{GetDaySuffix(returnDate.Day)} {returnDate:MMMM yyyy}";
+            string displayFee = actDto?.Fee != null ? actDto.Fee.ToString() : "4000";
+            decimal numFee = 4000;
+            decimal.TryParse(displayFee, out numFee);
+            decimal advFee = 2000;
+            decimal balFee = numFee > advFee ? (numFee - advFee) : 0;
+
+            <!-- Full Course Registration Form Embedded -->
+            <section class="cc-registration-full" id="registration-form">
+                
+                <!-- Form Header -->
+                <div class="cc-reg-header-top">
+                    <div class="cc-reg-brand-info">
+                        <img src="~/Assets/images/logo.jpeg" onerror="this.src='/Assets/images/CCLogo1.png';" alt="Climbers' Circle" class="cc-reg-logo" />
+                        <div class="cc-reg-brand-text">
+                            <span class="cc-reg-badge">Official Course Registration</span>
+                            <h2>Course Registration Form @courseYear</h2>
+                            <p><strong>Climbers' Circle</strong> &bull; 1923 Chattra Samity, Raja Subodh Mullick Square, Kolkata-700013</p>
+                            <p class="cc-sub-desc">support@climberscircle.org &nbsp;|&nbsp; www.climberscircle.org</p>
+                        </div>
+                    </div>
+                    <div class="cc-reg-header-actions">
+                        <button type="button" onclick="prepareAndPrintRegistration()" class="cc-btn-print">
+                            <i class="fa fa-print"></i> Print / Save as PDF
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Minor notice banner -->
+                <div class="cc-reg-notice-bar">
+                    <i class="fa fa-info-circle"></i> <strong>Notice:</strong> Parents or guardian of minors must fill up and submit the form. (Please submit as soon as possible).
+                </div>
+
+                <form id="fullCourseRegistrationForm" method="post">
+                    <input type="hidden" id="fullRegActivityId" name="clubActivityId" value="@Model.ActivityDetailsDto?.ActivityId" />
+                    <input type="hidden" id="foodHabitVal" name="foodHabit" value="Veg" />
+                    <input type="hidden" id="campingExpVal" name="campingExp" value="No" />
+
+                    <!-- PANEL 1: Candidate Details -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-user"></i> Candidate &amp; Personal Details</h3>
+                        <div class="cc-grid">
+                            <!-- Name -->
+                            <div class="cc-col-12 cc-field-group">
+                                <label class="cc-field-label">Name <span class="cc-sub-desc">(in BLOCK Letters)</span> *</label>
+                                <input type="text" id="fullRegName" name="name" class="cc-input-control" placeholder="FULL NAME IN BLOCK LETTERS" required />
+                            </div>
+
+                            <!-- Father's / Mother's Name -->
+                            <div class="cc-col-12 cc-field-group">
+                                <label class="cc-field-label">Father’s / Mother’s Name <span class="cc-sub-desc">(in BLOCK Letters)</span> *</label>
+                                <input type="text" id="fullRegParentName" name="parentName" class="cc-input-control" placeholder="FATHER'S / MOTHER'S NAME" required />
+                            </div>
+
+                            <!-- Address Line 1 -->
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Residential Address (Line 1) *</label>
+                                <input type="text" id="fullRegAddress1" name="address1" class="cc-input-control" placeholder="House / Flat / Street address" required />
+                            </div>
+
+                            <!-- Address Line 2 -->
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Address (Line 2 &amp; PIN code)</label>
+                                <input type="text" id="fullRegAddress2" name="address2" class="cc-input-control" placeholder="City, State, PIN code" />
+                            </div>
+
+                            <!-- Contact Numbers -->
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Candidate’s Contact No. *</label>
+                                <input type="tel" id="fullRegPhone" name="phone" class="cc-input-control" placeholder="+91 98765 43210" required />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Guardian’s Contact No. *</label>
+                                <input type="tel" id="fullRegGuardianPhone" name="guardianPhone" class="cc-input-control" placeholder="+91 98765 43210" required />
+                            </div>
+
+                            <!-- Gender, DOB, Age, Blood Group -->
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Gender</label>
+                                <input type="text" id="fullRegGender" name="gender" class="cc-input-control" placeholder="Male / Female" />
+                            </div>
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Date of Birth</label>
+                                <input type="date" id="fullRegDob" name="dob" class="cc-input-control" />
+                            </div>
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Age</label>
+                                <input type="number" id="fullRegAge" name="age" class="cc-input-control" placeholder="Age in yrs" />
+                            </div>
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Blood Group</label>
+                                <input type="text" id="fullRegBloodGroup" name="bloodGroup" class="cc-input-control" placeholder="e.g. O+, B+, A+" />
+                            </div>
+
+                            <!-- Profession & Email -->
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Profession / Student</label>
+                                <input type="text" id="fullRegProfession" name="profession" class="cc-input-control" placeholder="e.g. Student, Service, Business" />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Email Address *</label>
+                                <input type="email" id="fullRegEmail" name="email" class="cc-input-control" placeholder="candidate@example.com" required />
+                            </div>
+
+                            <!-- Mother Tongue, Food Habit, Weight -->
+                            <div class="cc-col-4 cc-field-group">
+                                <label class="cc-field-label">Mother Tongue</label>
+                                <input type="text" id="fullRegLanguage" name="motherTongue" class="cc-input-control" placeholder="Bengali, English, Hindi..." />
+                            </div>
+                            <div class="cc-col-4 cc-field-group">
+                                <label class="cc-field-label">Food Habit</label>
+                                <div class="cc-toggle-pills">
+                                    <div class="cc-toggle-pill active" onclick="setFoodHabit(this, 'Veg')">Veg</div>
+                                    <div class="cc-toggle-pill" onclick="setFoodHabit(this, 'Non-Veg')">Non-Veg</div>
+                                </div>
+                            </div>
+                            <div class="cc-col-4 cc-field-group">
+                                <label class="cc-field-label">Weight (Kg)</label>
+                                <input type="text" id="fullRegWeight" name="weight" class="cc-input-control" placeholder="e.g. 62 Kg" />
+                            </div>
+
+                            <!-- Height & Preferable Journey Time -->
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Height (Feet)</label>
+                                <input type="number" id="fullRegHeightFt" name="heightFt" class="cc-input-control" placeholder="ft" />
+                            </div>
+                            <div class="cc-col-3 cc-field-group">
+                                <label class="cc-field-label">Height (Inches)</label>
+                                <input type="number" id="fullRegHeightIn" name="heightIn" class="cc-input-control" placeholder="inch" />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Preferable Journey Time</label>
+                                <input type="text" id="fullRegJourneyTime" name="journeyTime" class="cc-input-control" placeholder="Preferred travel schedule / train" />
+                            </div>
+
+                            <!-- Physical Problem -->
+                            <div class="cc-col-12 cc-field-group">
+                                <label class="cc-field-label">Physical Problem (if any)</label>
+                                <input type="text" id="fullRegPhysicalProblem" name="physicalProblem" class="cc-input-control" placeholder="Mention in brief if you have, otherwise enter Not Applicable" />
+                            </div>
+
+                            <!-- Previous Experience -->
+                            <div class="cc-col-12 cc-field-group">
+                                <label class="cc-field-label">Previous Experience in Camping / Rock Climbing / Mountaineering / Trekking</label>
+                                <div class="cc-toggle-pills" style="max-width: 250px;">
+                                    <div class="cc-toggle-pill" onclick="setCampingExp(this, 'Yes')">Yes</div>
+                                    <div class="cc-toggle-pill active" onclick="setCampingExp(this, 'No')">No</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: Course Applied For -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-compass"></i> Course Applied For</h3>
+                        <div class="cc-courses-grid">
+                            <div class="cc-course-card" onclick="toggleCourseCheck(this)">
+                                <div class="cc-check-indicator"><i class="fa fa-check"></i></div>
+                                <span class="cc-course-title">Adventure Camping</span>
+                            </div>
+                            <div class="cc-course-card checked" onclick="toggleCourseCheck(this)">
+                                <div class="cc-check-indicator"><i class="fa fa-check"></i></div>
+                                <span class="cc-course-title">Basic Rock Climbing</span>
+                            </div>
+                            <div class="cc-course-card" onclick="toggleCourseCheck(this)">
+                                <div class="cc-check-indicator"><i class="fa fa-check"></i></div>
+                                <span class="cc-course-title">Trekking for Seniors</span>
+                            </div>
+                            <div class="cc-course-card" onclick="toggleCourseCheck(this)">
+                                <div class="cc-check-indicator"><i class="fa fa-check"></i></div>
+                                <span class="cc-course-title">Practice Rope</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: Registration Confirmation & Fees -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-credit-card"></i> Registration Confirmation &amp; Fees</h3>
+                        <div class="cc-fee-row">
+                            <div class="cc-fee-card highlight">
+                                <div class="cc-fee-label">Total Registration Fee</div>
+                                <div class="cc-fee-value">₹@displayFee</div>
+                            </div>
+                            <div class="cc-fee-card">
+                                <div class="cc-fee-label">Minimum Advance Required</div>
+                                <div class="cc-fee-value">₹2,000/-</div>
+                            </div>
+                            <div class="cc-fee-card">
+                                <div class="cc-fee-label">Balance Payable</div>
+                                <div class="cc-fee-value">₹@balFee.ToString("N0")/-</div>
+                            </div>
+                        </div>
+                        <div class="cc-fee-nb">
+                            <i class="fa fa-exclamation-triangle"></i> <strong>NB:</strong> In case of cancellation, advance payment will not be refunded.
+                        </div>
+                    </div>
+
+                    <!-- PANEL 4: Declaration & Strict Discipline -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-file-text-o"></i> Declaration &amp; Discipline Undertaking</h3>
+                        <div class="cc-declaration-box">
+                            "I agree to follow the discipline, rules, and instructions of the organizing authorities. Incommensurate with the inherent risks, hazards, and dangers associated with outdoor activities in which I will engage, I confirm that I am physically and mentally capable of participating in such activity. My participation is voluntary and I will assume responsibility for personal injury, accidents, illness, and damage to or loss of personal property as the result of any incident or accident that case may be. I will not hold the organizers responsible for any injury or accident beyond their control."
+                        </div>
+
+                        <div class="cc-grid" style="margin-bottom: 12px;">
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Date</label>
+                                <input type="text" class="cc-input-control" value="@DateTime.Now.ToString("dd MMMM yyyy")" readonly />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Place</label>
+                                <input type="text" id="fullRegPlace" class="cc-input-control" placeholder="e.g. Kolkata" />
+                            </div>
+                        </div>
+
+                        <!-- Discipline Warning -->
+                        <div class="cc-discipline-callout">
+                            <strong><i class="fa fa-shield"></i> STRICT DISCIPLINE POLICY:</strong>
+                            We are very strict in maintaining discipline. Our Rock climbing course is a serious rock climbing training program. There will be no personal free time. No scope for leisure or amusement. Mobile phones will not be allowed from 5:30 am till 9:30 pm during the course.
+                        </div>
+                    </div>
+
+                    <!-- PANEL 5: Emergency Details -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-heartbeat"></i> In Case of Emergency</h3>
+                        <div class="cc-grid">
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Contact Name *</label>
+                                <input type="text" id="fullRegEmergName" name="emergName" class="cc-input-control" placeholder="Emergency contact person name" required />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Relationship with Participant *</label>
+                                <input type="text" id="fullRegEmergRelation" name="emergRelation" class="cc-input-control" placeholder="Father / Mother / Spouse / Relative" required />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Emergency Contact Number *</label>
+                                <input type="tel" id="fullRegEmergPhone" name="emergPhone" class="cc-input-control" placeholder="+91 98765 43210" required />
+                            </div>
+                            <div class="cc-col-6 cc-field-group">
+                                <label class="cc-field-label">Emergency Contact Address</label>
+                                <input type="text" id="fullRegEmergAddress" name="emergAddress" class="cc-input-control" placeholder="Residential address of emergency contact" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 6: Important Required Gear List -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-list-check"></i> Important Required Items Checklist</h3>
+                        <p class="cc-sub-desc" style="color: #bbb; margin-bottom: 10px;">Please bring all of the following gear and personal accessories along with you:</p>
+                        
+                        <div class="cc-gear-grid">
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> One Rucksack / Bag</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> One Knapsack / Day-bag</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Polythene sheet (2.5m) (for Camping)</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Foam mattress</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Sleeping bag / Single blanket</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> 2 Full sleeve cotton shirts / T-shirts</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> 2 Cotton trousers / Track Pants</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Extra Undergarments</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> 1 Full sleeve sweater</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Windproof jacket / Cheater</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Woollen cap</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> 3 Pairs of cotton socks</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Walking/Running shoes &amp; Slippers</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Rice plate / Mess tin</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Spoon, Plastic Mug / Cup, Water bottle</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Toothpaste, brush, Soap &amp; Cold cream</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Torch (with extra cells)</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Exercise book / Diary &amp; Pen</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Basic personal medicines</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Safety pin, Needle and thread</div>
+                            <div class="cc-gear-pill"><i class="fa fa-check"></i> Mosquito repellent cream</div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 7: Joining Details & Schedule -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-calendar-check-o"></i> Joining &amp; Reporting Details</h3>
+                        <div class="cc-schedule-details">
+                            <p style="margin-bottom: 8px;">
+                                Participants are requested to report to Club officials in front of the Enquiry booth at <b>Howrah Station (New Complex)</b> &mdash; Contact Person: <b>Tanmay (9903416262) / Santosh (8337018081) / Prabir (9831002109)</b> on <b class="cc-schedule-highlight">@reportingDateText at 10.00 PM</b> along with their luggage.
+                            </p>
+                            <p style="margin-bottom: 8px;">
+                                <b>Note:</b> No dinner will be provided on <b class="cc-schedule-highlight">@reportingDateText (night)</b> by the Club.
+                            </p>
+                            <p style="margin: 0;">
+                                <b>Date of return:</b> At Howrah Station on <b class="cc-schedule-highlight">@returnDateText at approx. 4:30 AM</b>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- PANEL 8: Payment Details -->
+                    <div class="cc-form-panel">
+                        <h3 class="cc-panel-title"><i class="fa fa-qrcode"></i> Payment Options (UPI / Bank Transfer)</h3>
+                        <div class="cc-payment-container">
+                            
+                            <!-- UPI Box -->
+                            <div class="cc-upi-card">
+                                <div>
+                                    <div class="cc-upi-title"><i class="fa fa-mobile"></i> Online UPI Payment</div>
+                                    <div class="cc-upi-info">
+                                        Account Name: <b>Dipta Bhandary</b><br>
+                                        Mobile: <b>8420480075</b><br>
+                                        UPI ID: <b class="cc-schedule-highlight">bhandarydipta-2@okicici</b>
+                                    </div>
+                                </div>
+                                <div class="cc-qr-wrap">
+                                    <img src="~/Assets/images/dipta_qr.jpg" alt="Dipta UPI QR" class="cc-qr-img" onclick="openQrModal()" title="Click to enlarge QR Code" />
+                                    <span class="cc-qr-label"><i class="fa fa-search-plus"></i> Tap to Enlarge</span>
+                                </div>
+                            </div>
+
+                            <!-- Bank Transfer Box -->
+                            <div class="cc-bank-card">
+                                <div class="cc-bank-title"><i class="fa fa-university"></i> Bank Transfer Details</div>
+                                <div class="cc-bank-info">
+                                    A/C Name: <b>CLIMBERS CIRCLE</b><br>
+                                    Bank: <b>PUNJAB NATIONAL BANK</b><br>
+                                    Branch: <b>NEW MARKET BRANCH</b><br>
+                                    A/C Number: <b>0093000109098326</b><br>
+                                    IFSC Code: <b>PUNB0009300</b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="cc-form-actions">
+                        <button type="button" onclick="prepareAndPrintRegistration()" class="cc-btn-print">
+                            <i class="fa fa-print"></i> Print / Save as PDF
+                        </button>
+                        <button type="submit" class="cc-btn-submit-full" id="btnSubmitFullRegistration">
+                            <i class="fa fa-check-circle"></i> Submit Application
+                        </button>
+                    </div>
+                </form>
             </section>
+
+            <!-- ===================================================================
+                 EXACT ORIGINAL 2-PAGE A4 DOCUMENT (RENDERED ONLY ON PRINT / PDF)
+                 =================================================================== -->
+            <div class="cc-print-document" id="printableCourseFormDoc">
+                
+                <!-- PAGE 1: Course Registration Form (EXACT MATCH TO ORIGINAL DESIGN) -->
+                <div class="page-container">
+                    
+                    <!-- Header -->
+                    <div class="form-header">
+                        <div class="header-logo-wrap">
+                            <img src="~/Assets/images/logo.jpeg" onerror="this.src='/Assets/images/CCLogo1.png';" alt="Logo" />
+                        </div>
+                        <div class="header-details-wrap">
+                            <h1 class="org-name">Climbers' Circle</h1>
+                            <p class="org-address">1923 Chattra Samity, Raja Subodh Mullick Square, Kolkata-700013</p>
+                            <p class="org-contact">support@climberscircle.org &nbsp;I&nbsp; www.climberscircle.org</p>
+                            <h2 class="doc-title">Course Registration Form @courseYear</h2>
+                        </div>
+                    </div>
+
+                    <p class="minor-notice">
+                        Parents or guardian of minors must fill up and sign the form. (Please return to us as soon as possible.)
+                    </p>
+
+                    <!-- Form Rows -->
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 190px;">Name <span class="sub-desc">(in BLOCK Letters)</span></span>
+                        <input type="text" id="pName" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 275px;">Father’s/ Mother’s Name <span class="sub-desc">(in BLOCK Letters)</span></span>
+                        <input type="text" id="pParent" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 70px;">Address</span>
+                        <input type="text" id="pAddress1" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 70px;"></span>
+                        <input type="text" id="pAddress2" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Candidate’s Contact No.</span>
+                        <input type="text" id="pPhone" class="form-box" style="width: 180px;" />
+                        <span class="field-label" style="margin-left: 12px;">Guardian’s Contact No.</span>
+                        <input type="text" id="pGuardianPhone" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Gender</span>
+                        <input type="text" id="pGender" class="form-box" style="width: 60px;" />
+                        <span class="field-label" style="margin-left: 10px;">Date of Birth</span>
+                        <input type="text" id="pDob" class="form-box text-center" placeholder="mm/dd/yyyy" style="width: 125px;" />
+                        <span class="field-label" style="margin-left: 10px;">Age</span>
+                        <input type="text" id="pAge" class="form-box" style="width: 65px;" />
+                        <span class="field-label" style="margin-left: 10px;">Blood Group</span>
+                        <input type="text" id="pBlood" class="form-box flex-fill" style="max-width: 95px;" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Profession</span>
+                        <input type="text" id="pProfession" class="form-box" style="width: 240px;" />
+                        <span class="field-label" style="margin-left: 15px;">Email</span>
+                        <input type="text" id="pEmail" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Mother Tongue</span>
+                        <input type="text" id="pLanguage" class="form-box" style="width: 95px;" />
+                        <span class="field-label" style="margin-left: 15px;">Food Habit</span>
+                        <div class="toggle-box p-food-toggle selected" data-val="Veg" style="width: 65px;">Veg</div>
+                        <div class="toggle-box p-food-toggle" data-val="Non-Veg" style="width: 75px; margin-left: 6px;">Non-Veg</div>
+                        <span class="field-label" style="margin-left: 15px;">Weight</span>
+                        <input type="text" id="pWeight" class="form-box" style="width: 110px;" />
+                        <span class="field-label" style="margin-left: 4px;">Kg.</span>
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Height</span>
+                        <input type="text" id="pHeightFt" class="form-box" style="width: 75px;" />
+                        <span class="field-label" style="margin-left: 4px; margin-right: 8px;">ft</span>
+                        <input type="text" id="pHeightIn" class="form-box" style="width: 75px;" />
+                        <span class="field-label" style="margin-left: 4px;">inch</span>
+                        <span class="field-label" style="margin-left: 20px;">Preferable journey time</span>
+                        <input type="text" id="pJourney" class="form-box flex-fill" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label">Physical Problem (if any)</span>
+                        <input type="text" id="pProblem" class="form-box flex-fill text-center" placeholder="Mention in brief if you have otherwise filled Not applicable" style="font-weight: bold; color: #555555; font-size: 13px;" />
+                    </div>
+
+                    <div class="form-row">
+                        <span class="field-label flex-fill">Previous Experience in Camping/ Rock Climbing/ Mountaineering/ Trekking</span>
+                        <div class="toggle-box p-exp-toggle" data-val="Yes" style="width: 48px;">Yes</div>
+                        <div class="toggle-box p-exp-toggle selected" data-val="No" style="width: 48px; margin-left: 6px;">No</div>
+                    </div>
+
+                    <div class="form-row" style="align-items: flex-start; margin-top: 6px;">
+                        <span class="field-label" style="min-width: 145px; padding-top: 4px;">Course applied For</span>
+                        <div class="course-grid">
+                            <div class="course-option p-course-opt" data-course="Adventure Camping">
+                                <div class="course-check-box"></div>
+                                <span>Adventure Camping</span>
+                            </div>
+                            <div class="course-option p-course-opt" data-course="Basic Rock Climbing">
+                                <div class="course-check-box checked"></div>
+                                <span>Basic Rock Climbing</span>
+                            </div>
+                            <div class="course-option p-course-opt" data-course="Trekking for Seniors">
+                                <div class="course-check-box"></div>
+                                <span>Trekking for Seniors</span>
+                            </div>
+                            <div class="course-option p-course-opt" data-course="Practice Rope">
+                                <div class="course-check-box"></div>
+                                <span>Practice Rope</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Participant / Guardian Signature -->
+                    <div class="sig-container" style="margin-top: 14px; margin-bottom: 8px;">
+                        <div class="sig-line"></div>
+                        <div class="sig-desc">
+                            Signature of Participant and or Guardian<br>in case of a minor
+                        </div>
+                    </div>
+
+                    <!-- Blue Rule -->
+                    <hr class="blue-rule" />
+
+                    <!-- Registration Confirmation -->
+                    <div class="reg-confirmation-title">REGISTRATION CONFIRMATION</div>
+                    <div class="fees-label">Registration Fees | Rs. @displayFee</div>
+
+                    <div class="form-row" style="margin-top: 6px;">
+                        <span class="field-label">Minimum Advance Received</span>
+                        <input type="text" class="form-box text-center font-bold" value="2000/-" style="width: 200px; font-size: 15px;" readonly />
+                        <span class="field-label" style="margin-left: 25px;">Balance Received</span>
+                        <input type="text" class="form-box" style="width: 110px;" value="@balFee.ToString("N0")/-" readonly />
+                    </div>
+
+                    <div class="nb-notice">NB: In case of cancellation advance payment will not be refunded.</div>
+
+                    <!-- Club Official Signature -->
+                    <div class="sig-container" style="margin-top: 26px;">
+                        <div class="sig-line" style="width: 260px;"></div>
+                        <div class="sig-desc">Signature of Club Official</div>
+                    </div>
+
+                </div>
+
+                <!-- PAGE 2: Declaration & Joining Details (Clean Document Styling) -->
+                <div class="page-container page-break">
+                    
+                    <div class="declaration-title">DECLARATION FORM</div>
+
+                    <p class="declaration-text">
+                        I agree to follow the discipline, rules, and instructions of the organizing authorities. Incommensurate with the inherent risks, hazards, and dangers associated with outdoor activities in which I will engage, I confirm that I am physically and mentally capable of participating in such activity. My participation is voluntary and I will assume responsibility for personal injury, accidents, illness, and damage to or loss of personal property as the result of any incident or accident that case may be. I will not hold the organizers responsible for any injury or accident beyond their control.
+                    </p>
+
+                    <div class="form-row" style="margin: 14px 0; font-style: italic;">
+                        <span>I,</span>
+                        <div class="dotted-line" style="font-weight: bold; text-align: center; color: #000; font-style: normal;" id="pDeclName"></div>
+                        <span>(full name in capital letter)</span>
+                    </div>
+                    <p style="font-style: italic; margin-top: 6px;">hereby declare that I have read the above form carefully and understood the same.</p>
+
+                    <div class="sig-container" style="margin-top: 20px;">
+                        <div class="sig-line" style="width: 240px;"></div>
+                        <div class="sig-desc" style="font-style: italic;">Participant’s Signature</div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 15px; width: 45%; font-style: italic;">
+                        <span>Date:</span>
+                        <div class="dotted-line" style="padding-left: 10px;">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="form-row" style="margin-top: 8px; width: 45%; font-style: italic;">
+                        <span>Place:</span>
+                        <div class="dotted-line" style="padding-left: 10px;" id="pPlace"></div>
+                    </div>
+
+                    <div style="font-size: 15px; font-weight: bold; line-height: 1.5; margin-top: 20px; border-left: 3px solid #000; padding-left: 10px;">
+                        NB: We are very strict in maintaining discipline. Our Rock climbing course is a serious rock climbing training program. There will be no personal free time. No scope for leisure or amusement. Mobile phones will not be allowed from 5:30 am till 9:30 pm during the course.
+                    </div>
+
+                    <!-- Emergency Details -->
+                    <h3 style="font-size: 18px; margin: 24px 0 10px 0; text-decoration: underline;">In Case of Emergency</h3>
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 140px;">Contact Name:</span>
+                        <div class="dotted-line" id="pEmergName" style="padding-left: 10px; font-weight: bold;"></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 220px;">Relationship with participant:</span>
+                        <div class="dotted-line" id="pEmergRel" style="padding-left: 10px;"></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 140px;">Contact Number:</span>
+                        <div class="dotted-line" id="pEmergPhone" style="padding-left: 10px; font-weight: bold;"></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 140px;">Contact Address:</span>
+                        <div class="dotted-line" id="pEmergAddr" style="padding-left: 10px;"></div>
+                    </div>
+                    <div class="form-row">
+                        <span class="field-label" style="min-width: 140px;"></span>
+                        <div class="dotted-line"></div>
+                    </div>
+
+                    <!-- Important Details -->
+                    <h3 style="font-size: 18px; margin: 24px 0 6px 0; text-decoration: underline;">Important Details</h3>
+                    <p style="font-size: 14px; margin-bottom: 6px;">List of items that you need to bring along with you:</p>
+
+                    <ul class="items-list">
+                        <li>One Rucksack / Bag</li>
+                        <li>One Knapsack / Day-bag</li>
+                        <li>Polythene sheet (2.5 m. long) <i>(only for Adventure Camping)</i></li>
+                        <li>Foam mattress</li>
+                        <li>Sleeping bag or single blanket</li>
+                        <li>Two cotton shirts or ‘T’ shirts (Full sleeve)</li>
+                        <li>Two cotton trousers / Track Pants</li>
+                        <li>Undergarments</li>
+                        <li>One full sleeve sweater</li>
+                        <li>Windproof jacket / cheater</li>
+                        <li>Woollen cap</li>
+                        <li>Three pairs of cotton socks</li>
+                        <li>Walking / Running shoes &amp; Slippers</li>
+                        <li>One rice plate / mess tin</li>
+                        <li>Spoon, Plastic Mug / Cup, water bottle</li>
+                        <li>Toothpaste, brush, Soap &amp; Cold cream</li>
+                        <li>Torch (with extra cell)</li>
+                        <li>One exercise book or lightweight Diary &amp; Pen</li>
+                        <li>Basic personal medicines</li>
+                        <li>Safety pin, needle and thread</li>
+                        <li>Mosquito repellent cream</li>
+                    </ul>
+
+                    <!-- Joining Details -->
+                    <h3 style="font-size: 18px; margin: 20px 0 8px 0; text-decoration: underline;">Joining Details</h3>
+                    <p style="font-size: 14px; line-height: 1.5; margin: 0 0 6px 0;">
+                        Participants are requested to report to the Club officials in front of the Enquiry booth at <b>Howrah Station (New Complex)</b> &mdash; Contact Person: <b>Tanmay (9903416262) / Santosh (8337018081) / Prabir (9831002109)</b> on <b>@reportingDateText at 10.00 PM</b> along with their luggage.
+                    </p>
+                    <p style="font-size: 14px; line-height: 1.5; margin: 0 0 6px 0;">
+                        <b>Note:</b> No dinner will be provided on <b>@reportingDateText (night)</b> by the Club.
+                    </p>
+                    <p style="font-size: 14px; line-height: 1.5; margin: 0 0 10px 0;">
+                        <b>Date of return:</b> At Howrah Station on <b>@returnDateText at approx. 4:30 AM</b>.
+                    </p>
+
+                    <div class="online-payment-box">
+                        <div>
+                            <div style="font-size: 15px; font-weight: bold; color: #006064; margin-bottom: 4px;">
+                                Online Payment (GPay / PhonePe / Any UPI)
+                            </div>
+                            <div style="font-size: 14.5px; font-weight: 600; color: #111;">
+                                Name: Dipta Bhandary
+                            </div>
+                            <div style="font-size: 13.5px; color: #333; margin-top: 2px;">
+                                Number: <b>8420480075</b>
+                            </div>
+                            <div style="font-size: 13px; color: #444; margin-top: 2px;">
+                                UPI ID: <b>bhandarydipta-2@okicici</b>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <img src="~/Assets/images/dipta_qr.jpg" alt="Dipta QR Code" style="width: 145px; height: 145px; object-fit: contain; border-radius: 6px; border: 1.5px solid #006064; background: #ffffff; padding: 4px; display: block;" />
+                            <span style="font-size: 11px; color: #111; font-weight: bold; display: block; margin-top: 4px;">Scan &amp; Pay</span>
+                        </div>
+                    </div>
+                    <div class="info-highlight yellow">
+                        <b>Bank Transfer:</b> CLIMBERS CIRCLE &bull; PUNJAB NATIONAL BANK &bull; NEW MARKET BRANCH &bull; IFSC: <b>PUNB0009300</b> &bull; A/C NO: <b>0093000109098326</b>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal for Enlarged QR Code -->
+            <div id="qrModal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.85); align-items:center; justify-content:center;" onclick="this.style.display='none'">
+                <div style="background:#181818; border:2px solid #b08b45; border-radius:12px; padding:24px 28px; text-align:center; max-width:90%; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.8);" onclick="event.stopPropagation()">
+                    <button type="button" onclick="document.getElementById('qrModal').style.display='none'" style="position:absolute; top:8px; right:12px; background:none; border:none; color:#b08b45; font-size:26px; cursor:pointer; line-height:1;">&times;</button>
+                    <h4 style="color:#b08b45; margin:0 0 14px 0; font-size:18px; font-weight:700; text-transform:uppercase; letter-spacing:1px;"><i class="fa fa-qrcode"></i> Scan to Pay (UPI)</h4>
+                    <img src="~/Assets/images/dipta_qr.jpg" alt="Dipta UPI QR" style="max-width:320px; width:100%; height:auto; background:#ffffff; padding:10px; border-radius:8px; display:block; margin:0 auto; border:2px solid #b08b45;" />
+                    <p style="color:#ffffff; margin:14px 0 4px 0; font-size:16px; font-weight:700;">Dipta Bhandary &bull; 8420480075</p>
+                    <p style="color:#b08b45; margin:0; font-size:14px; font-weight:600;">UPI ID: bhandarydipta-2@okicici</p>
+                </div>
+            </div>
+
+            <!-- Script for full embedded registration form interactivity and syncing to print document -->
+            <script>
+                function openQrModal() {
+                    const modal = document.getElementById('qrModal');
+                    if (modal) modal.style.display = 'flex';
+                }
+
+                function setFoodHabit(el, val) {
+                    const parent = el.parentElement;
+                    parent.querySelectorAll('.cc-toggle-pill').forEach(p => p.classList.remove('active'));
+                    el.classList.add('active');
+                    document.getElementById('foodHabitVal').value = val;
+                }
+
+                function setCampingExp(el, val) {
+                    const parent = el.parentElement;
+                    parent.querySelectorAll('.cc-toggle-pill').forEach(p => p.classList.remove('active'));
+                    el.classList.add('active');
+                    document.getElementById('campingExpVal').value = val;
+                }
+
+                function toggleCourseCheck(el) {
+                    el.classList.toggle('checked');
+                }
+
+                function prepareAndPrintRegistration() {
+                    // Sync values from on-screen dark/gold form to the exact original A4 print document
+                    const getVal = id => (document.getElementById(id) ? document.getElementById(id).value.trim() : '');
+                    
+                    if (document.getElementById("pName")) document.getElementById("pName").value = getVal("fullRegName");
+                    if (document.getElementById("pParent")) document.getElementById("pParent").value = getVal("fullRegParentName");
+                    if (document.getElementById("pAddress1")) document.getElementById("pAddress1").value = getVal("fullRegAddress1");
+                    if (document.getElementById("pAddress2")) document.getElementById("pAddress2").value = getVal("fullRegAddress2");
+                    if (document.getElementById("pPhone")) document.getElementById("pPhone").value = getVal("fullRegPhone");
+                    if (document.getElementById("pGuardianPhone")) document.getElementById("pGuardianPhone").value = getVal("fullRegGuardianPhone");
+                    if (document.getElementById("pGender")) document.getElementById("pGender").value = getVal("fullRegGender");
+                    if (document.getElementById("pDob")) document.getElementById("pDob").value = getVal("fullRegDob");
+                    if (document.getElementById("pAge")) document.getElementById("pAge").value = getVal("fullRegAge");
+                    if (document.getElementById("pBlood")) document.getElementById("pBlood").value = getVal("fullRegBloodGroup");
+                    if (document.getElementById("pProfession")) document.getElementById("pProfession").value = getVal("fullRegProfession");
+                    if (document.getElementById("pEmail")) document.getElementById("pEmail").value = getVal("fullRegEmail");
+                    if (document.getElementById("pLanguage")) document.getElementById("pLanguage").value = getVal("fullRegLanguage");
+                    if (document.getElementById("pWeight")) document.getElementById("pWeight").value = getVal("fullRegWeight");
+                    if (document.getElementById("pHeightFt")) document.getElementById("pHeightFt").value = getVal("fullRegHeightFt");
+                    if (document.getElementById("pHeightIn")) document.getElementById("pHeightIn").value = getVal("fullRegHeightIn");
+                    if (document.getElementById("pJourney")) document.getElementById("pJourney").value = getVal("fullRegJourneyTime");
+                    if (document.getElementById("pProblem")) document.getElementById("pProblem").value = getVal("fullRegPhysicalProblem");
+                    
+                    if (document.getElementById("pPlace")) document.getElementById("pPlace").textContent = getVal("fullRegPlace") || "Kolkata";
+                    if (document.getElementById("pDeclName")) document.getElementById("pDeclName").textContent = getVal("fullRegName");
+
+                    // Food habit sync
+                    const foodVal = document.getElementById("foodHabitVal") ? document.getElementById("foodHabitVal").value : 'Veg';
+                    document.querySelectorAll('.p-food-toggle').forEach(el => {
+                        el.classList.toggle('selected', el.getAttribute('data-val') === foodVal);
+                    });
+
+                    // Camping exp sync
+                    const expVal = document.getElementById("campingExpVal") ? document.getElementById("campingExpVal").value : 'No';
+                    document.querySelectorAll('.p-exp-toggle').forEach(el => {
+                        el.classList.toggle('selected', el.getAttribute('data-val') === expVal);
+                    });
+
+                    // Courses sync
+                    const selectedTitles = Array.from(document.querySelectorAll('.cc-course-card.checked .cc-course-title')).map(t => t.textContent.trim());
+                    document.querySelectorAll('.p-course-opt').forEach(el => {
+                        const cName = el.getAttribute('data-course');
+                        const box = el.querySelector('.course-check-box');
+                        if (box) {
+                            box.classList.toggle('checked', selectedTitles.includes(cName));
+                        }
+                    });
+
+                    // Emergency sync
+                    if (document.getElementById("pEmergName")) document.getElementById("pEmergName").textContent = getVal("fullRegEmergName");
+                    if (document.getElementById("pEmergRel")) document.getElementById("pEmergRel").textContent = getVal("fullRegEmergRelation");
+                    if (document.getElementById("pEmergPhone")) document.getElementById("pEmergPhone").textContent = getVal("fullRegEmergPhone");
+                    if (document.getElementById("pEmergAddr")) document.getElementById("pEmergAddr").textContent = getVal("fullRegEmergAddress");
+
+                    window.print();
+                }
+
+                document.addEventListener("DOMContentLoaded", function () {
+                    const form = document.getElementById("fullCourseRegistrationForm");
+                    if (form) {
+                        form.addEventListener("submit", function (e) {
+                            e.preventDefault();
+
+                            const name = document.getElementById("fullRegName").value.trim();
+                            const email = document.getElementById("fullRegEmail").value.trim();
+                            const phone = document.getElementById("fullRegPhone").value.trim();
+                            const parentName = document.getElementById("fullRegParentName").value.trim();
+                            const guardianPhone = document.getElementById("fullRegGuardianPhone").value.trim();
+                            const address1 = document.getElementById("fullRegAddress1").value.trim();
+                            const address2 = document.getElementById("fullRegAddress2").value.trim();
+                            const emergName = document.getElementById("fullRegEmergName").value.trim();
+                            const emergPhone = document.getElementById("fullRegEmergPhone").value.trim();
+                            const foodHabit = document.getElementById("foodHabitVal").value;
+                            const campingExp = document.getElementById("campingExpVal").value;
+                            const activityId = parseInt(document.getElementById("fullRegActivityId").value) || 0;
+
+                            // Selected courses
+                            const selectedCourses = [];
+                            document.querySelectorAll('.cc-course-card.checked').forEach(c => {
+                                const title = c.querySelector('.cc-course-title');
+                                if (title) selectedCourses.push(title.textContent.trim());
+                            });
+
+                            const notes = "Parent: " + parentName + " (" + guardianPhone + ") | Address: " + address1 + " " + address2 +
+                                          " | Courses: " + selectedCourses.join(", ") + " | Food: " + foodHabit + " | Exp: " + campingExp +
+                                          " | Emergency: " + emergName + " (" + emergPhone + ")";
+
+                            const submitBtn = document.getElementById("btnSubmitFullRegistration");
+                            const originalText = submitBtn.innerHTML;
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = "<i class='fa fa-spinner fa-spin'></i> Submitting...";
+
+                            const dto = {
+                                FullName: name,
+                                Email: email,
+                                PhoneNumber: phone,
+                                ClubActivityId: activityId,
+                                Message: notes
+                            };
+
+                            fetch('/Home/CreateActivityInterest', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(dto)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalText;
+
+                                if (data && data.success === true) {
+                                    if (typeof Swal !== "undefined") {
+                                        Swal.fire({
+                                            title: 'Registration Submitted!',
+                                            html: 'Your registration application has been received.<br><br><b>Next step:</b> Complete your advance payment using UPI QR or Bank Transfer, and print/save your registration form.',
+                                            icon: 'success',
+                                            confirmButtonColor: '#b08b45'
+                                        });
+                                    } else {
+                                        alert('Registration application submitted successfully! Please proceed with payment.');
+                                    }
+                                } else {
+                                    const errMsg = data && data.errorMassage && data.errorMassage.length > 0 ? data.errorMassage[0] : 'Registration submitted! Please save/print your form and complete payment.';
+                                    if (typeof Swal !== "undefined") {
+                                        Swal.fire({
+                                            title: 'Application Received',
+                                            text: errMsg,
+                                            icon: 'info',
+                                            confirmButtonColor: '#b08b45'
+                                        });
+                                    } else {
+                                        alert(errMsg);
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = originalText;
+                                if (typeof Swal !== "undefined") {
+                                    Swal.fire({
+                                        title: 'Application Saved',
+                                        text: 'Your registration has been processed. Please print your form and complete payment.',
+                                        icon: 'success',
+                                        confirmButtonColor: '#b08b45'
+                                    });
+                                } else {
+                                    alert('Registration completed! Please print and pay.');
+                                }
+                            });
+                        });
+                    }
+                });
+            </script>
         }
         else
         {

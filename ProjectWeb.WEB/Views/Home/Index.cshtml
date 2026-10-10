@@ -52,10 +52,99 @@
 	<span class="sr-only">Previous</span>
 	</a>
 	<a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-bs-slide="next">
-	<span class="carousel-control-next-icon" aria-hidden="true"></span>
-	<span class="sr-only">Next</span>
+		<span class="carousel-control-next-icon" aria-hidden="true"></span>
+		<span class="sr-only">Next</span>
 	</a>
 </div>
+
+@{
+	var courseItem = Model.ClubActivityDtos?.FirstOrDefault(x => 
+		x.IsActive == true && (
+			(!string.IsNullOrEmpty(x.Title) && (
+				x.Title.Contains("Course", StringComparison.OrdinalIgnoreCase) || 
+				x.Title.Contains("Training", StringComparison.OrdinalIgnoreCase)
+			)) || x.ActivityId == 12
+		)
+	) ?? Model.ClubActivityDtos?.FirstOrDefault(x => x.ActivityId == 12)
+	  ?? Model.ClubActivityDtos?.FirstOrDefault();
+
+	var dynamicCourseUrl = courseItem != null 
+		? Url.Action("ActivityInfoDetails", "Home", new { id = courseItem.ActivityId })
+		: Url.Action("ActivityInfoDetails", "Home", new { id = 12 });
+}
+
+<!-- ====================== QUICK ACTION STRIP (EXPEDITION | COURSES | EVENTS | E-MAG) ====================== -->
+<section class="cc-quick-strip-section">
+	<div class="cc-quick-strip-container">
+		
+		<!-- Box 1: EXPEDITION -->
+		<div class="cc-quick-col">
+			<h3 class="cc-quick-title">EXPEDITION:</h3>
+			<p class="cc-quick-desc">
+				Traditionally, one exquisite aspect of mountaineering had been the absence of definite rules.
+			</p>
+			<div class="cc-quick-btn-wrap">
+				<a href="@Url.Action("Index", "GalleryContent", new { filter = "Expedition" })" class="cc-quick-btn">Know more</a>
+			</div>
+		</div>
+
+		<!-- Box 2: COURSES -->
+		<div class="cc-quick-col">
+			<h3 class="cc-quick-title">COURSES:</h3>
+			<p class="cc-quick-desc">
+				Comprehensive rock climbing, basic mountaineering, and outdoor adventure training programs.
+			</p>
+			<div class="cc-quick-btn-wrap">
+				<a href="@dynamicCourseUrl" class="cc-quick-btn">Know more</a>
+			</div>
+		</div>
+
+		<!-- Box 3: UPCOMING EVENTS -->
+		<div class="cc-quick-col">
+			<h3 class="cc-quick-title">UPCOMING EVENTS:</h3>
+			<p class="cc-quick-desc">
+				Find what we will do next...
+			</p>
+			<div class="cc-quick-btn-wrap">
+				<a href="#activity" class="cc-quick-btn">Know more</a>
+			</div>
+		</div>
+
+		<!-- Box 4: E-MAG & FOLLOW US -->
+		<div class="cc-quick-col cc-quick-col-emag">
+			<div class="cc-emag-header">
+				<h3 class="cc-quick-title"><i class="fa-solid fa-book-open"></i> E-MAG:</h3>
+				<a href="@Url.Action("About", "Home")#about-hills" class="cc-quick-btn">Read More...</a>
+			</div>
+			
+			<div class="cc-quick-divider">
+				<span class="cc-div-line"></span>
+				<span class="cc-div-icon"><i class="fa-solid fa-mountain"></i></span>
+				<span class="cc-div-line"></span>
+			</div>
+
+			<div class="cc-follow-wrap">
+				<h4 class="cc-follow-title">FOLLOW US:</h4>
+				<div class="cc-social-icons">
+					<a href="https://www.facebook.com/groups/1795660763979082" target="_blank" rel="noopener noreferrer" class="cc-social-btn" title="Facebook">
+						<i class="fa-brands fa-facebook-f"></i>
+					</a>
+					<a href="https://www.youtube.com/@@ClimbersCircle" target="_blank" rel="noopener noreferrer" class="cc-social-btn" title="YouTube">
+						<i class="fa-brands fa-youtube"></i>
+					</a>
+					<a href=" https://chat.whatsapp.com/ELLBmfKn1As278IVlsP6i0?s=sh&p=a&mlu=4&ilr=4" target="_blank" rel="noopener noreferrer" class="cc-social-btn" title="WhatsApp">
+						<i class="fa-brands fa-whatsapp"></i>
+					</a>
+					<a href="https://maps.google.com/?q=1923+Chattra+Samity,+Raja+Subodh+Mullick+Square,+Kolkata-700013" target="_blank" rel="noopener noreferrer" class="cc-social-btn" title="Location">
+						<i class="fa-solid fa-location-dot"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</section>
+
 <!-- ======================about us======================== -->
 <div class="container my-24 mx-auto md:px-6 About-1" id="about" style="background-image: url('https://localhost:7013/Assets/images/pexels-cottonbro-9665176.jpg');
     background-repeat: no-repeat; background-size: cover; background-position: bottom center; max-width: 100%; height: auto; color: #fff;
