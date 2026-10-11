@@ -1146,4 +1146,20 @@
         min-height: auto !important;
         box-shadow: none !important;
     }
+
+    .cc-print-document .page-container.page-break,
+    .cc-print-document .page-break {
+        page-break-before: always !important;
+        break-before: page !important;
+    }
+
+    .cc-print-document .items-list {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .cc-print-document .online-payment-box {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
 }

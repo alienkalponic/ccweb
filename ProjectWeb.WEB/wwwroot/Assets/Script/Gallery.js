@@ -98,6 +98,16 @@ $(document).ready(function () {
                 title: "High-Altitude Treks",
                 category: "TREKKING & TRAILS",
                 subtitle: "Breathtaking Himalayan trail journeys, mountain passes, and alpine scenery."
+            },
+            "8": {
+                title: "GAJABURU SOUTH FACE",
+                category: "LEAD CLIMB",
+                subtitle: "Traditional multi-pitch route ascent and technical rock climb documentation."
+            },
+            "32": {
+                title: "GAJABURU SOUTH FACE",
+                category: "LEAD CLIMB",
+                subtitle: "Traditional multi-pitch route ascent and technical rock climb documentation."
             }
         };
 
@@ -154,16 +164,50 @@ $(document).ready(function () {
             let $datset = $("#detailsimageBind");
             $datset.empty();
 
-            const currentMeta = albumMeta[id] || {
-                title: "Expedition Gallery",
-                category: "ALBUM ARCHIVE",
-                subtitle: "Captured moments from our thrilling adventures"
+            // Retrieve dynamic album metadata from DOM elements or URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const serverTitle = ($("#serverAlbumTitle").val() || urlParams.get("title") || "").trim();
+            const serverCategory = ($("#serverCategory").val() || urlParams.get("category") || "").trim();
+            const rawGalleryItemsId = $("#galleryItemsId").val() || urlParams.get("galleryItemsId");
+            let galleryItemIdNum = parseInt(rawGalleryItemsId || "0", 10);
+
+            if (id === "32" || id === "8") {
+                if (!galleryItemIdNum || galleryItemIdNum <= 0) {
+                    galleryItemIdNum = 32;
+                }
+            }
+
+            const fallbackMeta = albumMeta[id] || {
+                title: id === "32" || id === "8" ? "GAJABURU SOUTH FACE" : "Expedition Gallery",
+                category: id === "32" || id === "8" ? "LEAD CLIMB" : "ALBUM ARCHIVE",
+                subtitle: id === "32" || id === "8" 
+                    ? "Traditional multi-pitch route ascent and technical rock climb documentation." 
+                    : "Captured moments from our thrilling adventures"
             };
 
+            const currentTitle = serverTitle !== "" && serverTitle !== "Adventure Gallery" 
+                ? serverTitle 
+                : ((id === "32" || id === "8") ? "GAJABURU SOUTH FACE" : fallbackMeta.title);
+            const currentCategory = serverCategory !== "" 
+                ? serverCategory 
+                : fallbackMeta.category;
+            const currentSubtitle = (currentTitle.toUpperCase().includes("GAJABURU") || id === "32" || id === "8")
+                ? "Traditional multi-pitch route ascent and technical rock climb documentation."
+                : (serverCategory !== "" 
+                    ? `Official ${serverCategory} photographic documentation & expedition field captures` 
+                    : fallbackMeta.subtitle);
+
             // Set dynamic header titles
-            $("#dynamicAlbumTitle").text(currentMeta.title);
-            $("#dynamicAlbumSubtitle").text(currentMeta.subtitle);
-            $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentMeta.category);
+            $("#dynamicAlbumTitle").text(currentTitle);
+            $("#dynamicAlbumSubtitle").text(currentSubtitle);
+            $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentCategory.toUpperCase());
+
+            // Update Report button
+            if (galleryItemIdNum > 0) {
+                $("#btnAlbumReport").attr("href", "/Home/Gallery/" + galleryItemIdNum).show();
+            } else {
+                $("#btnAlbumReport").hide();
+            }
 
             const apiUrl = _BaseURL + "/GalleryContent/GetGalleryDetails?id=" + id;
             toastr.info("Fetching banner details...", "Please wait");
@@ -186,12 +230,12 @@ $(document).ready(function () {
                                 var src = _apiUrl + (val.ImagePath1 || val.imagePath1 || val.ImagePath || val.imagePath || "");
                                 let htmlCard = `
                                     <div class="gallery-item" data-index="${index}" role="button" tabindex="0">
-                                        <img src="${src}" alt="${currentMeta.title} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
+                                        <img src="${src}" alt="${currentTitle} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
                                         <div class="gallery-item-overlay">
                                             <div class="gallery-zoom-icon">
                                                 <i class="fa-solid fa-expand"></i>
                                             </div>
-                                            <span class="gallery-item-caption">${currentMeta.title} #${photoNumber}</span>
+                                            <span class="gallery-item-caption">${currentTitle} #${photoNumber}</span>
                                         </div>
                                     </div>
                                 `;

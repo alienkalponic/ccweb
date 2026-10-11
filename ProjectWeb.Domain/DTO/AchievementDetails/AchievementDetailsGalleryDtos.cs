@@ -14,6 +14,7 @@ namespace ProjectWeb.Domain.DTO.AchievementDetails
 
         // raw JSON string returned by API for child items
         public string? AchievementDetailsGalleryDetails { get; set; }
+        public string? Report { get; set; }
 
         // parsed, strongly-typed child list to use in views
         public List<AchievementDetailsGalleryDetailDto>? AchievementDetailsGalleryDetailsList { get; set; }

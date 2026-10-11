@@ -1757,14 +1757,29 @@ $(document).ready(function () {
             });
         }
 
+        function getGallerySubTitle() {
+            if ($("#ddlSection").length > 0) {
+                const val = ($("#ddlSection").val() || "").trim();
+                if (!val) return "";
+                if (!isNaN(val) && isFinite(val)) {
+                    return ($("#ddlSection option:selected").text() || "").trim();
+                }
+                return val;
+            }
+            if ($("#txtGallerySubTitle").length > 0) {
+                return ($("#txtGallerySubTitle").val() || "").trim();
+            }
+            return "";
+        }
+
         function createGallery($btn) {
             if (!validateGalleryForm(false)) return;
 
             const formData = new FormData();
-            formData.append("CreateGalleryDto.Title", $("#txtGalleryTitle").val().trim());
-            formData.append("CreateGalleryDto.SubTitle", $("#txtGallerySubTitle").val().trim());
-            formData.append("CreateGalleryDto.ExpeditionYear", $("#txtExpeditionYear").val().trim());
-            formData.append("CreateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val());
+            formData.append("CreateGalleryDto.Title", ($("#txtGalleryTitle").val() || "").trim());
+            formData.append("CreateGalleryDto.SubTitle", getGallerySubTitle());
+            formData.append("CreateGalleryDto.ExpeditionYear", ($("#txtExpeditionYear").val() || "").trim());
+            formData.append("CreateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val() || 0);
             formData.append("CreateGalleryDto.IsActive", $("#chkGalleryIsActive").is(":checked"));
 
             if (selectedGalleryFile) {
@@ -1774,7 +1789,8 @@ $(document).ready(function () {
             const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
             if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
 
-            submitGalleryAjax(_BaseURL + "/Admin/CreateGallery", formData, $btn, false);
+            const url = (typeof galleryUrls !== 'undefined' && galleryUrls.create) ? galleryUrls.create : (_BaseURL + "/Admin/CreateGallery");
+            submitGalleryAjax(url, formData, $btn, false);
         }
 
         function updateGallery($btn) {
@@ -1782,10 +1798,10 @@ $(document).ready(function () {
 
             const formData = new FormData();
             formData.append("UpdateGalleryDto.GalleryItemsId", $("#hdn_GalleryId").val());
-            formData.append("UpdateGalleryDto.Title", $("#txtGalleryTitle").val().trim());
-            formData.append("UpdateGalleryDto.SubTitle", $("#txtGallerySubTitle").val().trim());
-            formData.append("UpdateGalleryDto.ExpeditionYear", $("#txtExpeditionYear").val().trim());
-            formData.append("UpdateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val());
+            formData.append("UpdateGalleryDto.Title", ($("#txtGalleryTitle").val() || "").trim());
+            formData.append("UpdateGalleryDto.SubTitle", getGallerySubTitle());
+            formData.append("UpdateGalleryDto.ExpeditionYear", ($("#txtExpeditionYear").val() || "").trim());
+            formData.append("UpdateGalleryDto.DisplayOrder", $("#numGalleryDisplayOrder").val() || 0);
             formData.append("UpdateGalleryDto.IsActive", $("#chkGalleryIsActive").is(":checked"));
 
             if (selectedGalleryFile) {
@@ -1795,7 +1811,8 @@ $(document).ready(function () {
             const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
             if (antiforgeryToken) formData.append("__RequestVerificationToken", antiforgeryToken);
 
-            submitGalleryAjax(_BaseURL + "/Admin/UpdateGallery", formData, $btn, true);
+            const url = (typeof galleryUrls !== 'undefined' && galleryUrls.update) ? galleryUrls.update : (_BaseURL + "/Admin/UpdateGallery");
+            submitGalleryAjax(url, formData, $btn, true);
         }
 
         function submitGalleryAjax(url, formData, $btn, isUpdate) {
@@ -1890,7 +1907,29 @@ $(document).ready(function () {
 
             $("#hdn_GalleryId").val(data.GalleryItemsId || data.Id || data.id || "0");
             $("#txtGalleryTitle").val(data.Title || data.title || "");
-            $("#txtGallerySubTitle").val(data.SubTitle || data.subtitle || "");
+
+            const subTitleVal = (data.SubTitle || data.subtitle || "").trim();
+            if ($("#txtGallerySubTitle").length > 0) {
+                $("#txtGallerySubTitle").val(subTitleVal);
+            }
+            if ($("#ddlSection").length > 0) {
+                if (subTitleVal) {
+                    let matched = false;
+                    $("#ddlSection option").each(function () {
+                        if ($(this).text().trim() === subTitleVal || $(this).val().trim() === subTitleVal) {
+                            $(this).prop("selected", true);
+                            matched = true;
+                            return false;
+                        }
+                    });
+                    if (!matched) {
+                        $("#ddlSection").val("");
+                    }
+                } else {
+                    $("#ddlSection").val("");
+                }
+            }
+
             $("#txtExpeditionYear").val(data.ExpeditionYear || data.expeditionYear || "");
             $("#numGalleryDisplayOrder").val(data.DisplayOrder || data.displayOrder || 0);
             $("#chkGalleryIsActive").prop("checked", (data.IsActive === true || data.isActive === true));
@@ -1913,8 +1952,8 @@ $(document).ready(function () {
 
         function validateGalleryForm(isUpdate) {
             let errors = [];
-            const title = $("#txtGalleryTitle").val().trim();
-            const year = $("#txtExpeditionYear").val().trim();
+            const title = ($("#txtGalleryTitle").val() || "").trim();
+            const year = ($("#txtExpeditionYear").val() || "").trim();
 
             if (!title) errors.push("Title is required.");
             if (!year) errors.push("Expedition Year is required.");
@@ -1928,12 +1967,13 @@ $(document).ready(function () {
 
             if (selectedGalleryFile) {
                 const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-                if (!allowedTypes.includes(selectedGalleryFile.type)) {
+                const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
+                const fileType = (selectedGalleryFile.type || "").toLowerCase();
+                const fileName = (selectedGalleryFile.name || "").toLowerCase();
+                const hasValidExt = allowedExts.some(ext => fileName.endsWith(ext));
+                if (!allowedTypes.includes(fileType) && !hasValidExt) {
                     errors.push("Invalid file type. Allowed: JPG, PNG, WEBP.");
                 }
-                //if (selectedGalleryFile.size > 2 * 1024 * 1024) {
-                //    errors.push("Image size must be less than 2MB.");
-                //}
             }
 
             if (errors.length > 0) {
@@ -1947,6 +1987,12 @@ $(document).ready(function () {
             $("#galleryForm")[0].reset();
             $("#hdn_GalleryId").val("0");
             selectedGalleryFile = null;
+            if ($("#ddlSection").length > 0) {
+                $("#ddlSection").val("");
+            }
+            if ($("#txtGallerySubTitle").length > 0) {
+                $("#txtGallerySubTitle").val("");
+            }
             
             $("#galleryFileInput").val("");
             $("#galleryImgPreview").attr("src", "");
@@ -2640,6 +2686,42 @@ $(document).ready(function () {
         let selectedFiles = [];
         let deletedImageIds = []; // Track IDs of images to be deleted
         let pendingQuillContent = "";
+        let currentAchievementDetails = [];
+
+        function initQuillReport() {
+            const container = document.getElementById('quillReportEditorContainer');
+            if (container && !quillInstance) {
+                quillInstance = new Quill('#quillReportEditorContainer', {
+                    theme: 'snow',
+                    modules: {
+                        toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{ 'color': [] }, { 'background': [] }],
+                            ['link', 'blockquote', 'code-block'],
+                            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                            ['clean']
+                        ]
+                    },
+                    placeholder: 'Enter report details...'
+                });
+
+                if (pendingQuillContent) {
+                    quillInstance.root.innerHTML = pendingQuillContent;
+                    pendingQuillContent = "";
+                }
+            }
+        }
+
+        initQuillReport();
+
+        $('#addAchievementDetailsModal').on('shown.bs.modal', function () {
+            initQuillReport();
+            if (pendingQuillContent && quillInstance) {
+                quillInstance.root.innerHTML = pendingQuillContent;
+                pendingQuillContent = "";
+            }
+        });
 
         loadAchievementDetails(currentPage);
 
@@ -2871,9 +2953,11 @@ $(document).ready(function () {
         // Edit parent Achievement Details
         $(document).on("click", ".btnEditAchievementDetails", function () {
             const id = $(this).data("id");
-            const title = $(this).data("title");
-            const subtitle = $(this).data("subtitle");
-            const galleryItemsId = $(this).data("galleryitemsid");
+            const item = currentAchievementDetails.find(x => (x.AchievementDetailsId == id || x.achievementDetailsId == id));
+            const title = item ? (item.Title || item.title || "") : ($(this).data("title") || "");
+            const subtitle = item ? (item.SubTitle || item.subtitle || "") : ($(this).data("subtitle") || "");
+            const galleryItemsId = item ? (item.GalleryItemsId || item.galleryItemsId || "") : ($(this).data("galleryitemsid") || "");
+            const report = item ? (item.Report || item.report || "") : ($(this).attr("data-report") || $(this).data("report") || "");
 
             resetAchievementDetailsModal();
 
@@ -2883,6 +2967,13 @@ $(document).ready(function () {
             if (galleryItemsId) {
                 $("#ddlSection").val(galleryItemsId);
             }
+
+            if (quillInstance && quillInstance.root) {
+                quillInstance.root.innerHTML = report;
+            } else {
+                pendingQuillContent = report;
+            }
+            $("#hdnReport").val(report);
 
             $("#addAchievementDetailsModal").modal("show");
             $("#addModalTitle").html('<i class="fa fa-pencil"></i> Edit Achievement Details');
@@ -3132,6 +3223,16 @@ $(document).ready(function () {
             formData.append(prefix + "Title", ($("#txtTitle").val() || "").trim());
             formData.append(prefix + "SubTitle", ($("#txtSubTitle").val() || "").trim());
 
+            let reportContent = "";
+            if (quillInstance && quillInstance.root) {
+                const rawHtml = quillInstance.root.innerHTML.trim();
+                const isQuillEmpty = rawHtml === "<p><br></p>" || rawHtml === "" || quillInstance.getText().trim().length === 0;
+                reportContent = isQuillEmpty ? "" : rawHtml;
+            } else {
+                reportContent = ($("#hdnReport").val() || "").trim();
+            }
+            formData.append(prefix + "Report", reportContent);
+
             const antiforgeryToken = $('input[name="__RequestVerificationToken"]').val() || "";
             if (antiforgeryToken) {
                 formData.append("__RequestVerificationToken", antiforgeryToken);
@@ -3278,6 +3379,7 @@ $(document).ready(function () {
         }
 
         function bindAchievementDetailsTable(data) {
+            currentAchievementDetails = data || [];
             const $tbody = $("#tab_Achievementdetails tbody");
             $tbody.empty();
 
@@ -3321,6 +3423,7 @@ $(document).ready(function () {
                                     data-title="${escapeHtml(item.Title || '')}"
                                     data-subtitle="${escapeHtml(item.SubTitle || item.subtitle || '')}"
                                     data-galleryitemsid="${item.GalleryItemsId || ''}"
+                                    data-report="${escapeHtml(item.Report || item.report || '')}"
                                     title="Edit"><i class="fa fa-pencil"></i></button>
                             <button class="btn btn-danger btn-xs btnDeleteAchievementDetails"
                                     data-id="${item.AchievementDetailsId}"
@@ -3363,6 +3466,11 @@ $(document).ready(function () {
             $("#txtTitle").val("");
             $("#txtSubTitle").val("");
             $("#ddlSection").val("");
+            $("#hdnReport").val("");
+            if (quillInstance) {
+                quillInstance.setContents([]);
+            }
+            pendingQuillContent = "";
         }
     }
 
