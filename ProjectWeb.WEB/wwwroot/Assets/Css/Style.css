@@ -422,7 +422,7 @@ a {
     display: block;
     margin: 0 auto !important;
     padding-left: 15px;
-    max-width: 1280px;
+/*    max-width: 1280px;*/
     padding-right: 15px;
 }
 
@@ -862,6 +862,10 @@ h2 {
     color: #fff;
     font-size: 12px;
     font-weight: 300;
+}
+
+.footer_text {
+    text-align: center; 
 }
 
 .footer_text img {
