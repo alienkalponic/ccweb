@@ -1,4 +1,4 @@
-﻿@font-face {
+@font-face {
     font-family: 'Playfair Display', serif;
     src: url(http://www.anaveer.in/honda/font/MYRIADPRO-REGULAR.OTF) format("truetype");
 }
@@ -84,12 +84,13 @@ a {
     background-size: cover;
 }
 
-.carousel-item img {
-   height: 100%;
-   object-fit: cover;
-   object-position: center;
-
-}
+    .carousel-item img,
+    .carousel-item video {
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
 
 .carousel-inner {
     position: relative;
@@ -105,19 +106,19 @@ a {
     }
 
 .carousel-caption {
-/*    bottom: 25px;*/
+    /*    bottom: 25px;*/
     bottom: clamp(20px, 6vh, 60px);
     z-index: 2;
 }
 
-.carousel-caption h5 {
-   font-size: 45px;
-   text-transform: uppercase;
-   letter-spacing: 2px;
-   margin-top: 25px;
-}
+    .carousel-caption h5 {
+        font-size: 45px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 25px;
+    }
 
-/*.carousel-caption p {
+    /*.carousel-caption p {
   width: 75%;
   margin: auto;
   font-size: 18px;
@@ -162,9 +163,9 @@ a {
     padding: .2rem 1rem;
 }
 
-.nav-link.active, .nav-link:focus {
-    color: #fff;
-}
+    .nav-link.active, .nav-link:focus {
+        color: #fff;
+    }
 
 .navbar-toggler {
     padding: 1px 5px;
@@ -188,11 +189,11 @@ a {
     background: tomato;
 }
 
-.link-area a {
-    text-decoration: none;
-    color: #fff;
-    font-size: 25px;
-}
+    .link-area a {
+        text-decoration: none;
+        color: #fff;
+        font-size: 25px;
+    }
 
 @media (max-width: 768px) {
     .carousel-caption {
@@ -220,7 +221,7 @@ a {
     text-align: center;
 }
 
- /*.About-1::before {
+/*.About-1::before {
     content: '';
     position: absolute;
     bottom: 0;
@@ -321,16 +322,17 @@ a {
     justify-content: center; /* centers horizontally */
     align-items: center;
     transition: box-shadow 0.45s cubic-bezier(.22, .61, .36, 1), transform 0.45s cubic-bezier(.22, .61, .36, 1);
-/*    will-change: transform;*/
+    cursor: pointer;
+    /*    will-change: transform;*/
 }
 
-.swiper-slide-active button {
+.swiper-slide-active a {
     padding: 10px 20px;
     background: rgba(255,255,255,0.8);
     border: none;
     border-radius: 8px;
     font-weight: 600;
-    cursor: pointer!important;
+    cursor: pointer !important;
     transition: 0.3s;
 }
 
@@ -344,10 +346,10 @@ a {
     }
 }
 
-    .swiper-slide-active button:hover {
-        background: white;
-        transform: scale(1.05);
-    }
+.swiper-slide-active button:hover {
+    background: white;
+    transform: scale(1.05);
+}
 
 
 .card-content {
@@ -467,14 +469,14 @@ h2 {
     z-index: 2;
 }
 
-.HomeVideoTitleSection .SectionTitle {
-    width: 100%;
-}
+    .HomeVideoTitleSection .SectionTitle {
+        width: 100%;
+    }
 
-.HomeVideoTitleSection .SectionContent {
-    width: 100%;
-    padding-top: 240px;
-}
+    .HomeVideoTitleSection .SectionContent {
+        width: 100%;
+        padding-top: 240px;
+    }
 
 .HomeVideoTitleSection {
     max-width: 630px;
@@ -546,6 +548,7 @@ h2 {
     justify-content: center;
     align-items: center;
 }
+
 @media (max-width: 992px) {
     .HomeVideoTitleSection {
         padding: 50px 0px;
@@ -823,7 +826,7 @@ h2 {
 
 /*---------------- footer -------------------*/
 
-    .footer_image {
+.footer_image {
     background: #262d3d;
     height: 445px;
 }
@@ -1004,7 +1007,7 @@ height: auto;
 .hero h1 {
     font-size: 3.5rem;
     letter-spacing: 2px;
-    color:whitesmoke;
+    color: whitesmoke;
 }
 
 .hero p {
@@ -1228,39 +1231,39 @@ height: auto;
     overflow: hidden;
 }
 
-.about-banner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
+    .about-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
 
-/* GRADIENT OVERLAY */
-.about-banner::before {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: clamp(90px, 22vh, 180px);
-    background: linear-gradient(to top, #020202, transparent);
-    z-index: 1;
-}
+    /* GRADIENT OVERLAY */
+    .about-banner::before {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: clamp(90px, 22vh, 180px);
+        background: linear-gradient(to top, #020202, transparent);
+        z-index: 1;
+    }
 
-/* BANNER TEXT */
-.about-banner h1 {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #ffffff;
-    font-size: clamp(1.8rem, 4vw, 3.5rem);
-    text-align: center;
-    text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.85);
-    z-index: 2;
-    padding: 0 1rem;
-    line-height: 1.2;
-    width: 100%;
-    max-width: 90%;
-}
+    /* BANNER TEXT */
+    .about-banner h1 {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffffff;
+        font-size: clamp(1.8rem, 4vw, 3.5rem);
+        text-align: center;
+        text-shadow: 2px 2px 12px rgba(0, 0, 0, 0.85);
+        z-index: 2;
+        padding: 0 1rem;
+        line-height: 1.2;
+        width: 100%;
+        max-width: 90%;
+    }
 
 /* MOBILE FINE TUNE */
 @media (max-width: 768px) {
@@ -1268,9 +1271,9 @@ height: auto;
         height: 65vh;
     }
 
-    .about-banner h1 {
-        top: 55%;
-    }
+        .about-banner h1 {
+            top: 55%;
+        }
 }
 
 /*==============members=====================*/
@@ -1486,3 +1489,282 @@ height: auto;
 }
 
 /************************About us Page end ******************/
+
+/* ==========================================================================
+   QUICK ACTION STRIP (EXPEDITION | COURSES | EVENTS | E-MAG) - INDIVIDUAL BOXES (TRANSPARENT)
+   ========================================================================== */
+.cc-quick-strip-section {
+    background: transparent;
+    border-top: none;
+    border-bottom: none;
+    box-shadow: none;
+    position: relative;
+    z-index: 10;
+    margin: 0;
+    padding: 32px 20px;
+}
+
+.cc-quick-strip-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+}
+
+/* Individual Segment Box - Transparent Background with Scroll & Reload Animation */
+.cc-quick-col {
+    background: transparent;
+    border: 1px solid rgba(176, 139, 69, 0.35);
+    border-radius: 12px;
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 230px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: none;
+    
+    /* Animation initial state: smooth glide from bottom + scale + blur */
+    opacity: 0;
+    transform: translateY(45px) scale(0.96);
+    filter: blur(5px);
+    transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.85s ease,
+                border-color 0.35s ease,
+                background 0.35s ease,
+                box-shadow 0.35s ease;
+    will-change: transform, opacity, filter;
+}
+
+/* When the section enters viewport or page is reloaded */
+.cc-quick-strip-section.is-visible .cc-quick-col {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+}
+
+/* Staggered entry delay for each individual box */
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(1) {
+    transition-delay: 0.05s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(2) {
+    transition-delay: 0.20s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(3) {
+    transition-delay: 0.35s;
+}
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(4) {
+    transition-delay: 0.50s;
+}
+
+.cc-quick-col::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #b08b45, transparent);
+    opacity: 0;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease;
+}
+
+.cc-quick-strip-section.is-visible .cc-quick-col::before {
+    opacity: 0.6;
+    transform: scaleX(1);
+}
+
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(1)::before { transition-delay: 0.3s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(2)::before { transition-delay: 0.45s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(3)::before { transition-delay: 0.6s; }
+.cc-quick-strip-section.is-visible .cc-quick-col:nth-child(4)::before { transition-delay: 0.75s; }
+
+.cc-quick-col:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: #b08b45;
+    background: rgba(176, 139, 69, 0.07);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(176, 139, 69, 0.2);
+}
+
+.cc-quick-col:hover::before {
+    opacity: 1;
+}
+
+.cc-quick-title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #b08b45 !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cc-quick-desc {
+    color: #cbd5e1;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0 0 16px 0;
+    flex-grow: 1;
+}
+
+.cc-quick-btn-wrap {
+    margin-top: auto;
+}
+
+.cc-quick-btn {
+    display: inline-block;
+    padding: 6px 22px;
+    border: 1.5px solid #b08b45;
+    border-radius: 50px;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    background: rgba(176, 139, 69, 0.08);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.cc-quick-btn:hover {
+    background: #b08b45;
+    color: #000000;
+    box-shadow: 0 4px 15px rgba(176, 139, 69, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Courses List */
+.cc-quick-courses-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.cc-quick-courses-list li {
+    margin-bottom: 9px;
+}
+
+.cc-quick-courses-list li:last-child {
+    margin-bottom: 0;
+}
+
+.cc-quick-courses-list li a {
+    display: block;
+    color: #e2e8f0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding-bottom: 7px;
+    border-bottom: 1px dashed rgba(176, 139, 69, 0.35);
+    transition: all 0.25s ease;
+}
+
+.cc-quick-courses-list li a:hover {
+    color: #b08b45;
+    padding-left: 6px;
+    border-bottom-color: #b08b45;
+}
+
+/* Column 4: E-Mag & Follow Us */
+.cc-quick-col-emag {
+    justify-content: flex-start;
+}
+
+.cc-emag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cc-emag-header .cc-quick-title {
+    margin: 0;
+}
+
+.cc-quick-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0 12px 0;
+}
+
+.cc-div-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(176, 139, 69, 0.3);
+}
+
+.cc-div-icon {
+    color: #b08b45;
+    font-size: 13px;
+}
+
+.cc-follow-title {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #b08b45 !important;
+    letter-spacing: 1.5px;
+    margin: 0 0 10px 0;
+}
+
+.cc-social-icons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cc-social-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(176, 139, 69, 0.35);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.cc-social-btn:hover {
+    background: #b08b45;
+    color: #000000;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(176, 139, 69, 0.4);
+    border-color: #b08b45;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1080px) {
+    .cc-quick-strip-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+}
+
+@media (max-width: 640px) {
+    .cc-quick-strip-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .cc-quick-col {
+        padding: 22px 18px;
+        min-height: auto;
+    }
+}
+

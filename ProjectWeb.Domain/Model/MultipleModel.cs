@@ -1,4 +1,11 @@
-﻿using System;
+using ProjectWeb.Domain.DTO.AboutPage;
+using ProjectWeb.Domain.DTO.AchievementDetails;
+using ProjectWeb.Domain.DTO.ActivityDetails;
+using ProjectWeb.Domain.DTO.Banner;
+using ProjectWeb.Domain.DTO.Category;
+using ProjectWeb.Domain.DTO.ClubDescription;
+using ProjectWeb.Domain.DTO.Gallery;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,5 +15,49 @@ namespace ProjectWeb.Domain.Model
 {
     public class MultipleModel
     {
+        public BannerCreateDto? BannerCreateDto { get; set; }
+        public List<BannerDto>? BannerDtos { get; set; }
+        public BannerDto? BannerDto { get; set; }
+        public BannerUpdateDto? BannerUpdateDto { get; set; }
+        public CreateClubDescriptionDto? CreateClubDescriptionDto { get; set; }
+        public List<GetClubDescriptionDto>? ClubDescriptionDtos { get; set; }
+        public GetClubDescriptionDto? ClubDescriptionDto { get; set; }
+        public UpdateClubDescriptionRequestDto? UpdateClubDescriptionDto { get; set; }
+
+        // Club Activity
+        public ProjectWeb.Domain.DTO.ClubActivity.CreateClubActivityDto? CreateClubActivityDto { get; set; }
+        public ProjectWeb.Domain.DTO.ClubActivity.UpdateClubActivityDto? UpdateClubActivityDto { get; set; }
+        public List<ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto>? ClubActivityDtos { get; set; }
+        public ProjectWeb.Domain.DTO.ClubActivity.GetClubActivityDto? ClubActivityDto { get; set; }
+
+        // Gallery
+        public CreateGalleryDto? CreateGalleryDto { get; set; }
+        public UpdateGalleryDto? UpdateGalleryDto { get; set; }
+        public List<GalleryDto>? GalleryDtos { get; set; }
+        public GalleryDto? GalleryDto { get; set; }
+        public CreateActivityDetailsDto? CreateActivityDetailsDto { get; set; }
+        public UpdateActivityDetailsDto? UpdateActivityDetailsDto { get; set; }
+        public ActivityDetailsDto? ActivityDetailsDto { get; set; }
+        public List<ActivityDetailsDto>? ActivityDetailsDtos { get; set; }
+        public AchievementDetailsCreateDto? AchievementDetailsCreateDto { get; set; }
+        public AchievementDetailsUpdateDto? AchievementDetailsUpdateDto { get; set; }
+        public AchievementDetailsDto? AchievementDetailsDto { get; set; }
+        public List<AchievementDetailsDto>? AchievementDetailsDtos { get; set; }
+        public List<GalleryListDto>? GalleryListDtos { get; set; }
+
+        public AchievementDetailsGalleryCreateDto? achievementDetailsGalleryCreateDto { get; set; }
+        public AchievementDetailsGalleryUpdateDto? achievementDetailsGalleryUpdateDto { get; set; }
+        public List<GalleryDto>?galleryDtos{ get; set; }
+        //public List<AchievementDetailsGalleryDtos>? AchievementDetailsGalleryDtos { get; set; }
+        public AchievementDetailsGalleryDtos? AchievementDetailsGalleryDtos { get; set; }
+
+        // About Page
+        public CreateAboutPageDto? CreateAboutPageDto { get; set; }
+        public UpdateAboutPageDto? UpdateAboutPageDto { get; set; }
+        public AboutPageDto? AboutPageDto { get; set; }
+        public AboutPageDetails? aboutPageDetails { get; set; }
+        public List<AboutPageDto>? AboutPageDtos { get; set; }
+        public List<CategoryDto>? CategoryDtos { get; set; }
+
     }
 }

@@ -1,0 +1,296 @@
+@{
+    ViewData["Title"] = "Course Batches";
+    Layout = "~/Views/Shared/Admin_Layout.cshtml";
+}
+@using System.Security.Claims
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@{
+    var ROLE_NAME = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+    var projectApiUrl = Configuration.GetSection("ServiceUrls")["ProjectAPI"];
+}
+<script>
+    var _ProjectAPI = '@projectApiUrl';
+</script>
+
+@section Styles {
+    <style>
+        /* --- Header Panel Styling --- */
+        .about-page-header-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .about-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .about-action-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        @@media (max-width: 767.98px) {
+            .about-page-header-card {
+                padding: 1rem;
+            }
+            .about-header-flex {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .about-action-group {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+            .about-action-group .input-group {
+                width: 100% !important;
+            }
+            .about-action-group .btn-add-page {
+                width: 100% !important;
+                margin-top: 0.25rem;
+            }
+        }
+
+        /* --- Table Styling & Responsiveness --- */
+        .about-table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .table-responsive-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .about-custom-table {
+            width: 100%;
+            min-width: 1000px !important;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .about-custom-table thead th {
+            background-color: #f8fafc !important;
+            color: #475569 !important;
+            font-weight: 700 !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
+            padding: 12px 16px !important;
+            border-bottom: 2px solid #e2e8f0 !important;
+            white-space: nowrap !important;
+            vertical-align: middle !important;
+        }
+        .about-custom-table tbody td {
+            padding: 12px 16px !important;
+            vertical-align: middle !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            font-size: 0.875rem !important;
+            white-space: nowrap !important;
+        }
+        .about-custom-table tbody tr:hover {
+            background-color: #f8fafc !important;
+        }
+
+        /* --- Modal Dialog Responsive & Scrollability --- */
+        .modal-dialog-scrollable .modal-content {
+            max-height: calc(100vh - 2rem);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .modal-dialog-scrollable .modal-body {
+            max-height: calc(100vh - 140px) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+        }
+        @@media (max-width: 767.98px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+            .modal-dialog-scrollable .modal-content {
+                max-height: calc(100vh - 1rem);
+            }
+            .modal-dialog-scrollable .modal-body {
+                max-height: calc(100vh - 120px) !important;
+                padding: 1rem !important;
+            }
+            .modal-footer {
+                padding: 0.75rem 1rem !important;
+                flex-direction: column-reverse;
+                gap: 8px;
+            }
+            .modal-footer .btn {
+                width: 100%;
+                margin: 0 !important;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+@if (ROLE_NAME == "Developer" || ROLE_NAME == "Administrator" || ROLE_NAME == "2")
+{
+    <section id="main-content">
+        <section class="wrapper">
+            <!-- Modern Header Card Panel -->
+            <div class="about-page-header-card animate-fade-in">
+                <div class="about-header-flex">
+                    <div>
+                        <h3 class="fw-bold mb-1 text-dark" style="font-size: 1.35rem; color: #1e293b;"><i class="fa fa-calendar me-2" style="color: var(--admin-primary, #a01c2b);"></i>Course Batches Management</h3>
+                        <p class="text-muted small mb-0">Manage yearly course batches, fee structures, advance, and retention amounts.</p>
+                    </div>
+                    <div class="about-action-group">
+                        <select id="batch_FilterCourse" class="form-select form-select-sm select2" style="width: 180px;">
+                            <option value="">All Courses</option>
+                        </select>
+                        <input type="number" id="batch_FilterYear" class="form-control form-control-sm" placeholder="Year" style="width: 90px;" />
+                        <select id="batch_FilterStatus" class="form-select form-select-sm" style="width: 100px;">
+                            <option value="">All Status</option>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                        <div class="input-group input-group-sm" style="width: 220px;">
+                            <input type="text" id="batch_Search" class="form-control" placeholder="Search batch..." />
+                            <button class="btn btn-outline-secondary" type="button" id="btnFilterBatch" title="Search"><i class="fa fa-search"></i></button>
+                            <button class="btn btn-outline-secondary" type="button" id="btnResetBatch" title="Reset"><i class="fa fa-refresh"></i></button>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm btn-add-page px-3 fw-semibold" id="btnAddNewBatch">
+                            <i class="fa fa-plus me-1"></i> Add Batch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Card Container -->
+            <div class="about-table-card animate-fade-in">
+                <div class="table-responsive-container" id="batchtablecontainer">
+                    <table id="tbl_CourseBatches" class="table about-custom-table align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px; text-align: center;">SL.No</th>
+                                <th style="min-width: 180px;">Course</th>
+                                <th style="min-width: 90px;">Year</th>
+                                <th style="min-width: 120px;">Start Date</th>
+                                <th style="min-width: 120px;">End Date</th>
+                                <th style="min-width: 130px; text-align: right;">Total Fee (₹)</th>
+                                <th style="min-width: 120px; text-align: right;">Advance (₹)</th>
+                                <th style="min-width: 130px; text-align: right;">Retention (₹)</th>
+                                <th style="min-width: 90px; text-align: center;">Status</th>
+                                <th style="min-width: 100px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted"><i class="fa fa-spinner fa-spin me-2"></i> Loading batches...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="pagination_oputer mt-3" style="text-align: right!important;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div id="batchRecordInfo" class="text-muted small"></div>
+                    <ul class="pagination mb-0" id="batchPagination"></ul>
+                </div>
+            </div>
+        </section>
+    </section>
+
+    <!-- Create / Edit Batch Modal -->
+    <div class="modal fade" id="batchModal" tabindex="-1" role="dialog" aria-labelledby="batchModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: var(--admin-radius-lg, 12px);">
+                <!-- Modal Header -->
+                <div class="modal-header border-bottom-0 pb-0" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+                    <div class="d-flex align-items-center w-100">
+                        <div class="modal-title-container d-flex align-items-center">
+                            <div class="icon-box bg-primary-soft text-primary me-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(160, 28, 43, 0.1);">
+                                <i class="fa fa-calendar fs-4" style="color: var(--admin-primary, #a01c2b);"></i>
+                            </div>
+                            <h4 class="modal-title fw-bold m-0" id="batchModalTitle" style="font-family: var(--admin-font-heading); color: var(--admin-text-main, #1e293b);">Add Course Batch</h4>
+                        </div>
+                        <button type="button" class="btn-close ms-auto border-0 bg-transparent text-muted btnModalClose" data-bs-dismiss="modal" aria-label="Close" style="font-size: 1.5rem; line-height: 1;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body p-4">
+                    <form id="batchForm">
+                        <input type="hidden" id="hdn_CourseBatchId" value="0" />
+
+                        <div class="row g-3">
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Select Course <span class="text-danger">*</span></label>
+                                <select id="ddl_BatchCourse" class="form-select select2" required>
+                                    <option value="">-- Select Course --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Batch Year <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="txt_BatchYear" value="@DateTime.Now.Year" placeholder="e.g. 2026" required />
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">Start Date <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control flatpickr-date" id="txt_BatchStartDate" placeholder="YYYY-MM-DD" required />
+                            </div>
+
+                            <div class="col-md-6 col-sm-12">
+                                <label class="form-label fw-semibold">End Date <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control flatpickr-date" id="txt_BatchEndDate" placeholder="YYYY-MM-DD" required />
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Total Course Fee (₹) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="txt_TotalCourseFee" placeholder="0.00" required />
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Advance Amount (₹) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="txt_AdvanceAmount" placeholder="0.00" required />
+                            </div>
+
+                            <div class="col-md-4 col-sm-12">
+                                <label class="form-label fw-semibold">Cancellation Retention (₹) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" min="0" class="form-control" id="txt_CancellationRetention" placeholder="0.00" required />
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-check form-switch pt-2">
+                                    <input class="form-check-input" type="checkbox" id="chk_BatchIsActive" checked />
+                                    <label class="form-check-label fw-semibold" for="chk_BatchIsActive">Is Active</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-top-0 p-4 pt-0 justify-content-end">
+                    <button type="button" class="btn btn-light px-4 me-2 btnCancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary px-4 d-flex align-items-center" id="btnSaveBatch">
+                        <i class="fa fa-save me-2"></i> Save Batch
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

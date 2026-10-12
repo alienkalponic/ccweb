@@ -12,108 +12,63 @@
     <title>AdminLogin</title>
     <link rel="shortcut icon" href="@Url.Content("~/images/favicon.png")">
 
-    <!--Core CSS -->
-    <link href="@Url.Content("~/Assets/Css/bootstrap.min.css")" rel="stylesheet">
-    <link href="@Url.Content("~/Assets/Admin/Css/bootstrap-reset.css")" rel="stylesheet">
-    <link href="@Url.Content("~/Assets/Css/font-awesome.css")" rel="stylesheet">
-    <!-- Custom styles for this template -->
-    <link href="@Url.Content("~/Assets/Admin/Css/admin_style.css")" rel="stylesheet">
-    <link href="@Url.Content("~/Assets/Admin/Css/admin_style-responsive.css")" rel="stylesheet" />
-    <!-- Just for debugging purposes. Don't actually copy this line! -->
-    <!--[if lt IE 9]>
-    <script src="js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-    <![endif]-->
+    <!-- Core CSS -->
+    <link href="@Url.Content("~/Assets/Css/bootstrap.min.css")" rel="stylesheet" asp-append-version="true">
+    <link href="@Url.Content("~/Assets/Admin/Css/admin-variables.css")" rel="stylesheet" asp-append-version="true">
+    <link href="@Url.Content("~/Assets/Css/font-awesome.css")" rel="stylesheet" asp-append-version="true">
+    <link href="@Url.Content("~/Assets/Admin/Css/admin-login.css")" rel="stylesheet" asp-append-version="true">
+
     @*Style for validate border By Imad*@
     <style>
         .validateInputborder {
-            border: 1px solid red !important;
+            border: 1px solid var(--admin-primary) !important;
+            box-shadow: 0 0 0 4px var(--admin-primary-light) !important;
         }
     </style>
-
-    @*Style for loader By Imad*@
-    @*<style>
-    .ui-loader {
-    display: block;
-    z-index: 9999999;
-    position: fixed;
-    top: 0%;
-    border: 0;
-    border-radius: 0;
-    }
-
-    .ui-loader-default {
-    background: rgba(0, 0, 0, 0.40);
-    width: 100% !important;
-    height: 100% !important;
-    }
-
-    .ui-loader .ui-icon {
-    position: fixed;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    margin: auto;
-    padding: 8px;
-    text-align: center;
-    vertical-align: middle;
-    width: 85px;
-    height: 85px;
-    z-index: 1000;
-    border-radius: 4px;
-    display: block;
-    }
-
-    .ui-icon-loading {
-    background: url(@Url.Content("~/images/loader.gif")) no-repeat;
-    background-size: 64px 64px;
-    }
-
-    .selectedAutosuggestList {
-    background: #82bf4a;
-    color: #fff;
-    }
-    </style>*@
 </head>
-<body class="login-body">
+<body class="admin-login-body">
     <!-------Loader div start---->
     <div class="ui-loader ui-loader-default hide">
         <div class="ui-icon ui-icon-loading"></div>
     </div>
     <!-- loader div end-->
-    <div class="container">
-        <div class="form-signin">
-            <h2 class="form-signin-heading">Climbers' Circle</h2>
-            <div class="login-wrap">
-                <form class="login_form">
-                    <div class="user-login-info">
-                        <input type="email" id="user_name" placeholder="Enter User Name" class="form-control en">
-                        <input type="password" id="password" placeholder="Enter Password" class="form-control en">
-                        @* @Html.EditorFor(model => Model.UserName, new { htmlAttributes = new { @id = "user_name", @placeholder = "Enter User Name", @class = "form-control en", title = "User Name" } }) *@
-                        @*<input type="password" class="form-control en" placeholder="Password" id="txtPassword" value="">*@
-                        @* @Html.EditorFor(model => Model.Password, new { htmlAttributes = new { @id = "password", @placeholder = "Enter Password ", @class = "form-control en", title = "Password", autocomplete = "off" } }) *@
-                    </div>
-                    <label class="checkbox form-control" style="font-size: 13px;">
 
-                        <input type="checkbox" value="remember-me" id="chkRemember" checked>
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Climbers' Circle</h2>
+            <p>Admin Control Panel</p>
+        </div>
 
-
-
-                        Remember me
-
-                    </label>
-                    <button class="btn btn-lg btn-login btn-block" type="button" id="BtnSignIn">Sign in</button>
-
-
-                    <div class="alert hide" id="LogInAlert"></div>
-                </form>
-                    
-                
+        <form class="login_form" id="AdminLoginForm">
+            <div class="form-group">
+                <label class="form-label" for="user_name">Email / Username</label>
+                <input type="text" id="user_name" placeholder="Username or Email" class="form-control-modern" required>
             </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" class="form-control-modern" required>
+            </div>
+
+            <div class="form-group">
+                <label class="remember-me-container" for="chkRemember">
+                    <input type="checkbox" id="chkRemember">
+                    <span>Keep me signed in</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <button class="btn-login-modern" type="button" id="BtnSignIn">
+                    <span class="btn-text">Sign In to Dashboard</span>
+                    <div class="btn-loading-spinner"></div>
+                </button>
+            </div>
+
+            <div class="alert hide mt-3" id="LogInAlert" style="font-size: 13px; border-radius: var(--admin-radius-sm);"></div>
+        </form>
+
+        <div class="login-footer">
+            &copy; @DateTime.Now.Year Climbers Circle. All rights reserved.
         </div>
     </div>
 
@@ -122,7 +77,6 @@
 </body>
 <script src="@Url.Content("~/Assets/Js/jquery-2.2.4.min.js")" asp-append-version="true"></script>
 <script src="@Url.Content("~/Assets/Js/Common.min.js")" asp-append-version="true"></script>
-<script src="@Url.Content("~/Assets/Admin/Js/sweetalert.min.js")"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="@Url.Content("~/Assets/Script/Authentication.js")" asp-append-version="true"></script>
 

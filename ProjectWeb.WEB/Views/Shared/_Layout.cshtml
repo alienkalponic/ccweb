@@ -20,6 +20,13 @@
     @{
         Html.RenderPartial("_Script");
     }
+    <div id="globalLoader" class="global-loader-overlay">
+        <div class="loader-content">
+            <div class="loader-ring"></div>
+            <img src="~/Assets/images/CCLogo.png" alt="Loading..." class="loader-logo" />
+        </div>
+    </div>
+
     @* <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

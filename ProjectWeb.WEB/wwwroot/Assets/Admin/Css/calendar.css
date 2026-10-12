@@ -1,0 +1,372 @@
+/* ============================================================
+   Premium CLNDR Calendar — calendar.css
+   Climbers Circle Admin Panel
+   Theme: Light — matches existing admin palette
+   Brand:  #bf7256 (terracotta)  |  Accent: #ed4350 (red)
+   BG:     #f1f2f7               |  Sidebar: #fcde9f (cream)
+   ============================================================ */
+
+/* ---------- Outer layout wrapper ---------- */
+.event-calendar {
+    display: flex;
+    flex-wrap: wrap;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8e8ee;
+}
+
+.calendar-block {
+    background: #fff;
+    border-right: 1px solid #ebebf0;
+    padding: 0 !important;
+}
+
+.event-list-block {
+    background: #fafafa;
+    padding: 24px 20px !important;
+}
+
+/* ---------- CLNDR wrapper ---------- */
+.clndr {
+    padding: 18px 16px 16px;
+    font-family: 'Open Sans', 'Lato', sans-serif;
+    color: #555;
+    user-select: none;
+    min-width: 260px;
+}
+
+/* ---------- Controls (month navigation header) ---------- */
+.clndr-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #bf7256, #d4896a);
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(191, 114, 86, 0.28);
+}
+
+.clndr-controls .month {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    flex: 1;
+    text-align: center;
+}
+
+.clndr-control-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clndr-previous-button,
+.clndr-next-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.clndr-previous-button:hover,
+.clndr-next-button:hover {
+    background: rgba(255, 255, 255, 0.32);
+    transform: scale(1.1);
+}
+
+.clndr-previous-button:active,
+.clndr-next-button:active {
+    transform: scale(0.93);
+}
+
+.clndr-previous-button.inactive,
+.clndr-next-button.inactive {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ---------- Calendar table ---------- */
+.clndr-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px;
+    table-layout: fixed;
+}
+
+/* ---------- Day-of-week header row ---------- */
+.header-days {
+    margin-bottom: 4px;
+}
+
+.header-day {
+    text-align: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #bf7256;
+    padding: 4px 0 8px;
+}
+
+/* ---------- Day cells ---------- */
+.clndr-table tbody td {
+    text-align: center;
+    padding: 2px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+.clndr-table tbody td .day-contents {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #555;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+    position: relative;
+}
+
+/* Hover — normal days */
+.clndr-table tbody td.day:hover .day-contents {
+    background: #fdf0eb;
+    color: #bf7256;
+    transform: scale(1.08);
+}
+
+/* TODAY — brand terracotta fill */
+.clndr-table tbody td.today .day-contents {
+    background: linear-gradient(135deg, #bf7256, #d4896a);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(191, 114, 86, 0.38);
+}
+
+.clndr-table tbody td.today:hover .day-contents {
+    background: linear-gradient(135deg, #d4896a, #bf7256);
+    transform: scale(1.1);
+    box-shadow: 0 5px 14px rgba(191, 114, 86, 0.48);
+}
+
+/* PAST days — muted */
+.clndr-table tbody td.past .day-contents {
+    color: #bbb;
+    font-weight: 400;
+}
+
+.clndr-table tbody td.past:hover .day-contents {
+    background: #f5f5f7;
+    color: #999;
+    transform: scale(1.04);
+}
+
+/* Adjacent month days — very faded */
+.clndr-table tbody td.adjacent-month .day-contents {
+    color: #d4d4d8;
+}
+
+.clndr-table tbody td.adjacent-month:hover .day-contents {
+    background: #f9f9fb;
+    color: #bbb;
+    transform: none;
+}
+
+/* Inactive / constrained */
+.clndr-table tbody td.inactive {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.clndr-table tbody td.inactive .day-contents {
+    color: #ddd;
+}
+
+/* EVENT indicator dot */
+.clndr-table tbody td.event .day-contents::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ed4350;
+    box-shadow: 0 0 4px rgba(237, 67, 80, 0.5);
+}
+
+.clndr-table tbody td.today.event .day-contents::after {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: none;
+}
+
+/* Selected / clicked date */
+.clndr-table tbody td.day.selected .day-contents,
+.clndr-table tbody td.day.active .day-contents {
+    background: #fdf0eb;
+    color: #bf7256;
+    border: 1px solid #e8c4b4;
+}
+
+/* ---------- Fade animation on month re-render ---------- */
+@keyframes clndr-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.clndr-table tbody {
+    animation: clndr-fade-in 0.2s ease;
+}
+
+/* ---------- Event list panel ---------- */
+.cal-day {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ebebf0;
+    line-height: 1.2;
+}
+
+.cal-day span {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #bf7256;
+    margin-bottom: 2px;
+}
+
+.cal-day {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.event-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.event-list li {
+    display: flex;
+    align-items: center;
+    padding: 9px 12px;
+    margin-bottom: 6px;
+    background: #fff;
+    border: 1px solid #ebebf0;
+    border-left: 3px solid #bf7256;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    color: #666;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: default;
+}
+
+.event-list li:hover {
+    background: #fdf0eb;
+    border-left-color: #ed4350;
+    color: #444;
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(191, 114, 86, 0.12);
+}
+
+.event-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #f1f2f7;
+    color: #aaa;
+    font-size: 0.68rem;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.event-close:hover {
+    background: #fde8ea;
+    color: #ed4350;
+}
+
+.event-close::after {
+    content: '×';
+    line-height: 1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px) {
+    .event-calendar {
+        flex-direction: column;
+    }
+
+    .calendar-block,
+    .event-list-block {
+        width: 100% !important;
+        border-right: none;
+        border-bottom: 1px solid #ebebf0;
+    }
+
+    .clndr {
+        padding: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .clndr {
+        padding: 10px;
+        min-width: unset;
+    }
+
+    .clndr-controls {
+        padding: 8px 10px;
+        margin-bottom: 12px;
+    }
+
+    .clndr-controls .month {
+        font-size: 0.82rem;
+    }
+
+    .clndr-table tbody td .day-contents {
+        width: 26px;
+        height: 26px;
+        font-size: 0.72rem;
+        border-radius: 5px;
+    }
+
+    .header-day {
+        font-size: 0.58rem;
+    }
+
+    .event-list-block {
+        padding: 14px 12px !important;
+    }
+}

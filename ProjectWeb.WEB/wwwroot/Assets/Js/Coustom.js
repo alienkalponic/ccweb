@@ -1,4 +1,4 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
 
     const toggleBtn = document.querySelector('.toggle_btn')
     const toggleBtnIcon = document.querySelector('.toggle_btn i')
@@ -65,6 +65,15 @@
         pagination: {
             el: '.swiper-pagination',
             dynamicBullets: true
+        }
+    });
+
+    swiper.on('click', function (swiper, event) {
+        if (!swiper.clickedSlide) return;
+        var $clickedSlide = $(swiper.clickedSlide);
+        var url = $clickedSlide.attr('data-href') || $clickedSlide.find('a.know-more-btn').attr('href');
+        if (url && url !== '#' && url !== 'javascript:void(0);') {
+            window.location.href = url;
         }
     });
     // ========swip-card-design-end========

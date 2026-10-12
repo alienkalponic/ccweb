@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ProjectWeb.Application.Common.Repository;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Application.Common.Repository.SystemLogin;
 using ProjectWeb.Infrastucture.Service.SystemLogin;
@@ -11,23 +13,70 @@ using System.Threading.Tasks;
 
 namespace ProjectWeb.Infrastucture.Service.Master
 {
-    public class UnitOfWork:IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         private readonly IHttpClientFactory _clientFactory;
         private readonly IConfiguration _configuration;
-        private IHttpContextAccessor _contextAccessor;
+        private readonly IHttpContextAccessor _contextAccessor;
         private readonly IBaseService _baseService;
+        private readonly ILoggerFactory _loggerFactory;
 
         public IUserRepository User { get; private set; }
+        public IContentManagement ContentManagement { get; private set; }
 
-        public UnitOfWork(IHttpClientFactory clientFactory, IConfiguration configuration, IHttpContextAccessor contextAccessor, IBaseService baseService)
+        public IUIManagementRepository UIManagement { get; private set; }
+
+        public ISettingsManagementRepository SettingsManagement { get; private set; }
+        public ICourseManagementRepository CourseManagement { get; private set; }
+
+        public UnitOfWork(
+            IHttpClientFactory clientFactory, 
+            IConfiguration configuration, 
+            IHttpContextAccessor contextAccessor, 
+            IBaseService baseService,
+            ILoggerFactory loggerFactory)
         {
             _clientFactory = clientFactory;
             _configuration = configuration;
             _contextAccessor = contextAccessor;
             _baseService = baseService;
+            _loggerFactory = loggerFactory;
 
-            User = new UserRepository(_clientFactory, _configuration, _baseService, _contextAccessor);
+            // Pass the factory-created loggers to the sub-repositories.
+            User = new UserRepository(
+                _clientFactory, 
+                _configuration, 
+                _baseService, 
+                _contextAccessor,
+                _loggerFactory.CreateLogger<UserRepository>());
+
+            ContentManagement = new ContentManagementRespository(
+                _clientFactory, 
+                _configuration, 
+                _baseService, 
+                _contextAccessor,
+                _loggerFactory.CreateLogger<ContentManagementRespository>());
+
+            UIManagement = new UIManagementService(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<UIManagementService>());
+
+            SettingsManagement = new SettingsManagementService(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<SettingsManagementService>());
+
+            CourseManagement = new CourseManagementRepository(
+                _clientFactory,
+                _configuration,
+                _baseService,
+                _contextAccessor,
+                _loggerFactory.CreateLogger<CourseManagementRepository>());
         }
     }
 }

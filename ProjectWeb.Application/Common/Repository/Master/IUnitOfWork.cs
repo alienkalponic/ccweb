@@ -1,4 +1,4 @@
-﻿using ProjectWeb.Application.Common.Repository.SystemLogin;
+using ProjectWeb.Application.Common.Repository.SystemLogin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +10,9 @@ namespace ProjectWeb.Application.Common.Repository.Master
     public interface IUnitOfWork
     {
         IUserRepository User { get; }
+        IContentManagement ContentManagement { get; }
+        IUIManagementRepository UIManagement { get; }
+        ISettingsManagementRepository SettingsManagement { get; }
+        ICourseManagementRepository CourseManagement { get; }
     }
 }

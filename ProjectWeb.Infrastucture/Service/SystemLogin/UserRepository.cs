@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Application.Common.Repository.SystemLogin;
 using ProjectWeb.Domain.DTO.LoginDto;
@@ -15,26 +16,42 @@ namespace ProjectWeb.Infrastucture.Service.SystemLogin
     public class UserRepository : IUserRepository
     {
         private readonly IHttpClientFactory _clientFactory;
-        private string projectUrl;
+        private readonly string projectUrl;
         private readonly IBaseService _baseService;
-        private IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<UserRepository> _logger;
 
-        public UserRepository(IHttpClientFactory clientFactory, IConfiguration configuration, IBaseService baseService, IHttpContextAccessor httpContextAccessor)
+        public UserRepository(
+            IHttpClientFactory clientFactory, 
+            IConfiguration configuration, 
+            IBaseService baseService, 
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<UserRepository> logger)
         {
             _baseService = baseService;
             _clientFactory = clientFactory;
             _httpContextAccessor = httpContextAccessor;
-            var hostName = _httpContextAccessor.HttpContext?.Request.Host.Host!;
-            projectUrl = hostName.Contains("localhost")
-                        ? configuration.GetValue<string>("ServiceUrls:ProjectAPI")
-                        : configuration.GetValue<string>("LiveServerServiceUrls:ProjectAPI");
+            _logger = logger;
+
+            // Read ASPNETCORE_ENVIRONMENT from configuration.
+            // Avoids hostname sniffing which breaks behind reverse proxies.
+            var envName = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Production";
+            var isProduction = !envName.Equals("Development", StringComparison.OrdinalIgnoreCase);
+
+            projectUrl = (isProduction
+                        ? configuration.GetValue<string>("LiveServerServiceUrls:ProjectAPI")
+                        : configuration.GetValue<string>("ServiceUrls:ProjectAPI")) ?? "";
+
+            _logger.LogInformation("[UserRepository] Resolved API URL: {Url} (Env: {Env})",
+                projectUrl, envName);
         }
+
         public async Task<T> GenerateNewTokenAsync<T>(long userId)
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
                 ApiType = StaticDetails.ApiType.GET,
-                Url = projectUrl + "/api/auth/generate-new-token/" + userId,
+                Url = projectUrl.TrimEnd('/') + "/api/auth/generate-new-token/" + userId,
             }, withBearer: false);
         }
 
@@ -44,7 +61,7 @@ namespace ProjectWeb.Infrastucture.Service.SystemLogin
             {
                 ApiType = StaticDetails.ApiType.POST,
                 Data = obj,
-                Url = projectUrl + "/api/auth/login"
+                Url = projectUrl.TrimEnd('/') + "/api/auth/login"
             }, withBearer: false);
         }
     }

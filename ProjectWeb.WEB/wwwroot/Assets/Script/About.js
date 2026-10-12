@@ -1,53 +1,12 @@
-﻿$(document).ready(function () {
+$(document).ready(function () {
     var _BaseURL = window.location.origin;
-    var action_name = !$.isNull($.getactionname()) ? $.getactionname().toLowerCase() : "";
-    var contollername = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
+    var action_name = "";
+    try {
+        action_name = !$.isNull($.getactionname()) ? $.getactionname().toLowerCase() : "";
+    } catch (e) { }
+    var isAboutPage = window.location.pathname.toLowerCase().indexOf("about") !== -1 || action_name === "about" || $("#image-container").length > 0;
 
-    if (action_name === "about") {
-        //var swiper = new Swiper(".swiper", {
-        //    effect: "coverflow",
-        //    grabCursor: true,
-        //    centeredSlides: true,
-        //    coverflowEffect: {
-        //        rotate: 0,
-        //        stretch: 0,
-        //        depth: 100,
-        //        modifier: 3,
-        //        slideShadows: true
-        //    },
-        //    keyboard: {
-        //        enabled: true
-        //    },
-        //    mousewheel: {
-        //        thresholdDelta: 70
-        //    },
-        //    loop: true,
-        //    //pagination: {
-        //    //    el: ".swiper-pagination",
-        //    //    clickable: true
-        //    //},
-        //    breakpoints: {
-        //        500: {
-        //            slidesPerView: 1
-        //        },
-        //        640: {
-        //            slidesPerView: 2
-        //        },
-        //        768: {
-        //            slidesPerView: 1
-        //        },
-        //        1024: {
-        //            slidesPerView: 1
-        //        },
-        //        1250: {
-        //            slidesPerView: 1
-        //        },
-        //        1560: {
-        //            slidesPerView: 3
-        //        }
-        //    }
-        //});
-
+    if (isAboutPage) {
         document.addEventListener("DOMContentLoaded", function () {
             if (window.location.hash === "#about-hills") {
                 const target = document.getElementById("about-hills");
@@ -115,34 +74,89 @@
             }
         });
 
-
-
-
-        const testimonials = [
+        const testimonials = (window.dbAboutPeople && window.dbAboutPeople.length > 0)
+            ? window.dbAboutPeople
+            : [
             {
                 quote:
-                    "I was impressed by the food — every dish is bursting with flavor! And I could really tell that they use high-quality ingredients. The staff was friendly and attentive, going the extra mile. I'll definitely be back for more!",
-                name: "Tamar Mendelson",
-                designation: "Restaurant Critic",
+                    "Rock climbing in West Bengal did not begin on an established path—it began with a vision and a steady guiding hand. Banabhusan Nayak was that guiding force. Through his leadership and passion, he laid the foundation upon which generations of climbers continue to rise.",
+                name: "Banabhusan Nayak",
+                designation: "Banabhusan Nayak",
                 src:
-                    "https://images.unsplash.com/photo-1512316609839-ce289d3eba0a?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    "../Assets/Testimonials/testimonials1.jpeg"
             },
             {
                 quote:
-                    "This place exceeded all expectations! The atmosphere is inviting, and the staff truly goes above and beyond to ensure a fantastic visit. I'll definitely keep returning for more exceptional dining experience.",
-                name: "Joe Charlescraft",
-                designation: "Frequent Visitor",
+                    "In the early days, when resources were scarce and challenges were many, Swapan Datta stood firm with unwavering belief. His quiet dedication and commitment helped shape the spirit of this club and transform a dream into a lasting legacy.",
+                name: "Swapan Datta",
+                designation: "Swapan Datta",
                 src:
-                    "https://images.unsplash.com/photo-1628749528992-f5702133b686?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fA%3D%3D"
+                    "../Assets/Testimonials/swapanda..jpg"
             },
             {
                 quote:
-                    "Shining Yam is a hidden gem! From the moment I walked in, I knew I was in for a treat. The impeccable service and overall attention to detail created a memorable experience. I highly recommend it!",
-                name: "Martina Edelweist",
-                designation: "Satisfied Customer",
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Kalayan Bhattacharya",
+                designation: "Kalayan Bhattacharya",
                 src:
-                    "https://images.unsplash.com/photo-1524267213992-b76e8577d046?q=80&w=1368&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fA%3D%3D"
-            }
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Bibek Ranjan Sarkar",
+                designation: "Bibek Ranjan Sarkar",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Samir Pal Choudhury",
+                designation: "Samir Pal Choudhury",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Debavas Dey",
+                designation: "Debavas Dey",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Tarun Dey",
+                designation: "Tarun Dey",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Late Dr.Prabal Roy",
+                designation: "Late Dr.Prabal Roy",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Late Arnab Mukharjee",
+                designation: "Late Arnab Mukharjee",
+                src:
+                    "../Assets/Testimonials/male.jpg"
+            },
+            {
+                quote:
+                    "Founding member and climber of Climbers' Circle.",
+                name: "Late Supriya Sengupta",
+                designation: "Late Supriya Sengupta",
+                src:
+                    "../Assets/Testimonials/female.jpg"
+            },
         ];
 
         let activeIndex = 0;
@@ -169,59 +183,65 @@
         }
 
         function updateTestimonial(direction) {
+            if (!testimonials || testimonials.length === 0) return;
             const oldIndex = activeIndex;
             activeIndex =
                 (activeIndex + direction + testimonials.length) % testimonials.length;
 
-            const containerWidth = imageContainer.offsetWidth;
+            const containerWidth = imageContainer ? imageContainer.offsetWidth : 300;
             const gap = calculateGap(containerWidth);
             const maxStickUp = gap * 0.8; // 80% of the calculated gap
 
-            testimonials.forEach((testimonial, index) => {
-                let img = imageContainer.querySelector(`[data-index="${index}"]`);
-                if (!img) {
-                    img = document.createElement("img");
-                    img.src = testimonial.src;
-                    img.alt = testimonial.name;
-                    img.classList.add("testimonial-image");
-                    img.dataset.index = index;
-                    imageContainer.appendChild(img);
-                }
+            if (imageContainer) {
+                testimonials.forEach((testimonial, index) => {
+                    let img = imageContainer.querySelector(`[data-index="${index}"]`);
+                    if (!img) {
+                        img = document.createElement("img");
+                        img.src = testimonial.src;
+                        img.alt = testimonial.name;
+                        img.classList.add("testimonial-image");
+                        img.dataset.index = index;
+                        imageContainer.appendChild(img);
+                    }
 
-                const offset =
-                    (index - activeIndex + testimonials.length) % testimonials.length;
-                const zIndex = testimonials.length - Math.abs(offset);
-                const opacity = index === activeIndex ? 1 : 1;
-                const scale = index === activeIndex ? 1 : 0.85;
+                    const offset =
+                        (index - activeIndex + testimonials.length) % testimonials.length;
+                    const zIndex = testimonials.length - Math.abs(offset);
+                    const opacity = index === activeIndex ? 1 : 1;
+                    const scale = index === activeIndex ? 1 : 0.85;
 
-                let translateX, translateY, rotateY;
-                if (offset === 0) {
-                    translateX = "0%";
-                    translateY = "0%";
-                    rotateY = "0deg";
-                } else if (offset === 1 || offset === -2) {
-                    translateX = "20%";
-                    translateY = `-${(maxStickUp / img.offsetHeight) * 100}%`;
-                    rotateY = "-15deg";
-                } else {
-                    translateX = "-20%";
-                    translateY = `-${(maxStickUp / img.offsetHeight) * 100}%`;
-                    rotateY = "15deg";
-                }
+                    let translateX, translateY, rotateY;
+                    if (offset === 0) {
+                        translateX = "0%";
+                        translateY = "0%";
+                        rotateY = "0deg";
+                    } else if (offset === 1 || offset === -2) {
+                        translateX = "20%";
+                        translateY = `-${(maxStickUp / (img.offsetHeight || 200)) * 100}%`;
+                        rotateY = "-15deg";
+                    } else {
+                        translateX = "-20%";
+                        translateY = `-${(maxStickUp / (img.offsetHeight || 200)) * 100}%`;
+                        rotateY = "15deg";
+                    }
 
-                img.style.zIndex = zIndex;
-                img.style.opacity = opacity;
-                img.style.transform = `translate(${translateX}, ${translateY}) scale(${scale}) rotateY(${rotateY})`;
-            });
+                    img.style.zIndex = zIndex;
+                    img.style.opacity = opacity;
+                    img.style.transform = `translate(${translateX}, ${translateY}) scale(${scale}) rotateY(${rotateY})`;
+                });
+            }
 
-            nameElement.textContent = testimonials[activeIndex].name;
-            designationElement.textContent = testimonials[activeIndex].designation;
-            quoteElement.innerHTML = testimonials[activeIndex].quote
-                .split(" ")
-                .map((word) => `<span class="word">${word}</span>`)
-                .join(" ");
-
-            animateWords();
+            if (nameElement) nameElement.textContent = testimonials[activeIndex] ? (testimonials[activeIndex].name || "") : "";
+            if (designationElement) designationElement.textContent = testimonials[activeIndex] ? (testimonials[activeIndex].designation || "") : "";
+            if (quoteElement) {
+                const rawQuote = testimonials[activeIndex] ? (testimonials[activeIndex].quote || testimonials[activeIndex].name || "") : "";
+                quoteElement.innerHTML = rawQuote
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((word) => `<span class="word">${word}</span>`)
+                    .join(" ");
+                animateWords();
+            }
         }
 
         function animateWords() {

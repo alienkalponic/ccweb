@@ -1,0 +1,38 @@
+@model ProjectWeb.Domain.Model.MultipleModel
+@{
+    Layout = null;
+    long targetId = Model?.ActivityDetailsDto?.ActivityId ?? 0;
+    if (targetId <= 0)
+    {
+        string? queryId = Context.Request.Query["id"];
+        if (string.IsNullOrEmpty(queryId))
+        {
+            queryId = Context.Request.Query["activityId"];
+        }
+        if (long.TryParse(queryId, out long qId) && qId > 0)
+        {
+            targetId = qId;
+        }
+        else
+        {
+            targetId = 12; // Default Activity
+        }
+    }
+    string redirectUrl = $"/Home/ActivityInfoDetails/{targetId}#registration-form";
+    Context.Response.Redirect(redirectUrl);
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0;url=@redirectUrl" />
+    <title>Redirecting to Course Registration Form...</title>
+</head>
+<body style="background:#000; color:#b08b45; font-family:'Segoe UI', sans-serif; text-align:center; padding-top:20vh;">
+    <h2>Redirecting to Course Registration Form...</h2>
+    <p style="color:#aaa;">If you are not redirected automatically within a few seconds, <a href="@redirectUrl" style="color:#b08b45; font-weight:bold;">click here</a>.</p>
+    <script>
+        window.location.replace('@redirectUrl');
+    </script>
+</body>
+</html>
