@@ -90,7 +90,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-accountant",
                 ContentType = StaticDetails.ContentType.Json
@@ -101,7 +101,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/inactive-course-accountant/" + id,
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);
@@ -111,8 +111,8 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.DELETE,
-                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/delete-course-accountant/" + id,
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/inactive-course-accountant/" + id,
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);
         }
@@ -121,7 +121,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Url = projectUrl.TrimEnd('/') + $"/api/CourseManagement/update-course-accountant-status/{id}/{isActive}",
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);
@@ -167,7 +167,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-expense-category",
                 ContentType = StaticDetails.ContentType.Json
@@ -178,7 +178,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/inactive-course-expense-category/" + id,
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);
@@ -188,8 +188,8 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.DELETE,
-                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/delete-course-expense-category/" + id,
+                ApiType = StaticDetails.ApiType.POST,
+                Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/inactive-course-expense-category/" + id,
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);
         }
@@ -198,7 +198,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Url = projectUrl.TrimEnd('/') + $"/api/CourseManagement/update-course-expense-category-status/{id}/{isActive}",
                 ContentType = StaticDetails.ContentType.Json
             }, withBearer: true);

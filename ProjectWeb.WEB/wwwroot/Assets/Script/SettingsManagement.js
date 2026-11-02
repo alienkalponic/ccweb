@@ -308,7 +308,7 @@
         var endpoint = isEdit
             ? _BaseURL + "/SettingsManagement/UpdateCourseAccountant"
             : _BaseURL + "/SettingsManagement/CreateCourseAccountant";
-        var httpMethod = isEdit ? "PUT" : "POST";
+        var httpMethod = "POST";
 
         var payload = isEdit
             ? { CourseAccountantId: id, Name: name, IsActive: isActive }
@@ -351,7 +351,7 @@
         var newStatus = !currentActive;
 
         $.ajax({
-            type: "PUT",
+            type: "POST",
             url: _BaseURL + "/SettingsManagement/UpdateCourseAccountantStatus?id=" + id + "&isActive=" + newStatus,
             contentType: "application/json; charset=utf-8",
             dataType: "json",
@@ -395,7 +395,7 @@
 
     function performDeleteAccountant(id) {
         $.ajax({
-            type: "DELETE",
+            type: "POST",
             url: _BaseURL + "/SettingsManagement/DeleteCourseAccountant?id=" + id,
             contentType: "application/json; charset=utf-8",
             dataType: "json",
@@ -719,7 +719,7 @@
         var endpoint = isEdit
             ? _BaseURL + "/SettingsManagement/UpdateCourseExpenseCategory"
             : _BaseURL + "/SettingsManagement/CreateCourseExpenseCategory";
-        var httpMethod = isEdit ? "PUT" : "POST";
+        var httpMethod = "POST";
 
         var payload = isEdit
             ? { CourseExpenseCategoryId: id, Name: name, IsActive: isActive }
@@ -762,7 +762,7 @@
         var newStatus = !currentActive;
 
         $.ajax({
-            type: "PUT",
+            type: "POST",
             url: _BaseURL + "/SettingsManagement/UpdateCourseExpenseCategoryStatus?id=" + id + "&isActive=" + newStatus,
             contentType: "application/json; charset=utf-8",
             dataType: "json",
@@ -806,7 +806,7 @@
 
     function performDeleteCategory(id) {
         $.ajax({
-            type: "DELETE",
+            type: "POST",
             url: _BaseURL + "/SettingsManagement/DeleteCourseExpenseCategory?id=" + id,
             contentType: "application/json; charset=utf-8",
             dataType: "json",

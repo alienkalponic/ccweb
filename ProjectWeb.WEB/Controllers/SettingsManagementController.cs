@@ -134,6 +134,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> UpdateCourseAccountant([FromBody] UpdateCourseAccountantDto dto)
         {
             try
@@ -199,6 +200,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> DeleteCourseAccountant(long id)
         {
             try
@@ -231,6 +233,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> UpdateCourseAccountantStatus(long id, bool isActive)
         {
             try
@@ -354,6 +357,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> UpdateCourseExpenseCategory([FromBody] UpdateCourseExpenseCategoryDto dto)
         {
             try
@@ -419,6 +423,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> DeleteCourseExpenseCategory(long id)
         {
             try
@@ -451,6 +456,7 @@ namespace ProjectWeb.WEB.Controllers
         }
 
         [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> UpdateCourseExpenseCategoryStatus(long id, bool isActive)
         {
             try
