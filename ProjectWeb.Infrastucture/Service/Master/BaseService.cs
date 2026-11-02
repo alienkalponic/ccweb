@@ -589,7 +589,7 @@ namespace ProjectWeb.Infrastucture.Service.Master
             HttpRequestMessage message = new()
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"{projectUrl}/api/HomeAPI/generate-new-token/" + userId),
+                RequestUri = new Uri($"{projectUrl.TrimEnd('/')}/api/auth/generate-new-token/" + userId),
             };
             message.Headers.Add("Accept", "application/json");
 
@@ -622,16 +622,17 @@ namespace ProjectWeb.Infrastucture.Service.Master
             var jwt = handler.ReadJwtToken(model.AccessToken);
 
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-            identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "unique_name").Value));
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(u => u.Type == "nameid").Value));
-            identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+            identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "unique_name")?.Value ?? ""));
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(u => u.Type == "nameid")?.Value ?? ""));
+            identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role")?.Value ?? ""));
             var principal = new ClaimsPrincipal(identity);
 
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
-                /*ExpiresUtc = DateTimeOffset.UtcNow.AddHours(4)*/ // This matches your ExpireTimeSpan setting
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(6)
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(6),
+                IssuedUtc = DateTimeOffset.UtcNow,
+                AllowRefresh = true
             };
 
             await _httpContextAccessor.HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using ProjectWeb.Application.Common.Repository.Master;
@@ -6,6 +7,17 @@ using ProjectWeb.Infrastucture;
 using ProjectWeb.Infrastucture.Service.Master;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Persistent Data Protection Keys ──────────────────────────────────────────
+// Ensures auth cookies survive AppPool recycles, server restarts, and idle timeouts
+var keysFolder = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtection-Keys");
+if (!Directory.Exists(keysFolder))
+{
+    Directory.CreateDirectory(keysFolder);
+}
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
+    .SetApplicationName("ClimbersCircleWeb");
 
 // ── Upload size limits (must be before AddControllersWithViews) ──────────────
 // Kestrel limit — controls what the .NET web server accepts before ASP.NET sees it.
@@ -75,7 +87,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
               {
                   options.Cookie.Name = "ClimbersCircleWeb";
                   options.Cookie.HttpOnly = true;
-                  //options.ExpireTimeSpan = TimeSpan.FromHours(4);
+                  options.Cookie.IsEssential = true;
+                  options.Cookie.SameSite = SameSiteMode.Lax;
+                  options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                  options.Cookie.MaxAge = TimeSpan.FromDays(6);
                   options.ExpireTimeSpan = TimeSpan.FromDays(6);
                   options.LoginPath = "/Home/Index";
                   options.AccessDeniedPath = "/Home/UnauthorizedAccess";
@@ -112,10 +127,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddSession(options =>
 {
-    //options.IdleTimeout = TimeSpan.FromHours(4);
-    options.IdleTimeout = TimeSpan.FromHours(4);
+    options.IdleTimeout = TimeSpan.FromDays(6);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.MaxAge = TimeSpan.FromDays(6);
 });
 
 var app = builder.Build();

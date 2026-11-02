@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using ProjectWeb.Application.Common.Repository.Master;
 using ProjectWeb.Domain.DTO;
 using ProjectWeb.Domain.Utility;
@@ -19,7 +19,10 @@ namespace ProjectWeb.Infrastucture.Service.Master
         }
         public void ClearToken()
         {
-            _contextAccessor.HttpContext?.Response.Cookies.Delete(StaticDetails.AccessToken);
+            _contextAccessor.HttpContext?.Response.Cookies.Delete(StaticDetails.AccessToken, new CookieOptions
+            {
+                Path = "/"
+            });
         }
 
         public TokenDTO? GetToken()
@@ -51,7 +54,17 @@ namespace ProjectWeb.Infrastucture.Service.Master
 
         public void SetToken(string AccessTOken)
         {
-            var cookieOptions = new CookieOptions { Expires = DateTime.UtcNow.AddDays(1) };
+            var isHttps = _contextAccessor.HttpContext?.Request.IsHttps == true;
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddDays(6),
+                MaxAge = TimeSpan.FromDays(6),
+                HttpOnly = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = isHttps,
+                Path = "/"
+            };
             _contextAccessor.HttpContext?.Response.Cookies.Append(StaticDetails.AccessToken, AccessTOken, cookieOptions);
 
             _contextAccessor.HttpContext.Items["AccessToken"] = AccessTOken;

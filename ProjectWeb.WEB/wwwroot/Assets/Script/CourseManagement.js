@@ -8,11 +8,16 @@ $(document).ready(function () {
     var action_name = !$.isNull($.getactionname()) ? $.getactionname().toLowerCase() : "";
     var controller_name = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
 
-    // Global flatpickr initialization
+    // Global flatpickr initialization with Year Dropdown
     if (typeof flatpickr !== "undefined") {
         $(".flatpickr-date").flatpickr({
             dateFormat: "Y-m-d",
-            allowInput: true
+            allowInput: true,
+            onReady: window.initFlatpickrYearDropdown ? [window.initFlatpickrYearDropdown] : undefined,
+            onOpen: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onMonthChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onYearChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onValueUpdate: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined
         });
     }
 

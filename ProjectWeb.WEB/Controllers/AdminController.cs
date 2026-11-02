@@ -75,17 +75,18 @@ namespace ProjectWeb.WEB.Controllers
             var jwt = handler.ReadJwtToken(model.AccessToken);
 
             var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-            identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "unique_name").Value));
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(u => u.Type == "nameid").Value));
-            identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
-            identity.AddClaim(new Claim(ClaimTypes.Email, jwt.Claims.FirstOrDefault(u => u.Type == "email").Value));
+            identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "unique_name")?.Value ?? ""));
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, jwt.Claims.FirstOrDefault(u => u.Type == "nameid")?.Value ?? ""));
+            identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role")?.Value ?? ""));
+            identity.AddClaim(new Claim(ClaimTypes.Email, jwt.Claims.FirstOrDefault(u => u.Type == "email")?.Value ?? ""));
             var principal = new ClaimsPrincipal(identity);
 
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = true,
-
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(6)
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(6),
+                IssuedUtc = DateTimeOffset.UtcNow,
+                AllowRefresh = true
             };
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 

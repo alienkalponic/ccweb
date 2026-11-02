@@ -2018,11 +2018,21 @@ $(document).ready(function () {
 
         const startPicker = flatpickr("#txtSDate", {
             dateFormat: "Y-m-d",
+            onReady: window.initFlatpickrYearDropdown ? [window.initFlatpickrYearDropdown] : undefined,
+            onOpen: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onMonthChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onYearChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onValueUpdate: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined
         });
 
         const endPicker = flatpickr("#txtEDate", {
             dateFormat: "Y-m-d",
-            minDate: "today"
+            minDate: "today",
+            onReady: window.initFlatpickrYearDropdown ? [window.initFlatpickrYearDropdown] : undefined,
+            onOpen: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onMonthChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onYearChange: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined,
+            onValueUpdate: window.syncFlatpickrYearDropdown ? [window.syncFlatpickrYearDropdown] : undefined
         });
 
         initModalEvents();

@@ -310,3 +310,55 @@
 .admin-modern.sidebar-collapsed #sidebar .sidebar-menu li a span {
     display: none;
 }
+
+/* ============================================================
+   Flatpickr Custom Year Dropdown Styling
+   ============================================================ */
+.flatpickr-current-month .numInputWrapper {
+    display: none !important;
+}
+
+.flatpickr-current-month {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+}
+
+.flatpickr-current-month select.flatpickr-year-dropdown {
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: inherit;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: 600;
+    height: auto;
+    line-height: inherit;
+    margin: 0;
+    outline: none;
+    padding: 0 0.5ch;
+    position: relative;
+    vertical-align: initial;
+    -webkit-appearance: menulist;
+    -moz-appearance: menulist;
+    appearance: menulist;
+    width: auto;
+    display: inline-block;
+}
+
+.flatpickr-current-month select.flatpickr-year-dropdown:hover,
+.flatpickr-current-month select.flatpickr-year-dropdown:focus {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.flatpickr-current-month select.flatpickr-year-dropdown option {
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 4px 8px;
+}
