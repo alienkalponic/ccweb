@@ -8,7 +8,7 @@
     var instaToken = ViewBag.InstagramAccessToken as string ?? "";
 }
 
-<link rel="stylesheet" href="~/Assets/Css/gallery.css" />
+<link rel="stylesheet" href="~/Assets/Css/gallery.css" asp-append-version="true" />
 
 <!-- Hero Header Section -->
 <section class="gallery-hero-section">
@@ -99,7 +99,18 @@
                 var bannerUrl = !string.IsNullOrEmpty(item.ImageUrl) && item.ImageUrl.StartsWith("/")
                     ? $"{projectApiUrl}{item.ImageUrl}"
                     : (!string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : "/Assets/GalleryDetails/course3.jpg");
-                <div class="gallery-card" data-category="@(item.CategoryName ?? "")" data-title="@(item.Title ?? "")">
+                var effectiveId = item.AchievementDetailsId > 0 
+                    ? item.AchievementDetailsId 
+                    : (item.GalleryItemsId > 0 ? item.GalleryItemsId : 1);
+                var albumUrl = Url.Action("Details", "GalleryContent", new { 
+                    id = effectiveId, 
+                    galleryItemsId = item.GalleryItemsId, 
+                    title = item.Title, 
+                    category = item.CategoryName, 
+                    year = item.ExpeditionYear 
+                });
+
+                <div class="gallery-card" data-category="@(item.CategoryName ?? "")" data-title="@(item.Title ?? "")" onclick="if (!event.target.closest('a')) { window.location.href='@albumUrl'; }">
                 <div class="gallery-card-image">
                     <img src="@bannerUrl" alt="@(item.Title ?? "Album")">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -110,9 +121,8 @@
                 </div>
                 <div class="gallery-card-body">
                     <h3 class="gallery-card-title">@(item.Title ?? "Untitled Album")</h3>
-                    @* <p class="gallery-card-desc">Basic & advanced mountaineering skills, knot technique training, and endurance preparation.</p> *@
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = item.AchievementDetailsId, galleryItemsId = item.GalleryItemsId, title = item.Title, category = item.CategoryName, year = item.ExpeditionYear })" class="gallery-btn">
+                        <a href="@albumUrl" class="gallery-btn">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -122,7 +132,7 @@
         }
         else
         {
-            <div class="gallery-card" data-category="training" data-title="Annual training courses">
+            <div class="gallery-card" data-category="training" data-title="Annual training courses" onclick="window.location.href='@Url.Action("Details", "GalleryContent", new { id = 1 })'">
                 <div class="gallery-card-image">
                     <img src="~/Assets/GalleryDetails/course3.jpg" alt="Annual training courses">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -135,7 +145,7 @@
                     <h3 class="gallery-card-title">Annual Training Courses</h3>
                     <p class="gallery-card-desc">Basic & advanced mountaineering skills, knot technique training, and endurance preparation.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 1 })" class="gallery-btn" onclick="event.stopPropagation();">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -143,7 +153,7 @@
             </div>
 
             <!-- Gallery Album 2: Rock Climbing -->
-            <div class="gallery-card" data-category="climbing" data-title="Rock climbing">
+            <div class="gallery-card" data-category="climbing" data-title="Rock climbing" onclick="window.location.href='@Url.Action("Details", "GalleryContent", new { id = 2 })'">
                 <div class="gallery-card-image">
                     <img src="/Assets/GalleryDetails/climb6.jpg" alt="Rock climbing">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -156,7 +166,7 @@
                     <h3 class="gallery-card-title">Rock Climbing</h3>
                     <p class="gallery-card-desc">Natural rock face scaling, bouldering sessions, and safety gear maneuvering.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 2 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 2 })" class="gallery-btn" onclick="event.stopPropagation();">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -164,7 +174,7 @@
             </div>
 
             <!-- Gallery Album 3: Summer Camp -->
-            <div class="gallery-card" data-category="camp" data-title="Summer camp">
+            <div class="gallery-card" data-category="camp" data-title="Summer camp" onclick="window.location.href='@Url.Action("Details", "GalleryContent", new { id = 3 })'">
                 <div class="gallery-card-image">
                     <img src="/Assets/GalleryDetails/ssummer5.jpg" alt="Summer camp">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -177,7 +187,7 @@
                     <h3 class="gallery-card-title">Summer Camp</h3>
                     <p class="gallery-card-desc">Youth outdoor workshops, tent pitching, wilderness survival, and team building.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 3 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 3 })" class="gallery-btn" onclick="event.stopPropagation();">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -185,7 +195,7 @@
             </div>
 
             <!-- Gallery Album 4: Expedition -->
-            <div class="gallery-card" data-category="expedition" data-title="Expedition">
+            <div class="gallery-card" data-category="expedition" data-title="Expedition" onclick="window.location.href='@Url.Action("Details", "GalleryContent", new { id = 4 })'">
                 <div class="gallery-card-image">
                     <img src="/Assets/GalleryDetails/exp7.jpg" alt="Expedition">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -198,7 +208,7 @@
                     <h3 class="gallery-card-title">Himalayan Expedition</h3>
                     <p class="gallery-card-desc">Summit attempts, glacier crossing, and technical high-altitude climbs in remote ranges.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 4 })" class="gallery-btn" onclick="event.stopPropagation();">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>
@@ -206,7 +216,7 @@
             </div>
 
             <!-- Gallery Album 5: High-altitude treks -->
-            <div class="gallery-card" data-category="treks" data-title="High-altitude treks">
+            <div class="gallery-card" data-category="treks" data-title="High-altitude treks" onclick="window.location.href='@Url.Action("Details", "GalleryContent", new { id = 5 })'">
                 <div class="gallery-card-image">
                     <img src="/Assets/GalleryDetails/high1.jpg" alt="High-altitude treks">
                     <div class="gallery-card-overlay-gradient"></div>
@@ -219,7 +229,7 @@
                     <h3 class="gallery-card-title">High-Altitude Treks</h3>
                     <p class="gallery-card-desc">Breathtaking Himalayan trail journeys, mountain passes, and scenic valley photography.</p>
                     <div class="gallery-card-footer">
-                        <a href="@Url.Action("Details", "GalleryContent", new { id = 5 })" class="gallery-btn">
+                        <a href="@Url.Action("Details", "GalleryContent", new { id = 5 })" class="gallery-btn" onclick="event.stopPropagation();">
                             View Album <i class="fa-solid fa-arrow-right"></i>
                         </a>
                     </div>

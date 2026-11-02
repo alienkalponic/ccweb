@@ -2,9 +2,73 @@
 @inject IConfiguration Configuration
 @{
     var dto = Model?.AchievementDetailsGalleryDtos;
+    var rawCategory = (ViewBag.CategoryName as string ?? dto?.SubTitle ?? "").Trim();
+    var lowerCat = rawCategory.ToLowerInvariant();
+    var lowerTitle = (dto?.Title ?? "").ToLowerInvariant();
+
+    string segmentType;
+    string segmentTagline;
+    string segmentTaglineIcon;
+    string segmentHighlightsTitle;
+    string segmentHighlightsSubtitle;
+    string segmentAscentBadge;
+    string segmentFramePrefix;
+
+    if (lowerCat.Contains("trek") || lowerCat.Contains("hat") || lowerCat.Contains("trail") || lowerCat.Contains("hike") || lowerTitle.Contains("trek"))
+    {
+        segmentType = "Trek";
+        segmentTagline = "Photographic Trek Log";
+        segmentTaglineIcon = "fa-person-hiking";
+        segmentHighlightsTitle = "Visual Trek Highlights";
+        segmentHighlightsSubtitle = "High-resolution frames, mountain trail passes, wilderness base camps, and scenic terrain documented along the trek.";
+        segmentAscentBadge = "Verified Club Trek";
+        segmentFramePrefix = "Trek Frame";
+    }
+    else if (lowerCat.Contains("climb") || lowerCat.Contains("rock") || lowerCat.Contains("boulder") || lowerCat.Contains("lead") || lowerTitle.Contains("climb") || lowerTitle.Contains("face"))
+    {
+        segmentType = "Climb";
+        segmentTagline = "Photographic Climbing Log";
+        segmentTaglineIcon = "fa-mountain";
+        segmentHighlightsTitle = "Visual Climbing Highlights";
+        segmentHighlightsSubtitle = "High-resolution frames, crux pitches, anchor placements, and sheer rock face ascents documented during the climb.";
+        segmentAscentBadge = "Verified Technical Ascent";
+        segmentFramePrefix = "Pitch";
+    }
+    else if (lowerCat.Contains("train") || lowerCat.Contains("course") || lowerCat.Contains("camp") || lowerCat.Contains("workshop") || lowerTitle.Contains("course") || lowerTitle.Contains("training"))
+    {
+        segmentType = "Training";
+        segmentTagline = "Photographic Training Log";
+        segmentTaglineIcon = "fa-graduation-cap";
+        segmentHighlightsTitle = "Visual Training & Course Highlights";
+        segmentHighlightsSubtitle = "Practical fieldwork, rope-handling drills, knot techniques, safety exercises, and team preparation moments.";
+        segmentAscentBadge = "Certified Club Training";
+        segmentFramePrefix = "Session";
+    }
+    else if (lowerCat.Contains("expedition") || lowerCat.Contains("summit") || lowerCat.Contains("alpine") || lowerCat.Contains("peak") || lowerCat.Contains("reconnaissance") || lowerTitle.Contains("expedition"))
+    {
+        segmentType = "Expedition";
+        segmentTagline = "Photographic Log";
+        segmentTaglineIcon = "fa-camera";
+        segmentHighlightsTitle = "Visual Expedition Highlights";
+        segmentHighlightsSubtitle = "High-resolution frames, crux pitches, glacier traverses, and environmental conditions documented during the ascent.";
+        segmentAscentBadge = "Verified Club Ascent";
+        segmentFramePrefix = "Ascent Frame";
+    }
+    else
+    {
+        var displayCategory = !string.IsNullOrWhiteSpace(rawCategory) ? rawCategory : "Expedition";
+        segmentType = displayCategory;
+        segmentTagline = $"{displayCategory} Log";
+        segmentTaglineIcon = "fa-camera";
+        segmentHighlightsTitle = $"Visual {displayCategory} Highlights";
+        segmentHighlightsSubtitle = "High-resolution frames, field captures, and environmental moments documented during the journey.";
+        segmentAscentBadge = $"Verified Club {displayCategory}";
+        segmentFramePrefix = "Frame";
+    }
+
     var pageTitle = !string.IsNullOrWhiteSpace(dto?.Title) 
-        ? $"{dto.Title} | Climbers' Circle Expedition Archives" 
-        : "Expedition & Route Report | Climbers' Circle";
+        ? $"{dto.Title} | Climbers' Circle {segmentType} Archives" 
+        : $"{segmentType} & Route Report | Climbers' Circle";
     ViewData["Title"] = pageTitle;
     Layout = "~/Views/Shared/_Layout.cshtml";
     
@@ -21,13 +85,13 @@
     <div class="gallery-editorial-container">
 
         <!-- Top Navigation / Breadcrumb Bar -->
-        <nav class="report-nav-bar" aria-label="Breadcrumb">
+        <nav class="report-nav-bar d-print-none" aria-label="Breadcrumb">
             <div class="report-breadcrumbs">
                 <a href="@Url.Action("Index", "Home")"><i class="fa-solid fa-house"></i> Home</a>
                 <span class="sep">/</span>
                 <a href="@Url.Action("Index", "GalleryContent")"><i class="fa-solid fa-mountain-sun"></i> Archives</a>
                 <span class="sep">/</span>
-                <span class="current">@(dto?.Title ?? "Expedition Report")</span>
+                <span class="current">@(dto?.Title ?? $"{segmentType} Report")</span>
             </div>
             <div class="report-nav-actions">
                 <button type="button" class="btn-report-action" onclick="copyReportUrl()" title="Copy link to this climb dossier">
@@ -55,6 +119,21 @@
         }
         else
         {
+            <!-- Print-Only Official Masthead -->
+            <div class="print-doc-header">
+                <div class="print-doc-brand">
+                    <img src="@Url.Content("~/Assets/images/CCLogo.png")" alt="Logo" class="print-doc-logo" />
+                    <div>
+                        <div class="print-doc-org">CLIMBERS' CIRCLE</div>
+                        <div class="print-doc-tagline">Built on Rock, Proven in the Mountains — A Legacy Carved Over Fifty Years</div>
+                    </div>
+                </div>
+                <div class="print-doc-meta">
+                    <span><strong>Official Document Archive</strong></span>
+                    <span>Reference #@dto.AchievementDetailsId</span>
+                </div>
+            </div>
+
             <!-- Hero Header Section -->
             <header class="gallery-hero">
                 <div class="gallery-hero-badge-wrap">
@@ -74,7 +153,7 @@
                 <div class="hero-meta-bar">
                     <div class="hero-meta-pill">
                         <i class="fa-solid fa-certificate"></i>
-                        <span>Verified Club Ascent</span>
+                        <span>@segmentAscentBadge</span>
                     </div>
                     <div class="hero-meta-pill">
                         <i class="fa-solid fa-book-bookmark"></i>
@@ -115,10 +194,10 @@
                 <section class="expedition-gallery-section" id="photo-log">
                     <div class="section-editorial-header">
                         <div class="section-tagline">
-                            <i class="fa-solid fa-camera"></i> Photographic Log
+                            <i class="fa-solid @segmentTaglineIcon"></i> @segmentTagline
                         </div>
-                        <h2>Visual Expedition Highlights</h2>
-                        <p>High-resolution frames, crux pitches, and environmental conditions documented during the ascent.</p>
+                        <h2>@segmentHighlightsTitle</h2>
+                        <p>@segmentHighlightsSubtitle</p>
                     </div>
 
                     <div class="gallery-items-list">
@@ -138,7 +217,7 @@
                                         <i class="fa-solid fa-flag"></i>
                                         @(item.DisplayOrder.HasValue ? $"SECTION {item.DisplayOrder.Value}" : $"FRAME #{pitchIndex}")
                                     </div>
-                                    <h3>@(string.IsNullOrWhiteSpace(item.Title) ? $"Ascent Frame #{pitchIndex}" : item.Title)</h3>
+                                    <h3>@(string.IsNullOrWhiteSpace(item.Title) ? $"{segmentFramePrefix} #{pitchIndex}" : item.Title)</h3>
                                     
                                     @if (!string.IsNullOrWhiteSpace(item.Description))
                                     {
@@ -174,7 +253,7 @@
             }
 
             <!-- Bottom Navigation Bar -->
-            <footer class="report-bottom-bar">
+            <footer class="report-bottom-bar d-print-none">
                 <div class="bottom-bar-info">
                     <h4>Climbers' Circle Archives</h4>
                     <p>Documenting mountain expeditions, rock climbs, and wilderness exploration since 1977.</p>
@@ -184,7 +263,7 @@
                         <i class="fa-solid fa-arrow-up"></i> Back to Top
                     </button>
                     <a href="@Url.Action("Index", "GalleryContent")" class="btn-bottom-return">
-                        <i class="fa-solid fa-mountain-sun"></i> Explore All Expeditions
+                        <i class="fa-solid fa-mountain-sun"></i> Explore All Archives
                     </a>
                 </div>
             </footer>
@@ -194,7 +273,7 @@
 </div>
 
 <!-- Floating Lightbox Modal -->
-<div id="imageLightbox" class="lightbox-modal" role="dialog" aria-modal="true" aria-label="Image preview">
+<div id="imageLightbox" class="lightbox-modal d-print-none" role="dialog" aria-modal="true" aria-label="Image preview">
     <div class="lightbox-dialog">
         <span class="lightbox-close" title="Close (Esc)">&times;</span>
         <img class="lightbox-content" id="img01" alt="Expedition Photo Enlarge" />
@@ -203,7 +282,7 @@
 </div>
 
 <!-- Feedback Toast -->
-<div id="reportToast" class="report-toast">
+<div id="reportToast" class="report-toast d-print-none">
     <i class="fa-solid fa-circle-check" style="color: var(--cc-gold);"></i>
     <span id="toastMessage">Link copied to clipboard!</span>
 </div>

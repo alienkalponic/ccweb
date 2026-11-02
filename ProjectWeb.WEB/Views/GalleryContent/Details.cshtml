@@ -1,10 +1,25 @@
 @model ProjectWeb.Domain.Model.MultipleModel
 @inject IConfiguration Configuration
 @{
+    var parentGallery = Model?.AchievementDetailsGalleryDtos;
     var galleryId = ViewBag.GalleryId != null ? (int)ViewBag.GalleryId : 0;
     var galleryItemId = ViewBag.GalleryItemsId != null ? (int)ViewBag.GalleryItemsId : (galleryId == 32 ? 32 : 0);
+    if (galleryItemId <= 0 && parentGallery?.GalleryItemsId.HasValue == true && parentGallery.GalleryItemsId.Value > 0)
+    {
+        galleryItemId = (int)parentGallery.GalleryItemsId.Value;
+    }
+
     var albumTitle = ViewBag.AlbumTitle as string;
+    if (string.IsNullOrWhiteSpace(albumTitle) && !string.IsNullOrWhiteSpace(parentGallery?.Title))
+    {
+        albumTitle = parentGallery.Title;
+    }
+
     var categoryName = ViewBag.CategoryName as string;
+    if (string.IsNullOrWhiteSpace(categoryName) && !string.IsNullOrWhiteSpace(parentGallery?.SubTitle))
+    {
+        categoryName = parentGallery.SubTitle;
+    }
 
     if (string.IsNullOrWhiteSpace(albumTitle) && (galleryId == 32 || galleryId == 8 || galleryItemId == 32))
     {
@@ -65,16 +80,48 @@
 <!-- Gallery Details Grid Container -->
 <div class="container gallery-details-container">
     
-    <!-- Photo Cards Grid -->
+    <!-- Photo Cards Grid (Rendered Server-Side for zero delay) -->
     <div class="gallery-details-grid" id="detailsimageBind">
-        <!-- Photo cards rendered dynamically via Gallery.js -->
+        @if (parentGallery?.AchievementDetailsGalleryDetailsList != null && parentGallery.AchievementDetailsGalleryDetailsList.Any())
+        {
+            var activePhotos = parentGallery.AchievementDetailsGalleryDetailsList.Where(x => x.IsActive != false).ToList();
+            for (int i = 0; i < activePhotos.Count; i++)
+            {
+                var val = activePhotos[i];
+                var photoNumber = i + 1;
+                var rawImg = val.ImagePath1 ?? "";
+                var src = !string.IsNullOrWhiteSpace(rawImg)
+                    ? (rawImg.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? rawImg : $"{projectApiUrl}{(rawImg.StartsWith("/") ? "" : "/")}{rawImg}")
+                    : "";
+                var pTitle = !string.IsNullOrWhiteSpace(val.Title) ? val.Title : $"{albumTitle} #{photoNumber}";
+
+                <div class="gallery-item" data-index="@i" role="button" tabindex="0">
+                    <img src="@src" alt="@pTitle" class="gallery-item-img" loading="lazy">
+                    <div class="gallery-item-overlay">
+                        <div class="gallery-zoom-icon">
+                            <i class="fa-solid fa-expand"></i>
+                        </div>
+                        <span class="gallery-item-caption">@pTitle</span>
+                    </div>
+                </div>
+            }
+        }
     </div>
 
     <!-- Bottom Navigation Bar -->
     <div class="gallery-bottom-back">
-        <span class="text-muted font-size-sm" id="dynamicPhotoCountText">
-            <i class="fa-regular fa-compass"></i> Climbers' Circle Official Expedition Gallery
-        </span>
+        @if (parentGallery?.AchievementDetailsGalleryDetailsList != null && parentGallery.AchievementDetailsGalleryDetailsList.Any())
+        {
+            <span class="text-muted font-size-sm" id="dynamicPhotoCountText">
+                <i class="fa-regular fa-images"></i> Showing @parentGallery.AchievementDetailsGalleryDetailsList.Count(x => x.IsActive != false) High-Res Photos
+            </span>
+        }
+        else
+        {
+            <span class="text-muted font-size-sm" id="dynamicPhotoCountText">
+                <i class="fa-regular fa-compass"></i> Climbers' Circle Official Expedition Gallery
+            </span>
+        }
         <div class="gallery-bottom-actions">
             <!-- REPORT BUTTON (Opens /Home/Gallery/{id}) -->
             <a href="@reportUrl" 

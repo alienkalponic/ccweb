@@ -142,6 +142,32 @@ namespace ProjectWeb.WEB.Controllers
                 parent.AchievementDetailsGalleryDetailsList = new List<AchievementDetailsGalleryDetailDto>();
             }
 
+            if (parent != null)
+            {
+                try
+                {
+                    APIResponse allRes = await _unitOfWork.UIManagement.GetAllGallery<APIResponse>();
+                    if (allRes?.Response != null)
+                    {
+                        var rawJson = Convert.ToString(allRes.Response);
+                        if (!string.IsNullOrWhiteSpace(rawJson))
+                        {
+                            var list = JsonConvert.DeserializeObject<List<GalleryListDto>>(rawJson);
+                            var matched = list?.FirstOrDefault(x => x.GalleryItemsId == id || x.AchievementDetailsId == parent.AchievementDetailsId);
+                            if (matched != null)
+                            {
+                                ViewBag.CategoryName = matched.CategoryName;
+                                ViewBag.ExpeditionYear = matched.ExpeditionYear;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not fetch category name from GetAllGallery in HomeController for id {Id}", id);
+                }
+            }
+
             mmm.AchievementDetailsGalleryDtos = parent;
             return View(mmm);
         }

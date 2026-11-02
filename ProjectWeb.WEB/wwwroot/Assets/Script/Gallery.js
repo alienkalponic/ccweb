@@ -68,9 +68,19 @@ $(document).ready(function () {
     // Auto-trigger on page load
     window.initInstagramRealTimeFeed();
 
-    if (action_name === "details") {
-        const segments = window.location.pathname.split('/');
-        const id = segments[segments.length - 1];
+    if (action_name === "details" || window.location.pathname.toLowerCase().includes("/details")) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const lastSegment = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : "";
+        const numericPathId = (!isNaN(lastSegment) && lastSegment.toLowerCase() !== "details") ? lastSegment : "";
+
+        const id = ($("#albumId").val() && $("#albumId").val() !== "0")
+            ? $("#albumId").val()
+            : (urlParams.get("id") && urlParams.get("id") !== "0"
+                ? urlParams.get("id")
+                : (numericPathId || $("#galleryItemsId").val() || urlParams.get("galleryItemsId") || "1"));
+
+        const gItemId = $("#galleryItemsId").val() || urlParams.get("galleryItemsId") || id;
 
         // Album Metadata Mapping
         const albumMeta = {
@@ -162,14 +172,12 @@ $(document).ready(function () {
 
         function detailsImageGalleryBind() {
             let $datset = $("#detailsimageBind");
-            $datset.empty();
 
             // Retrieve dynamic album metadata from DOM elements or URL query parameters
-            const urlParams = new URLSearchParams(window.location.search);
             const serverTitle = ($("#serverAlbumTitle").val() || urlParams.get("title") || "").trim();
             const serverCategory = ($("#serverCategory").val() || urlParams.get("category") || "").trim();
             const rawGalleryItemsId = $("#galleryItemsId").val() || urlParams.get("galleryItemsId");
-            let galleryItemIdNum = parseInt(rawGalleryItemsId || "0", 10);
+            let galleryItemIdNum = parseInt(rawGalleryItemsId || gItemId || "0", 10);
 
             if (id === "32" || id === "8") {
                 if (!galleryItemIdNum || galleryItemIdNum <= 0) {
@@ -177,7 +185,7 @@ $(document).ready(function () {
                 }
             }
 
-            const fallbackMeta = albumMeta[id] || {
+            const fallbackMeta = albumMeta[id] || albumMeta[gItemId] || {
                 title: id === "32" || id === "8" ? "GAJABURU SOUTH FACE" : "Expedition Gallery",
                 category: id === "32" || id === "8" ? "LEAD CLIMB" : "ALBUM ARCHIVE",
                 subtitle: id === "32" || id === "8" 
@@ -198,9 +206,15 @@ $(document).ready(function () {
                     : fallbackMeta.subtitle);
 
             // Set dynamic header titles
-            $("#dynamicAlbumTitle").text(currentTitle);
-            $("#dynamicAlbumSubtitle").text(currentSubtitle);
-            $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentCategory.toUpperCase());
+            if ($("#dynamicAlbumTitle").text().trim() === "" || $("#dynamicAlbumTitle").text().trim() === "Adventure Gallery") {
+                $("#dynamicAlbumTitle").text(currentTitle);
+            }
+            if ($("#dynamicAlbumSubtitle").text().trim() === "" || $("#dynamicAlbumSubtitle").text().trim().includes("Captured moments")) {
+                $("#dynamicAlbumSubtitle").text(currentSubtitle);
+            }
+            if ($("#dynamicAlbumCategory").text().trim() === "" || $("#dynamicAlbumCategory").text().trim() === "ALBUM ARCHIVE") {
+                $("#dynamicAlbumCategory").html('<i class="fa-solid fa-mountain-sun"></i> ' + currentCategory.toUpperCase());
+            }
 
             // Update Report button
             if (galleryItemIdNum > 0) {
@@ -209,10 +223,24 @@ $(document).ready(function () {
                 $("#btnAlbumReport").hide();
             }
 
-            const apiUrl = _BaseURL + "/GalleryContent/GetGalleryDetails?id=" + id;
-            toastr.info("Fetching banner details...", "Please wait");
+            // If photos were already rendered on server side by Razor, DO NOT wipe them out!
+            if ($datset.children(".gallery-item").length > 0) {
+                var serverCount = $datset.children(".gallery-item").length;
+                $("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + serverCount + ' High-Res Photos');
+                if (typeof window.initGallery === "function") {
+                    window.initGallery();
+                }
+                return;
+            }
 
-            showLoader();
+            $datset.empty();
+
+            const apiUrl = _BaseURL + "/GalleryContent/GetGalleryDetails?id=" + encodeURIComponent(id) + "&galleryItemsId=" + encodeURIComponent(gItemId);
+            if (typeof toastr !== "undefined" && toastr.info) {
+                toastr.info("Fetching banner details...", "Please wait");
+            }
+
+            if (typeof showLoader === "function") showLoader();
             $.ajax({
                 url: apiUrl,
                 type: 'GET',
@@ -220,14 +248,21 @@ $(document).ready(function () {
                 cache: false,
                 success: function (res) {
                     if (res) {
-                        const data = res.Response || res;
+                        let data = res;
+                        if (typeof res === "string") {
+                            try { data = JSON.parse(res); } catch (e) { data = []; }
+                        }
+                        if (data && data.Response) {
+                            data = data.Response;
+                        }
                         var _apiUrl = $("#apiurl").val() || "";
 
                         if (Array.isArray(data) && data.length > 0) {
                             $("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + data.length + ' High-Res Photos');
                             $.each(data, function (index, val) {
                                 let photoNumber = index + 1;
-                                var src = _apiUrl + (val.ImagePath1 || val.imagePath1 || val.ImagePath || val.imagePath || "");
+                                var imgPath = (val.ImagePath1 || val.imagePath1 || val.ImagePath || val.imagePath || "");
+                                var src = imgPath.startsWith("http") ? imgPath : (_apiUrl + imgPath);
                                 let htmlCard = `
                                     <div class="gallery-item" data-index="${index}" role="button" tabindex="0">
                                         <img src="${src}" alt="${currentTitle} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
@@ -247,7 +282,32 @@ $(document).ready(function () {
                                 window.initGallery();
                             }
                         } else {
-                            $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
+                            // Fallback to static mock photos if available
+                            const fallbackPhotos = testimonials.filter(t => t.id === String(id) || t.id === String(gItemId));
+                            if (fallbackPhotos && fallbackPhotos.length > 0) {
+                                $("#dynamicPhotoCountText").html('<i class="fa-regular fa-images"></i> Showing ' + fallbackPhotos.length + ' High-Res Photos');
+                                $.each(fallbackPhotos, function (index, val) {
+                                    let photoNumber = index + 1;
+                                    let htmlCard = `
+                                        <div class="gallery-item" data-index="${index}" role="button" tabindex="0">
+                                            <img src="${val.src}" alt="${currentTitle} Photo ${photoNumber}" class="gallery-item-img" loading="lazy">
+                                            <div class="gallery-item-overlay">
+                                                <div class="gallery-zoom-icon">
+                                                    <i class="fa-solid fa-expand"></i>
+                                                </div>
+                                                <span class="gallery-item-caption">${currentTitle} #${photoNumber}</span>
+                                            </div>
+                                        </div>
+                                    `;
+                                    $datset.append(htmlCard);
+                                });
+
+                                if (typeof window.initGallery === "function") {
+                                    window.initGallery();
+                                }
+                            } else {
+                                $datset.append('<div class="no-albums-found"><i class="fa-solid fa-images fa-2x mb-3"></i><p>No photos available in this album yet.</p></div>');
+                            }
                         }
                     } else {
                         toastr.warning("Could not retrieve banner data.", "Warning");

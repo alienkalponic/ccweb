@@ -104,8 +104,11 @@ namespace ProjectWeb.WEB.Controllers
         // GET: GalleryContent/Details/5
         public async Task<IActionResult> Details(int id, int? galleryItemsId = null, string? title = null, string? category = null, int? year = null)
         {
-            ViewBag.GalleryId = id;
-            ViewBag.GalleryItemsId = galleryItemsId ?? (id == 32 ? 32 : 0);
+            int effectiveGalleryId = id > 0 ? id : (galleryItemsId ?? 0);
+            int effectiveGalleryItemId = (galleryItemsId.HasValue && galleryItemsId.Value > 0) ? galleryItemsId.Value : (id > 0 ? id : 0);
+
+            ViewBag.GalleryId = effectiveGalleryId;
+            ViewBag.GalleryItemsId = effectiveGalleryItemId;
             ViewBag.AlbumTitle = title ?? "";
             ViewBag.CategoryName = category ?? "";
             ViewBag.ExpeditionYear = year ?? 0;
@@ -215,37 +218,130 @@ namespace ProjectWeb.WEB.Controllers
                 }
             }
 
-            return View();
+            MultipleModel mmm = new MultipleModel();
+            AchievementDetailsGalleryDtos? parentGallery = null;
+
+            // Fetch parent and photo children server-side so images render immediately without waiting for AJAX
+            long targetGalleryItemId = (int)ViewBag.GalleryItemsId > 0 
+                ? (long)(int)ViewBag.GalleryItemsId 
+                : (effectiveGalleryId == 8 ? 32 : (long)effectiveGalleryId);
+
+            if (targetGalleryItemId > 0)
+            {
+                try
+                {
+                    APIResponse gRes = await _unitOfWork.ContentManagement.AchievementDetailsGalleryItemsId<APIResponse>(targetGalleryItemId);
+                    if (gRes?.Response != null)
+                    {
+                        var gStr = Convert.ToString(gRes.Response);
+                        if (!string.IsNullOrWhiteSpace(gStr))
+                        {
+                            var trimmed = gStr.TrimStart();
+                            parentGallery = trimmed.StartsWith("[")
+                                ? JsonConvert.DeserializeObject<List<AchievementDetailsGalleryDtos>>(gStr)?.FirstOrDefault()
+                                : JsonConvert.DeserializeObject<AchievementDetailsGalleryDtos>(gStr);
+
+                            if (parentGallery != null && !string.IsNullOrWhiteSpace(parentGallery.AchievementDetailsGalleryDetails))
+                            {
+                                parentGallery.AchievementDetailsGalleryDetailsList =
+                                    JsonConvert.DeserializeObject<List<AchievementDetailsGalleryDetailDto>>(parentGallery.AchievementDetailsGalleryDetails) 
+                                    ?? new List<AchievementDetailsGalleryDetailDto>();
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not fetch AchievementDetailsGalleryItemsId in Details for id {Id}", targetGalleryItemId);
+                }
+            }
+
+            // Fallback: Try AchievementDetailsGalleryGetByAchievementId if no photos loaded yet
+            if (parentGallery?.AchievementDetailsGalleryDetailsList == null || !parentGallery.AchievementDetailsGalleryDetailsList.Any())
+            {
+                long achvId = effectiveGalleryId > 0 ? (long)effectiveGalleryId : (parentGallery?.AchievementDetailsId ?? 0);
+                if (achvId > 0)
+                {
+                    try
+                    {
+                        APIResponse byAchRes = await _unitOfWork.ContentManagement.AchievementDetailsGalleryGetByAchievementId<APIResponse>(achvId);
+                        var byAchStr = Convert.ToString(byAchRes?.Response);
+                        if (!string.IsNullOrWhiteSpace(byAchStr))
+                        {
+                            var listDtos = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryUpdateDto>>(byAchStr);
+                            if (listDtos != null && listDtos.Any())
+                            {
+                                if (parentGallery == null) parentGallery = new AchievementDetailsGalleryDtos { AchievementDetailsId = achvId };
+                                parentGallery.AchievementDetailsGalleryDetailsList = listDtos.Select(x => new AchievementDetailsGalleryDetailDto
+                                {
+                                    AchievementDetailsGalleryId = x.AchievementDetailsGalleryId,
+                                    AchievementDetailsId = x.AchievementDetailsId ?? achvId,
+                                    Title = x.Title,
+                                    Description = x.Description,
+                                    ImagePath1 = x.ImagePath1,
+                                    DisplayOrder = x.DisplayOrder,
+                                    IsActive = x.IsActive
+                                }).ToList();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Could not fetch AchievementDetailsGalleryGetByAchievementId in Details for id {Id}", achvId);
+                    }
+                }
+            }
+
+            if (parentGallery != null)
+            {
+                if (!string.IsNullOrWhiteSpace(parentGallery.Title) && string.IsNullOrWhiteSpace(ViewBag.AlbumTitle as string)) 
+                    ViewBag.AlbumTitle = parentGallery.Title;
+                if (!string.IsNullOrWhiteSpace(parentGallery.SubTitle) && string.IsNullOrWhiteSpace(ViewBag.CategoryName as string)) 
+                    ViewBag.CategoryName = parentGallery.SubTitle;
+                if (parentGallery.GalleryItemsId.HasValue && parentGallery.GalleryItemsId.Value > 0 && (int)ViewBag.GalleryItemsId <= 0) 
+                    ViewBag.GalleryItemsId = (int)parentGallery.GalleryItemsId.Value;
+            }
+
+            mmm.AchievementDetailsGalleryDtos = parentGallery;
+            return View(mmm);
         }
 
-        public async Task<IActionResult> GetGalleryDetails(int id)
+        public async Task<IActionResult> GetGalleryDetails(int id, int? galleryItemsId = null)
         {
-            if (id <= 0)
-                return Content(JsonConvert.SerializeObject(new APIResponse { Success = false, Response = "Invalid Achievement ID." }), "application/json");
+            int targetId = id > 0 ? id : (galleryItemsId.HasValue && galleryItemsId.Value > 0 ? galleryItemsId.Value : 0);
+            if (targetId <= 0)
+                return Content(JsonConvert.SerializeObject(new List<AchievementDetailsGalleryUpdateDto>()), "application/json");
 
             List<AchievementDetailsGalleryUpdateDto> list = new List<AchievementDetailsGalleryUpdateDto>();
 
-            try
+            // 1. Try by Achievement ID
+            if (id > 0)
             {
-                APIResponse response = await _unitOfWork
-                    .ContentManagement
-                    .AchievementDetailsGalleryGetByAchievementId<APIResponse>(id);
-
-                var stringResponse = Convert.ToString(response?.Response);
-                if (!string.IsNullOrEmpty(stringResponse))
+                try
                 {
-                    list = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryUpdateDto>>(stringResponse) ?? new List<AchievementDetailsGalleryUpdateDto>();
+                    APIResponse response = await _unitOfWork
+                        .ContentManagement
+                        .AchievementDetailsGalleryGetByAchievementId<APIResponse>(id);
+
+                    var stringResponse = Convert.ToString(response?.Response);
+                    if (!string.IsNullOrEmpty(stringResponse))
+                    {
+                        list = JsonConvert.DeserializeObject<List<AchievementDetailsGalleryUpdateDto>>(stringResponse) ?? new List<AchievementDetailsGalleryUpdateDto>();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "AchievementDetailsGalleryGetByAchievementId failed for id {Id}", id);
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "AchievementDetailsGalleryGetByAchievementId failed for id {Id}", id);
-            }
 
-            // Fallback: If id is 32 or list is empty, try AchievementDetailsGalleryItemsId
+            // 2. Fallback: If list is empty, try AchievementDetailsGalleryItemsId with galleryItemsId or targetId
             if (list == null || list.Count == 0)
             {
-                long targetItemId = id == 8 ? 32 : (long)id;
+                long targetItemId = (galleryItemsId.HasValue && galleryItemsId.Value > 0)
+                    ? (long)galleryItemsId.Value
+                    : (targetId == 8 ? 32 : (long)targetId);
+
                 try
                 {
                     APIResponse gRes = await _unitOfWork
@@ -281,7 +377,7 @@ namespace ProjectWeb.WEB.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "AchievementDetailsGalleryItemsId fallback failed in GetGalleryDetails for id {Id}", id);
+                    _logger.LogWarning(ex, "AchievementDetailsGalleryItemsId fallback failed in GetGalleryDetails for id {Id}", targetId);
                 }
             }
 

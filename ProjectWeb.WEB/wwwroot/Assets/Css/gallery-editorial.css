@@ -968,55 +968,500 @@
 }
 
 /* ==========================================================================
-   PRINT STYLESHEET
+   PRINT MASTHEAD (Hidden on Screen, Active on Print)
+   ========================================================================== */
+.print-doc-header {
+    display: none;
+}
+
+/* ==========================================================================
+   PRINT STYLESHEET (High-Quality Editorial PDF / Print Engine)
    ========================================================================== */
 @media print {
-    body, .gallery-editorial {
-        background: #ffffff !important;
-        color: #000000 !important;
-        padding-top: 0 !important;
+    /* 1. Page Margin & Paper Setup */
+    @page {
+        size: A4 portrait;
+        margin: 15mm 15mm 15mm 15mm;
     }
 
+    /* 2. Global Document Reset for Clean White Paper */
+    *,
+    *::before,
+    *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    html, body {
+        background: #ffffff !important;
+        color: #111827 !important;
+        font-size: 10pt !important;
+        line-height: 1.6 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. Completely Suppress Website Navigation, Header, Footer & Floating Modals */
+    header,
+    nav,
+    .navbar,
+    .navbar-expand-lg,
+    .fixed-top,
+    .color-active,
+    footer,
+    ._Footer,
+    .footer_image,
+    #globalLoader,
+    .global-loader-overlay,
     .report-nav-bar,
+    .report-breadcrumbs,
+    .report-nav-actions,
     .btn-report-action,
     .report-bottom-bar,
     .image-zoom-overlay,
     .btn-inspect-image,
-    .lightbox-modal {
+    .lightbox-modal,
+    #imageLightbox,
+    .report-toast,
+    #reportToast,
+    .d-print-none {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        position: static !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* 4. Main Container Margin/Padding Normalization */
+    .container-fluied,
+    main,
+    .gallery-editorial,
+    .gallery-editorial-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        background-image: none !important;
+        min-height: auto !important;
+        position: static !important;
+    }
+
+    /* 5. Print Document Masthead Header (Page 1 Only) */
+    .print-doc-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 4mm;
+        margin-bottom: 6mm;
+        border-bottom: 2px solid #b08b45 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .print-doc-brand {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+
+    .print-doc-logo {
+        height: 48px !important;
+        width: auto !important;
+        object-fit: contain !important;
+        display: block !important;
+    }
+
+    .print-doc-org {
+        font-family: var(--cc-font-display);
+        font-size: 15pt !important;
+        font-weight: 800 !important;
+        letter-spacing: 1.5px !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    .print-doc-tagline {
+        font-family: var(--cc-font-sans);
+        font-size: 7.5pt !important;
+        letter-spacing: 0.5px !important;
+        color: #4b5563 !important;
+        margin-top: 2px !important;
+        text-transform: uppercase !important;
+    }
+
+    .print-doc-meta {
+        text-align: right !important;
+        font-family: var(--cc-font-sans);
+        font-size: 8.5pt !important;
+        color: #6b7280 !important;
+        line-height: 1.4 !important;
+    }
+
+    .print-doc-meta span {
+        display: block !important;
+    }
+
+    /* 6. Hero Banner Print Styling */
+    .gallery-hero {
+        background: #fdfbf7 !important;
+        border: 1.5px solid #d4af37 !important;
+        border-radius: 4px !important;
+        padding: 6mm 6mm 7mm !important;
+        margin-bottom: 8mm !important;
+        position: static !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        text-align: center !important;
+    }
+
+    .gallery-hero::before {
         display: none !important;
     }
 
-    .expedition-dossier-card {
-        background: #ffffff !important;
-        border: 1px solid #cccccc !important;
-        box-shadow: none !important;
-        color: #000000 !important;
+    .gallery-hero-badge-wrap {
+        background: #fef3c7 !important;
+        border: 1px solid #b08b45 !important;
+        color: #8c6b2d !important;
+        font-size: 7.5pt !important;
+        padding: 2px 10px !important;
+        margin-bottom: 3mm !important;
     }
 
-    .gallery-hero h1,
+    .gallery-hero h1 {
+        font-size: 20pt !important;
+        font-weight: 800 !important;
+        line-height: 1.2 !important;
+        color: #000000 !important;
+        margin-bottom: 2mm !important;
+        text-transform: uppercase !important;
+    }
+
+    .gallery-hero .hero-subtitle {
+        font-size: 11pt !important;
+        font-weight: 600 !important;
+        color: #8c6b2d !important;
+        margin-bottom: 3mm !important;
+    }
+
+    .hero-meta-bar {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 4mm !important;
+        margin-top: 2mm !important;
+    }
+
+    .hero-meta-pill {
+        background: #ffffff !important;
+        border: 1px solid #d1d5db !important;
+        padding: 1.5mm 3.5mm !important;
+        font-size: 8pt !important;
+        color: #374151 !important;
+        border-radius: 4px !important;
+    }
+
+    .hero-meta-pill span {
+        color: #111827 !important;
+        font-weight: 600 !important;
+    }
+
+    .hero-meta-pill i {
+        color: #b08b45 !important;
+    }
+
+    /* 7. Route Report & Field Log Dossier */
+    .expedition-dossier-card {
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-top: 3px solid #b08b45 !important;
+        border-radius: 4px !important;
+        margin-bottom: 8mm !important;
+        position: static !important;
+        page-break-inside: auto !important;
+    }
+
+    .dossier-header-bar {
+        background: #f9fafb !important;
+        border-bottom: 1.5px solid #e5e7eb !important;
+        padding: 3mm 5mm !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .dossier-header-title {
+        color: #8c6b2d !important;
+        font-size: 9.5pt !important;
+        font-weight: 700 !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    .dossier-header-tag {
+        background: #ffffff !important;
+        border: 1px solid #d1d5db !important;
+        color: #4b5563 !important;
+        font-size: 7.5pt !important;
+        border-radius: 4px !important;
+    }
+
+    .dossier-body-wrapper {
+        padding: 5mm 5mm !important;
+    }
+
+    /* 8. Report Content Typography & Overlap Prevention */
+    .report-content-body {
+        font-size: 10pt !important;
+        line-height: 1.65 !important;
+        color: #1f2937 !important;
+    }
+
     .report-content-body h1,
     .report-content-body h2,
     .report-content-body h3,
-    .report-content-body p,
-    .report-content-body td {
+    .report-content-body h4,
+    .report-content-body h5,
+    .report-content-body h6 {
         color: #000000 !important;
-        text-shadow: none !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-top: 6mm !important;
+        margin-bottom: 2mm !important;
+        line-height: 1.3 !important;
+        position: static !important;
+    }
+
+    .report-content-body h1 {
+        font-size: 15pt !important;
+        border-bottom: 1px solid #d1d5db !important;
+        padding-bottom: 2mm !important;
+        margin-top: 7mm !important;
+    }
+
+    .report-content-body h2 {
+        font-size: 12.5pt !important;
+        border-left: 3px solid #b08b45 !important;
+        padding-left: 2.5mm !important;
+    }
+
+    .report-content-body h3 {
+        font-size: 11pt !important;
+        color: #8c6b2d !important;
+    }
+
+    .report-content-body h4 {
+        font-size: 10pt !important;
+        color: #374151 !important;
+    }
+
+    .report-content-body p {
+        font-size: 10pt !important;
+        line-height: 1.65 !important;
+        color: #1f2937 !important;
+        margin-bottom: 3mm !important;
+        orphans: 3 !important;
+        widows: 3 !important;
+        page-break-inside: auto !important;
+        position: static !important;
+    }
+
+    /* Suppress empty tags and line breaks causing artificial overlap/spacing */
+    .report-content-body p:empty,
+    .report-content-body p:blank,
+    .report-content-body p:has(> br:only-child) {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 0 !important;
+    }
+
+    .report-content-body strong,
+    .report-content-body b {
+        color: #000000 !important;
+        font-weight: 700 !important;
+    }
+
+    .report-content-body p > strong:only-child,
+    .report-content-body p:has(> strong:only-child) {
+        font-size: 11pt !important;
+        color: #000000 !important;
+        margin-top: 4mm !important;
+        margin-bottom: 1.5mm !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .report-content-body ul,
+    .report-content-body ol {
+        margin: 2mm 0 4mm 5mm !important;
+        padding-left: 4mm !important;
+        page-break-inside: auto !important;
+    }
+
+    .report-content-body li {
+        color: #1f2937 !important;
+        margin-bottom: 1.5mm !important;
+        line-height: 1.5 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .report-content-body blockquote {
+        background: #f9fafb !important;
+        border-left: 3px solid #b08b45 !important;
+        color: #374151 !important;
+        padding: 2.5mm 4mm !important;
+        margin: 3mm 0 !important;
+        font-size: 9.5pt !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .report-content-body hr {
+        border: none !important;
+        border-top: 1px solid #e5e7eb !important;
+        margin: 5mm 0 !important;
+        height: 0 !important;
     }
 
     .report-content-body table {
-        border: 1px solid #000000 !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1px solid #d1d5db !important;
+        margin: 4mm 0 !important;
+        page-break-inside: auto !important;
+    }
+
+    .report-content-body tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 
     .report-content-body th {
-        background: #f0f0f0 !important;
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        border: 1px solid #d1d5db !important;
+        padding: 2mm 3mm !important;
+        font-size: 8.5pt !important;
+        font-weight: 700 !important;
+    }
+
+    .report-content-body td {
+        border: 1px solid #e5e7eb !important;
+        color: #1f2937 !important;
+        padding: 2mm 3mm !important;
+        font-size: 8.5pt !important;
+    }
+
+    /* 9. Visual Highlights / Photographic Log in Print */
+    .expedition-gallery-section {
+        margin-top: 8mm !important;
+        margin-bottom: 8mm !important;
+        page-break-before: auto !important;
+    }
+
+    .section-editorial-header {
+        margin-bottom: 5mm !important;
+        text-align: center !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    .section-tagline {
+        color: #8c6b2d !important;
+        font-size: 8pt !important;
+        margin-bottom: 1.5mm !important;
+    }
+
+    .section-editorial-header h2 {
         color: #000000 !important;
-        border-bottom: 1px solid #000000 !important;
+        font-size: 15pt !important;
+        margin-bottom: 1.5mm !important;
+    }
+
+    .section-editorial-header p {
+        color: #4b5563 !important;
+        font-size: 9pt !important;
     }
 
     .gallery-section {
-        page-break-inside: avoid;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        gap: 5mm !important;
         background: #ffffff !important;
-        border: 1px solid #cccccc !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 4px !important;
+        padding: 4mm !important;
+        margin-bottom: 5mm !important;
         box-shadow: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .gallery-section:nth-child(even) {
+        flex-direction: row-reverse !important;
+    }
+
+    .gallery-content {
+        flex: 1.2 !important;
+    }
+
+    .pitch-order-badge {
+        background: #fef3c7 !important;
+        border: 1px solid #b08b45 !important;
+        color: #8c6b2d !important;
+        font-size: 7.5pt !important;
+        padding: 1.5mm 3mm !important;
+        margin-bottom: 2mm !important;
+    }
+
+    .gallery-content h3 {
+        color: #000000 !important;
+        font-size: 12pt !important;
+        margin-bottom: 2mm !important;
+    }
+
+    .gallery-content p {
+        color: #374151 !important;
+        font-size: 9pt !important;
+        line-height: 1.5 !important;
+        margin-bottom: 2mm !important;
+    }
+
+    .gallery-image-box {
+        flex: 1 !important;
+        min-height: auto !important;
+        background: transparent !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 4px !important;
+        overflow: hidden !important;
+        box-shadow: none !important;
+    }
+
+    .gallery-image-box img {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 55mm !important;
+        object-fit: contain !important;
+        display: block !important;
     }
 }
