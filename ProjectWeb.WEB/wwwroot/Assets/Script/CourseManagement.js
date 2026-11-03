@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Course Management Module JavaScript
  * Climbers Circle Admin Panel
  */
@@ -708,7 +708,7 @@ $(document).ready(function () {
 
             // Load Officials from CourseOfficial table
             $.ajax({
-                url: _BaseURL + "/CourseManagement/GetAllCourseOfficial",
+                url: _BaseURL + "/CourseManagement/GetAllCourseOfficial?pageSize=10000",
                 type: "GET",
                 dataType: "json",
                 success: function (res) {
@@ -1257,7 +1257,9 @@ $(document).ready(function () {
                 courseId = optVal || 5;
             }
 
-            let url = `${_BaseURL}/CourseManagement/GetAllEnrollment?pageNumber=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search)}`;
+            const fetchPageNum = (action_name === "participants" || action_name === "officials") ? 1 : page;
+            const fetchPageSize = (action_name === "participants" || action_name === "officials") ? 10000 : pageSize;
+            let url = `${_BaseURL}/CourseManagement/GetAllEnrollment?pageNumber=${fetchPageNum}&pageSize=${fetchPageSize}&search=${encodeURIComponent(search)}`;
             if (courseId) url += `&courseId=${courseId}`;
             if (year) url += `&year=${year}`;
             if (status) url += `&status=${encodeURIComponent(status)}`;
@@ -1309,10 +1311,13 @@ $(document).ready(function () {
                 return;
             }
 
-            let html = "";
+            const effectiveTotalRecords = (action_name === "participants" || action_name === "officials") ? filteredList.length : totalRecords;
             const startIndex = (page - 1) * pageSize;
+            const pageItems = (action_name === "participants" || action_name === "officials") ? filteredList.slice(startIndex, startIndex + pageSize) : filteredList;
 
-            filteredList.forEach((item) => {
+            let html = "";
+
+            pageItems.forEach((item) => {
                 let statusClass = "bg-primary";
                 if (item.EnrollmentStatus === "CONFIRMED" || item.Status === "CONFIRMED") statusClass = "bg-success";
                 else if (item.EnrollmentStatus === "CANCELLED" || item.Status === "CANCELLED") statusClass = "bg-danger";
@@ -1395,9 +1400,9 @@ $(document).ready(function () {
             });
 
             $tbody.html(html);
-            $("#enrollRecordInfo").text(`Showing ${filteredList.length > 0 ? (startIndex + 1) : 0} to ${startIndex + filteredList.length} of ${totalRecords} entries`);
+            $("#enrollRecordInfo").text(`Showing ${pageItems.length > 0 ? (startIndex + 1) : 0} to ${startIndex + pageItems.length} of ${effectiveTotalRecords} entries`);
 
-            renderPaginationLocal("#enrollPagination", page, totalRecords, pageSize, function (newPage) {
+            renderPaginationLocal("#enrollPagination", page, effectiveTotalRecords, pageSize, function (newPage) {
                 currentPage = newPage;
                 loadEnrollments(currentPage);
             });
