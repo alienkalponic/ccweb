@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Panel Responsive Logic
  */
 function toggleSidebar() {
@@ -30,21 +30,32 @@ $(document).ready(function () {
     var contollername = !$.isNull($.getcontrollername()) ? $.getcontrollername().toLowerCase() : "";
 
     function handleAjaxError(xhr, status, error) {
-        let errorMessage = "An error occurred while processing your request.";
-        if (xhr.status === 0) {
-            errorMessage = "Network error: Unable to connect to the server.";
-        } else if (xhr.status === 404) {
-            errorMessage = "API endpoint not found (404).";
-        } else if (xhr.status === 401) {
-            errorMessage = "Unauthorized access. Please login again.";
-        } else if (xhr.status === 500) {
-            errorMessage = "Internal server error (500).";
-        } else if (xhr.responseText) {
+        let errorMessage = "";
+        if (xhr.responseText) {
             try {
                 const res = JSON.parse(xhr.responseText);
-                errorMessage = res.response || (res.errorMassage && res.errorMassage.length > 0 ? res.errorMassage.join("<br/>") : errorMessage);
+                const errArr = res.ErrorMassage || res.errorMassage;
+                errorMessage = res.Response || res.response || res.Message || res.message ||
+                    (Array.isArray(errArr) && errArr.length > 0 ? errArr.filter(x => x && !String(x).trim().startsWith("<")).join("<br/>") : "");
             } catch (e) {
-                errorMessage = "Server error occurred.";
+                if (xhr.responseText.length < 250 && !xhr.responseText.includes("<!DOCTYPE")) {
+                    errorMessage = xhr.responseText;
+                }
+            }
+        }
+        if (!errorMessage) {
+            if (xhr.status === 0) {
+                errorMessage = "Network error: Unable to connect to the server.";
+            } else if (xhr.status === 404) {
+                errorMessage = "API endpoint not found (404).";
+            } else if (xhr.status === 401) {
+                errorMessage = "Unauthorized access (401). Please login again.";
+            } else if (xhr.status === 403) {
+                errorMessage = "Access denied / Forbidden (403).";
+            } else if (xhr.status === 500) {
+                errorMessage = "Internal server error (500).";
+            } else {
+                errorMessage = "An error occurred while processing your request.";
             }
         }
         toastr.error(errorMessage, "Error");

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -331,6 +331,32 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 try
                 {
                     httpResponseMessage = await client.SendAsync(messageFactory());
+
+                    // Fallback between POST and PUT when live server ModSecurity/IIS blocks PUT (403/405)
+                    // or when an older API endpoint only accepts PUT (405 on POST)
+                    if ((httpResponseMessage.StatusCode == HttpStatusCode.MethodNotAllowed ||
+                         httpResponseMessage.StatusCode == HttpStatusCode.Forbidden) &&
+                        (apiRequest.ApiType == StaticDetails.ApiType.PUT || apiRequest.ApiType == StaticDetails.ApiType.POST))
+                    {
+                        var fallbackMethod = apiRequest.ApiType == StaticDetails.ApiType.PUT
+                            ? HttpMethod.Post
+                            : HttpMethod.Put;
+
+                        _logger.LogWarning(
+                            "[SendAsync] Received {Status} for {OrigMethod} {Url}. Retrying with {FallbackMethod}...",
+                            httpResponseMessage.StatusCode, apiRequest.ApiType, apiRequest.Url, fallbackMethod);
+
+                        var retryMsg = messageFactory();
+                        retryMsg.Method = fallbackMethod;
+                        var retryResponse = await client.SendAsync(retryMsg);
+
+                        if (retryResponse.IsSuccessStatusCode ||
+                            (retryResponse.StatusCode != HttpStatusCode.MethodNotAllowed &&
+                             retryResponse.StatusCode != HttpStatusCode.Forbidden))
+                        {
+                            httpResponseMessage = retryResponse;
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -346,44 +372,83 @@ namespace ProjectWeb.Infrastucture.Service.Master
                 try
                 {
                     var apiContent = await httpResponseMessage.Content.ReadAsStringAsync();
+                    var reasonPhrase = httpResponseMessage.ReasonPhrase ?? httpResponseMessage.StatusCode.ToString();
 
                     switch (httpResponseMessage.StatusCode)
                     {
                         case HttpStatusCode.NotFound:
                             finalApiResponse.StatusCode = HttpStatusCode.NotFound;
                             finalApiResponse.ErrorMassage = new List<string>
-                    {
-                        $"API Endpoint Not Found: {apiRequest.Url}"
-                    };
+                            {
+                                $"API Endpoint Not Found (404): {apiRequest.Url}"
+                            };
+                            finalApiResponse.Response = $"API Endpoint Not Found (404): {apiRequest.Url}";
                             break;
 
                         case HttpStatusCode.Forbidden:
                             finalApiResponse.StatusCode = HttpStatusCode.Forbidden;
+                            var forbiddenDetail = reasonPhrase.Contains("ModSecurity", StringComparison.OrdinalIgnoreCase)
+                                ? $"Server Firewall (ModSecurity) blocked {apiRequest.ApiType} request to {apiRequest.Url}. Please ensure POST is enabled on the API endpoint."
+                                : $"Access Denied / Forbidden (403 - {reasonPhrase}) from {apiRequest.Url}";
                             finalApiResponse.ErrorMassage = new List<string>
-                    {
-                        "Access Denied / Forbidden",
-                        apiContent // 🔥 extra debug info
-                    };
+                            {
+                                forbiddenDetail,
+                                apiContent
+                            };
+                            finalApiResponse.Response = forbiddenDetail;
+                            break;
+
+                        case HttpStatusCode.MethodNotAllowed:
+                            finalApiResponse.StatusCode = HttpStatusCode.MethodNotAllowed;
+                            var methodMsg = $"HTTP Method {apiRequest.ApiType} Not Allowed (405) at {apiRequest.Url}. Live server ModSecurity blocks PUT — please ensure API controller allows [HttpPost].";
+                            finalApiResponse.ErrorMassage = new List<string>
+                            {
+                                methodMsg,
+                                apiContent
+                            };
+                            finalApiResponse.Response = methodMsg;
                             break;
 
                         case HttpStatusCode.Unauthorized:
                             finalApiResponse.StatusCode = HttpStatusCode.Unauthorized;
+                            var unauthMsg = "Unauthorized (401) - Your login session/token has expired. Please log out and log in again.";
                             finalApiResponse.ErrorMassage = new List<string>
-                    {
-                        "Unauthorized - Token invalid or expired",
-                        apiContent
-                    };
+                            {
+                                unauthMsg,
+                                apiContent
+                            };
+                            finalApiResponse.Response = unauthMsg;
                             break;
 
                         case HttpStatusCode.InternalServerError:
                             _logger.LogError("[SendAsync] API 500 from {Url}: {Body}", apiRequest.Url, apiContent);
 
                             finalApiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                            string serverErrDetail = "Internal Server Error (500) from API.";
+                            if (!string.IsNullOrWhiteSpace(apiContent))
+                            {
+                                try
+                                {
+                                    var errObj = JsonConvert.DeserializeObject<APIResponse>(apiContent);
+                                    if (errObj?.Response != null)
+                                        serverErrDetail = $"Server Error (500): {errObj.Response}";
+                                    else if (errObj?.ErrorMassage?.Count > 0)
+                                        serverErrDetail = $"Server Error (500): {string.Join("; ", errObj.ErrorMassage)}";
+                                    else if (!apiContent.TrimStart().StartsWith("<"))
+                                        serverErrDetail = $"Server Error (500): {(apiContent.Length > 300 ? apiContent[..300] : apiContent)}";
+                                }
+                                catch
+                                {
+                                    if (!apiContent.TrimStart().StartsWith("<"))
+                                        serverErrDetail = $"Server Error (500): {(apiContent.Length > 300 ? apiContent[..300] : apiContent)}";
+                                }
+                            }
                             finalApiResponse.ErrorMassage = new List<string>
-                    {
-                        "Internal Server Error from API",
-                        apiContent
-                    };
+                            {
+                                serverErrDetail,
+                                apiContent
+                            };
+                            finalApiResponse.Response = serverErrDetail;
                             break;
 
                         case HttpStatusCode.BadRequest:

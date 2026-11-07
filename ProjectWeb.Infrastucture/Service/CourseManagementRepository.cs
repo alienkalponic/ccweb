@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ProjectWeb.Application.Common.Repository;
@@ -57,7 +57,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course",
                 ContentType = StaticDetails.ContentType.Json
@@ -103,7 +103,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-batch",
                 ContentType = StaticDetails.ContentType.Json
@@ -151,7 +151,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-enrollment",
                 ContentType = StaticDetails.ContentType.Json
@@ -212,7 +212,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-payment",
                 ContentType = StaticDetails.ContentType.Json
@@ -300,7 +300,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-official",
                 ContentType = StaticDetails.ContentType.Json
@@ -335,7 +335,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = new UpdateOfficialPaymentStatusDto { CourseOfficialId = id, PaymentStatus = paymentStatus },
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-official-payment-status",
                 ContentType = StaticDetails.ContentType.Json
@@ -360,7 +360,7 @@ namespace ProjectWeb.Infrastucture.Service
         {
             return await _baseService.SendAsync<T>(new APIRequest
             {
-                ApiType = StaticDetails.ApiType.PUT,
+                ApiType = StaticDetails.ApiType.POST,
                 Data = dto,
                 Url = projectUrl.TrimEnd('/') + "/api/CourseManagement/update-course-expense",
                 ContentType = StaticDetails.ContentType.Json

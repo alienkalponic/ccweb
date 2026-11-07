@@ -186,6 +186,44 @@ $(document).ready(function () {
         if (sectionSelector) $(sectionSelector).show();
     }
 
+    // Helper: Extract detailed error message from APIResponse
+    function getApiErrorMessage(res, fallbackMsg) {
+        const defaultText = fallbackMsg || "Operation failed.";
+        if (!res) return defaultText;
+        if (typeof res === "string") return res;
+
+        const parts = [];
+        const respText = res.Response || res.response || res.Message || res.message;
+        if (respText && typeof respText === "string" && respText.trim() !== "") {
+            parts.push(respText.trim());
+        }
+
+        const errList = res.ErrorMassage || res.errorMassage || res.Errors || res.errors;
+        if (Array.isArray(errList) && errList.length > 0) {
+            errList.forEach(item => {
+                if (item && typeof item === "string") {
+                    const clean = item.trim();
+                    // Skip raw HTML pages (e.g. IIS/ModSecurity full HTML page), keep concise text
+                    if (clean && !clean.startsWith("<!DOCTYPE") && !clean.startsWith("<html") && !parts.includes(clean)) {
+                        parts.push(clean.length > 300 ? clean.substring(0, 300) + "..." : clean);
+                    }
+                }
+            });
+        } else if (typeof errList === "string" && errList.trim() !== "" && !parts.includes(errList.trim())) {
+            parts.push(errList.trim());
+        }
+
+        const statusCode = res.StatusCode || res.statusCode;
+        if (parts.length > 0) {
+            const msg = parts.join(" | ");
+            return (statusCode && !msg.includes(String(statusCode))) ? `[Status ${statusCode}] ${msg}` : msg;
+        }
+        if (statusCode) {
+            return `${defaultText} (HTTP Status: ${statusCode})`;
+        }
+        return defaultText;
+    }
+
     // Common AJAX Error Handler
     function handleAjaxError(xhr, status, error) {
         hideLoader();
@@ -898,7 +936,7 @@ $(document).ready(function () {
                         $("#courseModal").modal("hide");
                         loadCourses(currentPage);
                     } else {
-                        toastr.error(res.Response || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -1144,7 +1182,7 @@ $(document).ready(function () {
                         $("#batchModal").modal("hide");
                         loadBatches(currentPage);
                     } else {
-                        toastr.error(res.Response || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -1811,7 +1849,7 @@ $(document).ready(function () {
                         afterSaveDone();
                     } else {
                         hideLoader();
-                        toastr.error(res.Response || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -2078,7 +2116,7 @@ $(document).ready(function () {
                                         Swal.fire("Cancelled", msg, "success");
                                         loadEnrollments(currentPage);
                                     } else {
-                                        toastr.error(res.Response || "Cancellation failed.", "Error");
+                                        toastr.error(getApiErrorMessage(res, "Cancellation failed."), "Error");
                                     }
                                 },
                                 error: handleAjaxError
@@ -2319,7 +2357,7 @@ $(document).ready(function () {
                                     }, 600);
                                 }
                             } else {
-                                toastr.error(updateRes.Response || updateRes.response || "Re-confirmation failed.", "Error");
+                                toastr.error(getApiErrorMessage(updateRes, "Re-confirmation failed."), "Error");
                             }
                         },
                         error: handleAjaxError
@@ -2405,7 +2443,7 @@ $(document).ready(function () {
                         $("#editPaymentModal").modal("hide");
                         loadPayments(currentPage);
                     } else {
-                        toastr.error(res.Response || res.Message || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -3071,7 +3109,7 @@ $(document).ready(function () {
                         $("#officialModal").modal("hide");
                         loadOfficials(currentPage);
                     } else {
-                        toastr.error(res.Response || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -3090,7 +3128,7 @@ $(document).ready(function () {
                         toastr.success(`Payment status marked as ${newStatus}!`, "Success");
                         loadOfficials(currentPage);
                     } else {
-                        toastr.error(res.Response || "Failed to update status.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Failed to update status."), "Error");
                     }
                 },
                 error: handleAjaxError
@@ -3311,7 +3349,7 @@ $(document).ready(function () {
                         $("#expenseModal").modal("hide");
                         loadExpenses(currentPage);
                     } else {
-                        toastr.error(res.Response || "Operation failed.", "Error");
+                        toastr.error(getApiErrorMessage(res, "Operation failed."), "Error");
                     }
                 },
                 error: handleAjaxError
